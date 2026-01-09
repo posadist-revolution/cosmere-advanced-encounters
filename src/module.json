@@ -1,24 +1,23 @@
 {
-  "id": "module",
-  "title": "New Module",
+  "id": "cosmere-advanced-encounters",
+  "title": "Cosmere Advanced Encounters",
   "description": "",
-  "version": "#{VERSION}#",
+  "version": "#0.0.1",
   "library": "false",
   "manifestPlusVersion": "1.2.0",
   "compatibility": {
-    "minimum": 10,
-    "verified": 10,
-    "maximum": 11
+    "minimum": 13,
+    "verified": 13,
+    "maximum": 13
   },
   "authors": [
     {
-      "name": "The League of Extraordinary FVTT Developers",
-      "url": "https://github.com/League-of-Foundry-Developers",
-      "discord": "discordID#0001"
+      "name": "posadist-revolution",
+      "url": "https://github.com/posadist-revolution/cosmere-advanced-encounters"
     }
   ],
   "relationships": {
-    "systems": [],
+    "systems": ["cosmere-rpg"],
     "requires": []
   },
   "esmodules": [
