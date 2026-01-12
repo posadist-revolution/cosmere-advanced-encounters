@@ -1,3 +1,8 @@
-<div class="action-controls flexrow">
-    <i class="inline-control combatant-control icon cosmere-icon active">2</i>
-</div>
+{{#each actionsUsed as |actionUsed|}}
+{{log actionUsed}}
+<i class="inline-control combatant-control icon cosmere-icon actions-used">{{actionUsed}}</i>
+{{/each}}
+{{log actionsLeft}}
+{{#if (gt actionsLeft 0)}}
+<i class="inline-control combatant-control icon cosmere-icon actions-left">{{actionsLeft}}</i>
+{{/if}}
