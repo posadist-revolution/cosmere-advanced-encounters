@@ -10,7 +10,6 @@
 		"moduleResolution": "Node10",
 		"strictNullChecks": true,
 		"outDir": "./build",
-		"allowJs": true,
 		"noImplicitReturns": true,
 		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true,
