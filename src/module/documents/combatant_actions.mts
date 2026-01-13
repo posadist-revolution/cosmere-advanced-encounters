@@ -206,6 +206,10 @@ export class CombatantActions{
 
     public onRender(combatantJQuery : JQuery){
         this.determineCombatantActionsCount();
+        if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
+        {
+            return;
+        }
         combatantJQuery.find("button.actions-left").on('click', async (event) => await CombatantActions._onUseActionButton(event));
         combatantJQuery.find("button.actions-used").on('click', async (event) => await CombatantActions._onRestoreActionButton(event));
         combatantJQuery.find("button.reaction-used").on('click', async (event) => await CombatantActions._onToggleReactionButton(event));
