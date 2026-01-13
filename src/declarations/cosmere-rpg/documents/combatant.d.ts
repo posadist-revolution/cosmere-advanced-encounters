@@ -1,6 +1,7 @@
 import { TurnSpeed } from '@system/types/cosmere';
 import { CosmereActor } from './actor';
 import { SYSTEM_ID } from '@system/constants';
+import { MODULE_ID } from '@src/module/constants';
 export declare class CosmereCombatant extends foundry.documents.Combatant {
     static defineSchema(): Combatant.Schema;
     static get schema(): foundry.data.fields.SchemaField<Combatant.Schema>;
@@ -32,6 +33,14 @@ declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
                 bossFastActivated: boolean;
                 activated: boolean;
             };
+            [MODULE_ID]: {
+                bossFastActionsUsed: any;
+                bossFastActionsOnTurn: number;
+                actionsUsed: any;
+                reactionUsed: boolean;
+                actionsOnTurn: number;
+                flags_initialized: boolean;
+            }
         };
     }
 }

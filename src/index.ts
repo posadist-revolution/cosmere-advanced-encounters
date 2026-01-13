@@ -1,4 +1,5 @@
 import { CosmereCombatTracker, CosmereTrackerContext } from './declarations/cosmere-rpg/applications/combat/combat_tracker';
+import { CosmereCombatant } from './declarations/cosmere-rpg/documents/combatant';
 import { MODULE_ID } from './module/constants';
 import { AdvancedCosmereCombat } from './module/documents/advanced-cosmere-combat';
 import { injectAllCombatantActions } from './module/documents/combatant_actions.mjs'
@@ -32,7 +33,14 @@ Hooks.once('ready', async function() {
 
 });
 
-Hooks.on('renderCombatTracker', async (tracker : CosmereCombatTracker, html : HTMLElement, trackerContext : CosmereTrackerContext) => {
+Hooks.on('renderCombatTracker', async (
+    tracker : CombatTracker,
+    html : HTMLElement,
+    trackerContext : CombatTracker.RenderContext
+) => {
+    if(tracker.viewed == null){
+        return true
+    }
     if(advancedCombatsMap[tracker.viewed.id] == null){
         advancedCombatsMap[tracker.viewed.id] = new AdvancedCosmereCombat(tracker.viewed);
     }
@@ -42,11 +50,18 @@ Hooks.on('renderCombatTracker', async (tracker : CosmereCombatTracker, html : HT
         }
     }
     activeCombat = advancedCombatsMap[tracker.viewed.id];
-    await injectAllCombatantActions(activeCombat, html, trackerContext);
+    await injectAllCombatantActions(activeCombat, html);
     return true;
 });
 
-Hooks.on("preCreateCombatant", async function(combatant: Combatant) {
+Hooks.on(
+    "preCreateCombatant",
+    (
+        combatant: CosmereCombatant,
+        data: Combatant.CreateData,
+        options: Combatant.Database.PreCreateOptions,
+        userId: string
+    ) => {
 
     // Configure default combatant flags
     const flags = {
@@ -56,7 +71,7 @@ Hooks.on("preCreateCombatant", async function(combatant: Combatant) {
             reactionUsed: false,
         },
     };
-    if (combatant.isBoss){
+    if ((combatant).isBoss){
         const boss_flags = {
             [MODULE_ID]: {
                 bossFastActionsUsed: [],

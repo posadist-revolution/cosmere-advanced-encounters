@@ -5,9 +5,9 @@
 			"@types/jquery",
 			"node"
 		],
-		"target": "ES2022",
-		"module": "ES2022",
-		"moduleResolution": "Node10",
+		"target": "esnext",
+		"module": "esnext",
+		"moduleResolution": "bundler",
 		"strictNullChecks": true,
 		"outDir": "./build",
 		"noImplicitReturns": true,

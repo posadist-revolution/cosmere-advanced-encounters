@@ -1,5 +1,6 @@
 import { Dictionary } from "@src/index";
 import { CombatantActions } from "./combatant_actions.mjs";
+import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 
 export class AdvancedCosmereCombat{
     readonly combat : Combat
@@ -18,17 +19,17 @@ export class AdvancedCosmereCombat{
     registerActorCombatantActions(combatantActions : CombatantActions){
         const combatant = combatantActions.combatant;
         if(!this.actorIdToCombatantActionsListMap[combatant.actor.id]){
-            this.actorIdToCombatantActionsListMap[combatant.actor.id] = [combatant.id];
+            this.actorIdToCombatantActionsListMap[combatant.actor.id] = [combatant.id!];
         }
-        else if(!this.actorIdToCombatantActionsListMap[combatant.actor.id]?.includes(combatant.id))
+        else if(!this.actorIdToCombatantActionsListMap[combatant.actor.id]?.includes(combatant.id!))
         {
-            this.actorIdToCombatantActionsListMap[combatant.actor.id].push(combatant.id);
+            this.actorIdToCombatantActionsListMap[combatant.actor.id].push(combatant.id!);
         }
     }
 
-    public addNewCombatantToCombat(combatant: Combatant){
+    public addNewCombatantToCombat(combatant: CosmereCombatant){
         let combatantActions = new CombatantActions(combatant);
         this.registerActorCombatantActions(combatantActions);
-        this.combatantActionsMap[combatant.id] = combatantActions;
+        this.combatantActionsMap[combatant.id!] = combatantActions;
     }
 }

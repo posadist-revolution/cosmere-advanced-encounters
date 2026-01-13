@@ -1,8 +1,8 @@
-import { CosmereTrackerContext } from "@src/declarations/cosmere-rpg/applications/combat/combat_tracker";
 import { MODULE_ID } from "../constants";
 import { AdvancedCosmereCombat } from "./advanced-cosmere-combat";
 import { activeCombat } from "@src/index";
 import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
+import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 
 const templatePath = 'modules/cosmere-advanced-encounters/templates/combat/combatant_actions.hbs'
 const bossFastTemplatePath = 'modules/cosmere-advanced-encounters/templates/combat/combatant_actions_boss_fast.hbs'
@@ -25,7 +25,7 @@ export class UsedAction{
 
 export class CombatantActions{
 
-    readonly combatant: Combatant
+    readonly combatant: CosmereCombatant
     declare actionsOnTurn: number
     declare actionsUsed: UsedAction[]
     declare actionsLeft: number
@@ -34,7 +34,7 @@ export class CombatantActions{
     declare bossFastActionsUsed : UsedAction[]
     declare bossFastActionsLeft: number
 
-    constructor(combatant: Combatant) {
+    constructor(combatant: CosmereCombatant) {
         this.combatant = combatant;
         if(combatant.isBoss)
         {
@@ -244,7 +244,7 @@ export class CombatantActions{
                 await this.combatant.setFlag(MODULE_ID, "bossFastActionsUsed", this.bossFastActionsUsed);
             }
             if(actionsOnTurn){
-                await this.combatant.setFlag(MODULE_ID, "bossFastActionsOnTurn", this.bossFastActionsOnTurn);
+                await this.combatant.setFlag(MODULE_ID, "bossFastActionsOnTurn", this.bossFastActionsOnTurn!);
             }
         }
         if(actionsUsed){
@@ -264,10 +264,10 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
     // console.log(`Injecting actions buttons for combatant ${combatant.id}`);
     const combatantActions = activeCombat!.combatantActionsMap[combatant.id!]!;
 
-    const actionsButtons = await foundry.applications.handlebars.renderTemplate(templatePath, combatantActions);
+    const actionsButtons = await foundry.applications.handlebars.renderTemplate(templatePath, combatantActions as any);
     // console.log(combatantActions);
     if(combatantActions.isBoss){
-        const bossFastActionsButtons = await foundry.applications.handlebars.renderTemplate(bossFastTemplatePath, combatantActions);
+        const bossFastActionsButtons = await foundry.applications.handlebars.renderTemplate(bossFastTemplatePath, combatantActions as any);
         combatantJQuery.each((index: number, element: HTMLElement) => {
             let turnSpeed = CombatantActions.findTurnSpeedForElement(element);
             if(turnSpeed == TurnSpeed.Fast){
@@ -282,6 +282,10 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
         return;
     }
     // if(game.user.isGM) // TODO: Issue with game always rendering as never. NO idea how to fix it right now.
+    if(game?.user?.isGM)
+    {
+
+    }
     combatantJQuery.find("button.inline-control.combatant-control.icon.fa-solid.fa-eye-slash").before(actionsButtons)
 
     combatantActions.onRender(combatantJQuery);
@@ -291,8 +295,7 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
 
 export async function injectAllCombatantActions(
     advancedCombat : AdvancedCosmereCombat,
-    html : HTMLElement,
-    context: CosmereTrackerContext)
+    html : HTMLElement)
 {
     for (const combatant of (advancedCombat.combat.combatants ?? [])) {
         const combatantJQuery = $(html).find(`[data-combatant-id=\"${combatant.id}\"]`);
