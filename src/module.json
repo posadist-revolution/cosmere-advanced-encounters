@@ -2,7 +2,7 @@
   "id": "cosmere-advanced-encounters",
   "title": "Cosmere Advanced Encounters",
   "description": "",
-  "version": "#0.0.1",
+  "version": "#0.1.0",
   "library": "false",
   "manifestPlusVersion": "1.2.0",
   "compatibility": {
