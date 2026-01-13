@@ -3,8 +3,10 @@ import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combat
 import { MODULE_ID } from "../constants";
 import { AdvancedCosmereCombat } from "./advanced-cosmere-combat";
 import { activeCombat } from "@src/index";
+import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
 
 const templatePath = 'modules/cosmere-advanced-encounters/templates/combat/combatant_actions.hbs'
+const bossFastTemplatePath = 'modules/cosmere-advanced-encounters/templates/combat/combatant_actions_boss_fast.hbs'
 
 export class UsedAction{
     declare cost: number
@@ -25,22 +27,80 @@ export class UsedAction{
 export class CombatantActions{
 
     readonly combatant: Combatant
-    declare actionsLeft: number
+    declare actionsOnTurn: number
     declare actionsUsed: UsedAction[]
+    declare actionsLeft: number
     declare reactionUsed: boolean
-    declare bossFastActionsLeft? : number
-    declare bossFastActionsUsed? : UsedAction[]
+    declare bossFastActionsOnTurn? : number
+    declare bossFastActionsUsed : UsedAction[]
+    declare bossFastActionsLeft: number
 
     constructor(combatant: Combatant) {
         this.combatant = combatant;
-        if(!combatant.getFlag(MODULE_ID, "flags_initialized")){
-            combatant.setFlag(MODULE_ID, "actionsUsed", []);
-            combatant.setFlag(MODULE_ID, "actionsLeft", 3);
-            combatant.setFlag(MODULE_ID, "reactionUsed", false);
+        if(combatant.isBoss)
+        {
+            if(!combatant.getFlag(MODULE_ID, "flags_initialized")){
+                combatant.setFlag(MODULE_ID, "actionsUsed", []);
+                combatant.setFlag(MODULE_ID, "actionsOnTurn", 3);
+                combatant.setFlag(MODULE_ID, "reactionUsed", false);
+                combatant.setFlag(MODULE_ID, "bossFastActionsUsed", []);
+                combatant.setFlag(MODULE_ID, "bossFastActionsOnTurn", 2);
+                combatant.setFlag(MODULE_ID, "flags_initialized", true);
+            }
+            this.actionsOnTurn = combatant.getFlag(MODULE_ID, "actionsOnTurn");
+            this.actionsUsed = combatant.getFlag(MODULE_ID, "actionsUsed");
+            this.reactionUsed = combatant.getFlag(MODULE_ID, "reactionUsed");
+            this.bossFastActionsOnTurn = combatant.getFlag(MODULE_ID, "bossFastActionsOnTurn");
+            this.bossFastActionsUsed = combatant.getFlag(MODULE_ID, "bossFastActionsUsed");
         }
-        this.actionsLeft = combatant.getFlag(MODULE_ID, "actionsLeft");
-        this.actionsUsed = combatant.getFlag(MODULE_ID, "actionsUsed");
-        this.reactionUsed = combatant.getFlag(MODULE_ID, "reactionUsed");
+        else
+        {
+            if(!combatant.getFlag(MODULE_ID, "flags_initialized")){
+                combatant.setFlag(MODULE_ID, "actionsUsed", []);
+                combatant.setFlag(MODULE_ID, "actionsOnTurn", combatant.turnSpeed);
+                combatant.setFlag(MODULE_ID, "reactionUsed", false);
+                combatant.setFlag(MODULE_ID, "flags_initialized", true);
+            }
+            this.actionsOnTurn = combatant.getFlag(MODULE_ID, "actionsOnTurn");
+            this.actionsUsed = combatant.getFlag(MODULE_ID, "actionsUsed");
+            this.reactionUsed = combatant.getFlag(MODULE_ID, "reactionUsed");
+        }
+        this.calculateActionsLeft();
+    }
+
+    protected get totalActionsUsedCost(){
+        var actionsUsedCost = 0;
+        for (const usedAction of this.actionsUsed)
+        {
+            actionsUsedCost += usedAction?.cost;
+        }
+        return actionsUsedCost;
+    }
+
+    protected get totalBossFastActionsUsedCost(){
+        var actionsUsedCost = 0;
+        for (const usedAction of this.bossFastActionsUsed)
+        {
+            actionsUsedCost += usedAction?.cost;
+        }
+        return actionsUsedCost;
+    }
+
+    protected calculateActionsLeft(){
+        if(this.isBoss)
+        {
+            // Boss fast actions left is equal to either the bossFast actions on the turn minus the bossFast actions used,
+            // or zero to not underflow.
+            this.bossFastActionsLeft = (this.bossFastActionsOnTurn! - this.totalBossFastActionsUsedCost > 0) ?
+                (this.bossFastActionsOnTurn! - this.totalBossFastActionsUsedCost) : 0;
+        }
+        // Actions left is equal to either the actions on the turn minus the actions used, or zero to not underflow.
+        this.actionsLeft = (this.actionsOnTurn - this.totalActionsUsedCost > 0) ? (this.actionsOnTurn - this.totalActionsUsedCost) : 0;
+    }
+
+    protected isBossFastTurn(turnSpeed? : TurnSpeed)
+    {
+        return (this.isBoss && turnSpeed == TurnSpeed.Fast)
     }
 
     protected static async _onUseActionButton(
@@ -53,12 +113,12 @@ export class CombatantActions{
         const btn = event.target as HTMLElement;
         const li = btn.closest<HTMLElement>('.combatant')!;
 
-        // Get the combatant actions
+        // Get the combatant actions and turn speed of what was clicked
         const combatantActions = activeCombat!.combatantActionsMap[li.dataset.combatantId!]!;
+        const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
+        console.log(`UsedAction on combatant ${li.dataset.combatantId} with turn speed ${turnSpeed}`);
 
-        await combatantActions.useAction(new UsedAction(1));
-
-        console.log(`UsedAction on combatant ${li.dataset.combatantId}`);
+        await combatantActions.useAction(new UsedAction(1), turnSpeed);
     }
 
     protected static async _onRestoreActionButton(
@@ -74,9 +134,10 @@ export class CombatantActions{
         const actionCost = btn.getAttribute("action-cost");
         // Get the combatant actions
         const combatantActions = activeCombat!.combatantActionsMap[li.dataset.combatantId!]!;
-        await combatantActions.removeAction(new UsedAction(Number(actionCost), String(actionName)));
+        const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
+        console.log(`RestoredAction on combatant ${li.dataset.combatantId} with turn speed ${turnSpeed}`);
 
-        console.log(`RestoredAction on combatant ${li.dataset.combatantId}`);
+        await combatantActions.removeAction(new UsedAction(Number(actionCost), String(actionName)), turnSpeed);
     }
 
     protected static async _onToggleReactionButton(
@@ -91,17 +152,37 @@ export class CombatantActions{
 
         // Get the combatant actions
         const combatantActions = activeCombat!.combatantActionsMap[li.dataset.combatantId!]!;
-
         console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
         combatantActions.reactionUsed = !(combatantActions.reactionUsed);
-        await combatantActions.combatant.setFlag(MODULE_ID, "reactionUsed", combatantActions.reactionUsed);
+        await combatantActions.propagateFlagInformation(false, true, false);
     }
 
-    public async useAction(action : UsedAction){
-        this.actionsUsed.push(action)
-        this.actionsLeft = (this.actionsLeft - action.cost > 0) ? (this.actionsLeft - action.cost) : 0;
-        await this.combatant.setFlag(MODULE_ID, "actionsUsed", this.actionsUsed);
-        await this.combatant.setFlag(MODULE_ID, "actionsLeft", this.actionsLeft);
+    public static findTurnSpeedForElement(element: HTMLElement){
+        if(element.classList.contains("slow")){
+            return TurnSpeed.Slow;
+        }
+        else{
+            return TurnSpeed.Fast;
+        }
+    }
+
+    public get isBoss()
+    {
+        return this.combatant.isBoss;
+    }
+
+    public async useAction(action : UsedAction, turnSpeed? : TurnSpeed){
+        console.log("useAction");
+        if(this.combatant.isBoss && turnSpeed == TurnSpeed.Fast)
+        {
+            this.bossFastActionsUsed.push(action);
+            this.calculateActionsLeft();
+            await this.propagateFlagInformation(true, false, true);
+            return;
+        }
+        this.actionsUsed.push(action);
+        this.calculateActionsLeft();
+        await this.propagateFlagInformation(true, false, true);
     }
 
     public async useReaction(){
@@ -109,32 +190,101 @@ export class CombatantActions{
         await this.combatant.setFlag(MODULE_ID, "reactionUsed", this.reactionUsed);
     }
 
-    public async removeAction(action: UsedAction){
+    public async removeAction(action: UsedAction, turnSpeed? : TurnSpeed){
+        if(this.isBossFastTurn(turnSpeed))
+        {
+            let actionIndex = this.bossFastActionsUsed.findIndex((element) => (element.cost == action.cost && element.name == action.name));
+            this.bossFastActionsUsed.splice(actionIndex, 1);
+            this.calculateActionsLeft();
+            await this.propagateFlagInformation(true, false, false);
+            return;
+        }
         let actionIndex = this.actionsUsed.findIndex((element) => (element.cost == action.cost && element.name == action.name));
         this.actionsUsed.splice(actionIndex, 1);
-        this.actionsLeft += action.cost;
-        await this.combatant.setFlag(MODULE_ID, "actionsUsed", this.actionsUsed);
-        await this.combatant.setFlag(MODULE_ID, "actionsLeft", this.actionsLeft);
+        this.calculateActionsLeft();
+        await this.propagateFlagInformation(true, false, false);
     }
 
     public onRender(combatantJQuery : JQuery){
+        this.determineCombatantActionsCount();
         combatantJQuery.find("button.actions-left").on('click', async (event) => await CombatantActions._onUseActionButton(event));
         combatantJQuery.find("button.actions-used").on('click', async (event) => await CombatantActions._onRestoreActionButton(event));
         combatantJQuery.find("button.reaction-used").on('click', async (event) => await CombatantActions._onToggleReactionButton(event));
+    }
+
+    public startTurn(){
+
+    }
+
+    public async determineCombatantActionsCount(){
+        if(this.isBoss)
+        {
+            this.actionsOnTurn = 3;
+            this.bossFastActionsOnTurn = 2;
+            this.calculateActionsLeft();
+            await this.propagateFlagInformation(false, false, true);
+            return;
+        }
+
+        if(this.combatant.turnSpeed == TurnSpeed.Slow)
+        {
+            this.actionsOnTurn = 3;
+        }
+        else
+        {
+            this.actionsOnTurn = 2;
+        }
+        this.calculateActionsLeft();
+        await this.propagateFlagInformation(false, false, true);
+    }
+
+    protected async propagateFlagInformation(actionsUsed?: boolean, reaction?: boolean, actionsOnTurn?: boolean){
+        if(this.isBoss)
+        {
+            if(actionsUsed){
+                await this.combatant.setFlag(MODULE_ID, "bossFastActionsUsed", this.bossFastActionsUsed);
+            }
+            if(actionsOnTurn){
+                await this.combatant.setFlag(MODULE_ID, "bossFastActionsOnTurn", this.bossFastActionsOnTurn);
+            }
+        }
+        if(actionsUsed){
+            await this.combatant.setFlag(MODULE_ID, "actionsUsed", this.actionsUsed);
+        }
+        if(reaction){
+            await this.combatant.setFlag(MODULE_ID, "reactionUsed", this.reactionUsed);
+        }
+        if(actionsOnTurn){
+            await this.combatant.setFlag(MODULE_ID, "actionsOnTurn", this.actionsOnTurn);
+        }
     }
 }
 
 export async function injectCombatantActions(combatant : Combatant, combatantJQuery : JQuery)
 {
-    console.log(`Injecting actions buttons for combatant ${combatant.id}`);
+    // console.log(`Injecting actions buttons for combatant ${combatant.id}`);
     const combatantActions = activeCombat!.combatantActionsMap[combatant.id!]!;
-    // console.log(combatantActions);
+
     const actionsButtons = await foundry.applications.handlebars.renderTemplate(templatePath, combatantActions);
-    // console.log(`Template loaded, adding to jQuery`);
-    // console.log(`combatant jQuery:`);
-    // console.log(combatantJQuery);
+    // console.log(combatantActions);
+    if(combatantActions.isBoss){
+        const bossFastActionsButtons = await foundry.applications.handlebars.renderTemplate(bossFastTemplatePath, combatantActions);
+        combatantJQuery.each((index: number, element: HTMLElement) => {
+            let turnSpeed = CombatantActions.findTurnSpeedForElement(element);
+            if(turnSpeed == TurnSpeed.Fast){
+                // console.log("Adding bossJQuery")
+                $(element).find("button.inline-control.combatant-control.icon.fa-solid.fa-eye-slash").before(bossFastActionsButtons);
+            }
+            else{
+               $(element).find("button.inline-control.combatant-control.icon.fa-solid.fa-eye-slash").before(actionsButtons)
+            }
+        });
+        combatantActions.onRender(combatantJQuery);
+        return;
+    }
     // if(game.user.isGM) // TODO: Issue with game always rendering as never. NO idea how to fix it right now.
     combatantJQuery.find("button.inline-control.combatant-control.icon.fa-solid.fa-eye-slash").before(actionsButtons)
+
     combatantActions.onRender(combatantJQuery);
     //else
         //combatantJQuery.find("button.inline-control.combatant-control.icon.fa-solid.fa-arrows-to-eye").before(actionsButtons);
@@ -145,12 +295,7 @@ export async function injectAllCombatantActions(
     html : HTMLElement,
     context: CosmereTrackerContext)
 {
-    // console.log("HTML: " + html);
-    let combatantJQueryList = $(html).find("li.combatant.flexrow");
-    // console.log(`all combatants jQuery:`);
-    // console.log(combatantJQueryList);
     for (const combatant of (advancedCombat.combat.combatants ?? [])) {
-        // console.log("Finding combatant with id %s", combatant.id);
         const combatantJQuery = $(html).find(`[data-combatant-id=\"${combatant.id}\"]`);
         await injectCombatantActions(combatant, combatantJQuery);
     }

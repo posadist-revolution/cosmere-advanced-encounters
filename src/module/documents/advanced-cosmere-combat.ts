@@ -11,13 +11,11 @@ export class AdvancedCosmereCombat{
         this.actorIdToCombatantActionsListMap = {};
         this.combatantActionsMap = {};
         for (const combatant of combat.combatants){
-            let combatantActions = new CombatantActions(combatant);
-            this.register_actor_combatant_actions(combatantActions);
-            this.combatantActionsMap[combatant.id] = combatantActions;
+            this.addNewCombatantToCombat(combatant);
         }
     }
 
-    register_actor_combatant_actions(combatantActions : CombatantActions){
+    registerActorCombatantActions(combatantActions : CombatantActions){
         const combatant = combatantActions.combatant;
         if(!this.actorIdToCombatantActionsListMap[combatant.actor.id]){
             this.actorIdToCombatantActionsListMap[combatant.actor.id] = [combatant.id];
@@ -26,5 +24,11 @@ export class AdvancedCosmereCombat{
         {
             this.actorIdToCombatantActionsListMap[combatant.actor.id].push(combatant.id);
         }
+    }
+
+    public addNewCombatantToCombat(combatant: Combatant){
+        let combatantActions = new CombatantActions(combatant);
+        this.registerActorCombatantActions(combatantActions);
+        this.combatantActionsMap[combatant.id] = combatantActions;
     }
 }

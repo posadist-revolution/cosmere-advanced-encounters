@@ -37,6 +37,11 @@ Hooks.on('renderCombatTracker', async (tracker : CosmereCombatTracker, html : HT
     if(advancedCombatsMap[tracker.viewed.id] == null){
         advancedCombatsMap[tracker.viewed.id] = new AdvancedCosmereCombat(tracker.viewed);
     }
+    for (const combatant of tracker.viewed.combatants){
+        if(advancedCombatsMap[tracker.viewed.id].combatantActionsMap[combatant.id] == undefined){
+            advancedCombatsMap[tracker.viewed.id].addNewCombatantToCombat(combatant);
+        }
+    }
     activeCombat = advancedCombatsMap[tracker.viewed.id];
     await injectAllCombatantActions(activeCombat, html, trackerContext);
     return true;
@@ -52,6 +57,15 @@ Hooks.on("preCreateCombatant", async function(combatant: Combatant) {
             reactionUsed: false,
         },
     };
+    if (combatant.isBoss){
+        const boss_flags = {
+            [MODULE_ID]: {
+                bossFastActionsUsed: [],
+                bossFastActionsLeft: 2
+            }
+        }
+        mergeObject(flags, boss_flags);
+    }
     mergeObject(flags, combatant.flags);
     combatant.updateSource({ flags });
 });

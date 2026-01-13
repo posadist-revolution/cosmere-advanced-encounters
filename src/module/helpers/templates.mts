@@ -6,5 +6,6 @@
 export const preloadHandlebarsTemplates = async function () {
 	return foundry.applications.handlebars.loadTemplates([
 		'modules/cosmere-advanced-encounters/templates/combat/combatant_actions.hbs',
+        'modules/cosmere-advanced-encounters/templates/combat/combatant_actions_boss_fast.hbs',
 	]);
 };
