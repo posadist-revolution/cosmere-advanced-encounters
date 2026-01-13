@@ -263,6 +263,10 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
 {
     // console.log(`Injecting actions buttons for combatant ${combatant.id}`);
     const combatantActions = activeCombat!.combatantActionsMap[combatant.id!]!;
+    if(! combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER))
+    {
+        return;
+    }
 
     const actionsButtons = await foundry.applications.handlebars.renderTemplate(templatePath, combatantActions as any);
     // console.log(combatantActions);
@@ -272,21 +276,17 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
             let turnSpeed = CombatantActions.findTurnSpeedForElement(element);
             if(turnSpeed == TurnSpeed.Fast){
                 // console.log("Adding bossJQuery")
-                $(element).find("button.inline-control.combatant-control.icon.fa-solid.fa-eye-slash").before(bossFastActionsButtons);
+                $(element).find("div.combatant-controls.flexrow").prepend(bossFastActionsButtons);
             }
             else{
-               $(element).find("button.inline-control.combatant-control.icon.fa-solid.fa-eye-slash").before(actionsButtons)
+               $(element).find("div.combatant-controls.flexrow").prepend(actionsButtons)
             }
         });
         combatantActions.onRender(combatantJQuery);
         return;
     }
-    // if(game.user.isGM) // TODO: Issue with game always rendering as never. NO idea how to fix it right now.
-    if(game?.user?.isGM)
-    {
 
-    }
-    combatantJQuery.find("button.inline-control.combatant-control.icon.fa-solid.fa-eye-slash").before(actionsButtons)
+    combatantJQuery.find("div.combatant-controls.flexrow").prepend(actionsButtons)
 
     combatantActions.onRender(combatantJQuery);
     //else
