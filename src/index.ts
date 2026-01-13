@@ -1,8 +1,7 @@
 import { CosmereCombatTracker, CosmereTrackerContext } from './declarations/cosmere-rpg/applications/combat/combat_tracker';
-import { CosmereCombat } from './declarations/cosmere-rpg/documents/combat';
 import { MODULE_ID } from './module/constants';
 import { AdvancedCosmereCombat } from './module/documents/advanced-cosmere-combat';
-import { injectCombatantActions, injectAllCombatantActions } from './module/documents/combatant_actions.mjs'
+import { injectAllCombatantActions } from './module/documents/combatant_actions.mjs'
 import { COSMERE_ADVANCED_ENCOUNTERS } from './module/helpers/config.mjs';
 import { preloadHandlebarsTemplates } from './module/helpers/templates.mjs';
 

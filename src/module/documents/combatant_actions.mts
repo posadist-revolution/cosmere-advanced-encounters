@@ -1,5 +1,4 @@
-import { CosmereCombatTracker, CosmereTrackerContext } from "@src/declarations/cosmere-rpg/applications/combat/combat_tracker";
-import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
+import { CosmereTrackerContext } from "@src/declarations/cosmere-rpg/applications/combat/combat_tracker";
 import { MODULE_ID } from "../constants";
 import { AdvancedCosmereCombat } from "./advanced-cosmere-combat";
 import { activeCombat } from "@src/index";
