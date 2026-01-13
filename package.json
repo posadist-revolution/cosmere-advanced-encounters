@@ -6,15 +6,11 @@
 	"scripts": {
         "build": "npx rollup -c",
         "build:watch": "npx rollup -c -w",
-        "build:pack": "npm run build && npm run pack",
         "build:release": "npm run build && npm run pack && npm run zip",
         "prepare": "husky",
         "lint": "eslint",
         "lint:fix": "eslint --fix",
         "link": "node ./scripts/link-foundry",
-        "pack": "node ./scripts/pack",
-        "unpack": "node ./scripts/unpack",
-        "import": "node ./scripts/import",
         "zip": "node ./scripts/zip",
         "postinstall": "npm run build"
 	},
