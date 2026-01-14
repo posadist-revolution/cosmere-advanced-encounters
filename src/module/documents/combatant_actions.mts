@@ -115,7 +115,7 @@ export class CombatantActions{
         // Get the combatant actions and turn speed of what was clicked
         const combatantActions = activeCombat!.combatantActionsMap[li.dataset.combatantId!]!;
         const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
-        console.log(`UsedAction on combatant ${li.dataset.combatantId} with turn speed ${turnSpeed}`);
+        // console.log(`UsedAction on combatant ${li.dataset.combatantId} with turn speed ${turnSpeed}`);
 
         await combatantActions.useAction(new UsedAction(1), turnSpeed);
     }
@@ -134,7 +134,7 @@ export class CombatantActions{
         // Get the combatant actions
         const combatantActions = activeCombat!.combatantActionsMap[li.dataset.combatantId!]!;
         const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
-        console.log(`RestoredAction on combatant ${li.dataset.combatantId} with turn speed ${turnSpeed}`);
+        // console.log(`RestoredAction on combatant ${li.dataset.combatantId} with turn speed ${turnSpeed}`);
 
         await combatantActions.removeAction(new UsedAction(Number(actionCost), String(actionName)), turnSpeed);
     }
@@ -151,7 +151,7 @@ export class CombatantActions{
 
         // Get the combatant actions
         const combatantActions = activeCombat!.combatantActionsMap[li.dataset.combatantId!]!;
-        console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
+        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
         combatantActions.reactionUsed = !(combatantActions.reactionUsed);
         await combatantActions.propagateFlagInformation(false, true, false);
     }
@@ -171,7 +171,7 @@ export class CombatantActions{
     }
 
     public async useAction(action : UsedAction, turnSpeed? : TurnSpeed){
-        console.log("useAction");
+        // console.log("useAction");
         if(this.combatant.isBoss && turnSpeed == TurnSpeed.Fast)
         {
             this.bossFastActionsUsed.push(action);
@@ -261,11 +261,21 @@ export class CombatantActions{
             await this.combatant.setFlag(MODULE_ID, "actionsOnTurn", this.actionsOnTurn);
         }
     }
+
+    public async pullFlagInformation(){
+        this.actionsOnTurn = this.combatant.getFlag(MODULE_ID, "actionsOnTurn");
+        this.actionsUsed = this.combatant.getFlag(MODULE_ID, "actionsUsed");
+        this.reactionUsed = this.combatant.getFlag(MODULE_ID, "reactionUsed");
+        if(this.isBoss){
+            this.bossFastActionsOnTurn = this.combatant.getFlag(MODULE_ID, "bossFastActionsOnTurn");
+            this.bossFastActionsUsed = this.combatant.getFlag(MODULE_ID, "bossFastActionsUsed");
+        }
+        this.calculateActionsLeft();
+    }
 }
 
 export async function injectCombatantActions(combatant : Combatant, combatantJQuery : JQuery)
 {
-    // console.log(`Injecting actions buttons for combatant ${combatant.id}`);
     const combatantActions = activeCombat!.combatantActionsMap[combatant.id!]!;
     if(! combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER))
     {
@@ -301,6 +311,7 @@ export async function injectAllCombatantActions(
     advancedCombat : AdvancedCosmereCombat,
     html : HTMLElement)
 {
+    // console.log("Injecting all combatant actions");
     for (const combatant of (advancedCombat.combat.combatants ?? [])) {
         const combatantJQuery = $(html).find(`[data-combatant-id=\"${combatant.id}\"]`);
         await injectCombatantActions(combatant, combatantJQuery);

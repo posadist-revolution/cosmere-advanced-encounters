@@ -36,7 +36,8 @@ Hooks.once('ready', async function() {
 Hooks.on('renderCombatTracker', async (
     tracker : CombatTracker,
     html : HTMLElement,
-    trackerContext : CombatTracker.RenderContext
+    trackerContext : CombatTracker.RenderContext,
+    renderOptions : CombatTracker.RenderOptions
 ) => {
     if(tracker.viewed == null){
         return true
@@ -82,4 +83,16 @@ Hooks.on(
     }
     mergeObject(flags, combatant.flags);
     combatant.updateSource({ flags });
+});
+
+Hooks.on("updateCombatant", async (
+    combatant : CosmereCombatant,
+    change : Combatant.UpdateData,
+    options : Combatant.Database.UpdateOptions,
+    userId : string
+) => {
+    if(change.flags?.['cosmere-advanced-encounters'] == null){
+        return;
+    }
+    activeCombat.combatantActionsMap[combatant?.id!].pullFlagInformation();
 });
