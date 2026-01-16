@@ -1,4 +1,5 @@
-name: Publish most recent Foundry release
+name: publish
+run-name: Publish release to Foundry
 on:
   workflow_dispatch:
     secrets:
@@ -32,4 +33,4 @@ jobs:
         notes-url: # optional
         # Set to any value apart from `false` or `0` to do a dry-run.  Leave undefined or set to `false` or `0` for a proper release.
         dry-run: ${{ inputs.dry-run }}
-          
+
