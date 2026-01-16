@@ -21,11 +21,11 @@ jobs:
           file_path: "./package.json"
 
       # Load the manifest into memory
-      - name: Load system manifest
+      - name: Load module manifest
         id: manifest
         uses: zoexx/github-action-json-file-properties@release
         with:
-          file_path: "./src/system.json"
+          file_path: "./src/module.json"
 
       # Verify manifest
       - name: Verify manifest
@@ -48,7 +48,7 @@ jobs:
             exit 1
           fi
 
-          DOWNLOAD_URL=https://github.com/${{github.repository}}/releases/download/${{github.head_ref}}/cosmere-rpg-${{github.head_ref}}.zip
+          DOWNLOAD_URL=https://github.com/${{github.repository}}/releases/download/${{github.head_ref}}/cosmere-advanced-encounters-${{github.head_ref}}.zip
 
           # Verify that the download URL matches the release asset
           if [[ ! $DOWNLOAD_URL == $MANIFEST_DOWNLOAD ]]; then
