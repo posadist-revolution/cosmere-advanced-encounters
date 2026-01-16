@@ -1,6 +1,6 @@
 name: Publish most recent Foundry release
 on:
-  workflow_call:
+  workflow_dispatch:
     secrets:
       access-token:
         description: "Secret token for Foundry API"
