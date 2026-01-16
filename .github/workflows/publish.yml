@@ -18,7 +18,7 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu_latest
+    runs-on: ubuntu-latest
     steps:
     - name: Publish FoundryVTT Package
       uses: cs96and/FoundryVTT-release-package@v1.0.3
