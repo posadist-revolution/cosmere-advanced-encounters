@@ -66,9 +66,9 @@ export class CombatantActions{
     }
 
     public pullFlagInformation(){
-        this.combatantTurnActions.refreshActions();
+        this.combatantTurnActions.refreshActionsFromFlags();
         if(this.isBoss){
-            this.bossFastTurnActions.refreshActions();
+            this.bossFastTurnActions.refreshActionsFromFlags();
         }
     }
 
@@ -143,11 +143,41 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             actionsLeft: 0,
             reactionUsed: false,
         };
-        this.refreshActions();
+        this.refreshActionsFromFlags();
     }
 
     /* --- Public action interfaces ---*/
     //#region CombatantTurnActions_PublicActionInterfaces
+
+    public async resetAllActions(){
+        // Set actionsOnTurn
+        if(this.combatant.isBoss){
+            if(this.isBossFastTurn){
+                this.context.actionsOnTurn = 2;
+            }
+            else{
+                this.context.actionsOnTurn = 3;
+            }
+        }
+        else{
+            if(this.combatant.turnSpeed == TurnSpeed.Fast){
+                this.context.actionsOnTurn = 2;
+            }
+            else{
+                this.context.actionsOnTurn = 3;
+            }
+        }
+        this.context.actionsUsed = [];
+        this.context.reactionUsed = false;
+        this.setFlagAll();
+        this.calculateActionsLeft();
+    }
+
+    public async refreshActionsFromFlags(){
+        await this.getFlagAll();
+        this.calculateActionsLeft();
+    }
+
     public async useAction(action : UsedAction){
         // console.log("useAction");
         this.context.actionsUsed.push(action);
@@ -166,6 +196,11 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         this.calculateActionsLeft();
         await this.setFlagActionsUsed();
     }
+
+    public async onCombatantTurnSpeedChange(){
+        this.getFlagActionsOnTurn();
+        this.calculateActionsLeft();
+    }
     //#endregion
 
     protected get totalActionsUsedCost(){
@@ -180,11 +215,6 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
     protected calculateActionsLeft(){
         // Actions left is equal to either the actions on the turn minus the actions used, or zero to not underflow.
         this.context.actionsLeft = (this.context.actionsOnTurn - this.totalActionsUsedCost > 0) ? (this.context.actionsOnTurn - this.totalActionsUsedCost) : 0;
-    }
-
-    public async refreshActions(){
-        await this.getFlagAll();
-        this.calculateActionsLeft();
     }
 
     protected async _prepareContext(options: any){
@@ -343,6 +373,19 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
     //#endregion
     //#endregion
 }
+
+/* --- CombatantTurnActions Hooks --- */
+
+Hooks.on("updateCombatant", async (
+    combatant : CosmereCombatant,
+    change : Combatant.UpdateData,
+    options : Combatant.Database.UpdateOptions,
+    userId : string
+) => {
+    if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.turnSpeed`)){
+        activeCombat.combatantActionsMap[combatant?.id!].combatantTurnActions.onCombatantTurnSpeedChange();
+    }
+});
 
 export async function injectCombatantActions(combatant : Combatant, combatantJQuery : JQuery)
 {
