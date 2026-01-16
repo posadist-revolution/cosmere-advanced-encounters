@@ -17,8 +17,16 @@
     }
   ],
   "relationships": {
-    "systems": ["cosmere-rpg"],
-    "requires": []
+    "systems": [
+      {
+        "id": "cosmere-rpg",
+        "type": "system",
+        "manifest": "https://raw.githubusercontent.com/the-metalworks/cosmere-rpg/main/src/system.json",
+        "compatibility": {
+          "verified": "2.0.3"
+        }
+      }
+    ]
   },
   "esmodules": [
     "index.js"
