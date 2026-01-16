@@ -6,7 +6,7 @@
 	"scripts": {
         "build": "npx rollup -c",
         "build:watch": "npx rollup -c -w",
-        "build:release": "npm run build && npm run pack && npm run zip",
+        "build:release": "npm run build && npm run zip",
         "prepare": "husky",
         "lint": "eslint",
         "lint:fix": "eslint --fix",
