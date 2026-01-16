@@ -35,17 +35,17 @@ jobs:
           file_path: "./package.json"
 
       # Load the manifest into memory
-      - name: Load system manifest
+      - name: Load module manifest
         id: manifest
         uses: zoexx/github-action-json-file-properties@release
         with:
-          file_path: "./src/system.json"
+          file_path: "./src/module.json"
 
       # Set up variables
       - name: Set up vars
         run: |
-          echo "ZIP_NAME=cosmere-rpg-$TAG.zip" >> $GITHUB_ENV
-          echo "DOWNLOAD_URL=https://github.com/${{github.repository}}/releases/download/$TAG/cosmere-rpg-$TAG.zip" >> $GITHUB_ENV
+          echo "ZIP_NAME=cosmere-automated-actions-$TAG.zip" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=https://github.com/${{github.repository}}/releases/download/$TAG/cosmere-automated-actions-$TAG.zip" >> $GITHUB_ENV
 
       # Verify manifest
       - name: Verify manifest
@@ -157,5 +157,5 @@ jobs:
           name: ${{ github.event.pull_request.title }}
           tag: ${{ env.TAG }}
           bodyFile: ${{ env.RELEASE_NOTES }}
-          artifacts: "./${{ env.ZIP_NAME }},./src/system.json"
+          artifacts: "./${{ env.ZIP_NAME }},./src/module.json"
           draft: true
