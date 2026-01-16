@@ -204,7 +204,8 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         },
         window: {
             frame: false
-        }
+        },
+        classes: ["combatant-controls", "flexrow"],
     };
 
     static PARTS = foundry.utils.mergeObject(
@@ -355,17 +356,17 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
             let turnSpeed = CombatantActions.findTurnSpeedForElement(element);
             if(turnSpeed == TurnSpeed.Fast){
                 // console.log("Adding bossJQuery")
-                $(element).find("div.combatant-controls.flexrow").prepend(bossFastActionsButtons.element);
+                $(element).find("h4.combatant-name").after(bossFastActionsButtons.element);
             }
             else{
-               $(element).find("div.combatant-controls.flexrow").prepend(actionsButtons.element)
+               $(element).find("h4.combatant-name").after(actionsButtons.element)
             }
         });
         combatantActions.onRender(combatantJQuery);
         return;
     }
 
-    combatantJQuery.find("div.combatant-controls.flexrow").prepend(actionsButtons.element)
+    combatantJQuery.find("h4.combatant-name").after(actionsButtons.element)
 
     //else
         //combatantJQuery.find("button.inline-control.combatant-control.icon.fa-solid.fa-arrows-to-eye").before(actionsButtons);
