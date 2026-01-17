@@ -1,13 +1,13 @@
-<button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon {{#unless reactionUsed}}active{{/unless}} reaction-used">
+<button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon {{#unless reactionUsed}}active{{/unless}} reaction-used" data-action="toggleReaction" data-tooltip="cosmere-advanced-encounters.toggle_reaction">
     <i class = "cosmere-icon">r</i>
 </button>
 {{#if (gt actionsLeft 0)}}
-<button type="button" class="inline-control combatant-control icon fa-solid active actions-left">
+<button type="button" class="inline-control combatant-control icon fa-solid active actions-left" data-action="useAction" data-tooltip="cosmere-advanced-encounters.actions_remaining">
     <i class = "cosmere-icon">{{actionsLeft}}</i>
 </button>
 {{/if}}
 {{#each actionsUsed as |usedAction|}}
-<button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon actions-used" action-name="{{usedAction.name}}" action-cost="{{usedAction.cost}}">
+<button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon actions-used" data-action="restoreAction" data-tooltip-text="{{localize "cosmere-advanced-encounters.revert_used_action"}}: {{usedAction.name}}" action-name="{{usedAction.name}}" action-cost="{{usedAction.cost}}">
     <i class = "cosmere-icon">{{usedAction.cost}}</i>
 </button>
 {{/each}}

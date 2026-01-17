@@ -1,3 +1,7 @@
+export const TEMPLATES = {
+	COMBATANT_ACTIONS_TEMPLATE: 'modules/cosmere-advanced-encounters/templates/combat/combatant_actions.hbs',
+} as const;
+
 /**
  * Define a set of template paths to pre-load
  * Pre-loaded templates are compiled and cached for fast access when rendering
@@ -5,7 +9,6 @@
  */
 export const preloadHandlebarsTemplates = async function () {
 	return foundry.applications.handlebars.loadTemplates([
-		'modules/cosmere-advanced-encounters/templates/combat/combatant_actions.hbs',
-        'modules/cosmere-advanced-encounters/templates/combat/combatant_actions_boss_fast.hbs',
+		TEMPLATES.COMBATANT_ACTIONS_TEMPLATE,
 	]);
 };

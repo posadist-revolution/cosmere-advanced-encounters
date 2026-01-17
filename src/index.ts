@@ -91,7 +91,8 @@ Hooks.on("updateCombatant", async (
     options : Combatant.Database.UpdateOptions,
     userId : string
 ) => {
-    if(change.flags?.['cosmere-advanced-encounters'] == null){
+    //If this update doesn't have flags pertaining to a combatant's action flags, don't do anything
+    if(change.flags?.[MODULE_ID] == null){
         return;
     }
     activeCombat.combatantActionsMap[combatant?.id!].pullFlagInformation();
