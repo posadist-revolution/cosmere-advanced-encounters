@@ -42,11 +42,14 @@ Hooks.on('renderCombatTracker', async (
     if(tracker.viewed == null){
         return true
     }
+    //console.log(`${MODULE_ID}: Rendering combat tracker`);
     if(advancedCombatsMap[tracker.viewed.id] == null){
+        //console.log(`${MODULE_ID}: Making new AdvancedCombat`);
         advancedCombatsMap[tracker.viewed.id] = new AdvancedCosmereCombat(tracker.viewed);
     }
     for (const combatant of tracker.viewed.combatants){
         if(advancedCombatsMap[tracker.viewed.id].combatantActionsMap[combatant.id] == undefined){
+            //console.log(`${MODULE_ID}: Adding new combatant`);
             advancedCombatsMap[tracker.viewed.id].addNewCombatantToCombat(combatant);
         }
     }
