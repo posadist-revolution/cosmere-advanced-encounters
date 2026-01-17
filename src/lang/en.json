@@ -1,5 +1,8 @@
 {
     "cosmere-advanced-encounters": {
-        "cost_manual":"Manual Action"
+        "actions_remaining": "Actions remaining",
+        "toggle_reaction": "Toggle reaction used",
+        "revert_used_action": "Restore used action",
+        "cost_manual": "Manual Action"
     }
 }
