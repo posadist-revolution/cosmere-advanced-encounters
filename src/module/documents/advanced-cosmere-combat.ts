@@ -1,5 +1,5 @@
 import { activeCombat, Dictionary } from "@src/index";
-import { CombatantActions } from "./combatant_actions.mjs";
+import { CombatantActions } from "./combatant_actions.js";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
 
