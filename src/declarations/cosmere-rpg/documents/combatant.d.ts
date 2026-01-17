@@ -39,7 +39,7 @@ declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
                 actionsUsed: any;
                 reactionUsed: boolean;
                 actionsOnTurn: number;
-                flags_initialized: boolean;
+                flags_initialized_version: string;
             }
         };
     }

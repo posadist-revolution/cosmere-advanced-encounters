@@ -31,7 +31,8 @@ export class CombatantActions{
 
     constructor(combatant: CosmereCombatant) {
         this.combatant = combatant;
-        if(!this.combatant.getFlag(MODULE_ID, "flags_initialized")){
+        //console.log(`${MODULE_ID}: New combatant- ID # ${combatant.id}`)
+        if(!(this.combatant.getFlag(MODULE_ID, "flags_initialized_version") == game.modules?.get(MODULE_ID)?.version)){
             CombatantActions.initializeCombatantFlags(this.combatant);
         }
         this.combatantTurnActions = new CombatantTurnActions(this)
@@ -73,24 +74,29 @@ export class CombatantActions{
     }
 
     protected static async initializeCombatantFlags(combatant: CosmereCombatant){
+        //console.log(`${MODULE_ID}: Initializing Combatant Flags`);
         if(combatant.isBoss){
-            if(!(await combatant.getFlag(MODULE_ID, "flags_initialized"))){
+            if(!(await combatant.getFlag(MODULE_ID, "flags_initialized_version") == game.modules?.get(MODULE_ID)?.version)){
+                //console.log(`${MODULE_ID}: Boss flags not initialized`);
                 await combatant.setFlag(MODULE_ID, "actionsUsed", []);
                 await combatant.setFlag(MODULE_ID, "actionsOnTurn", 3);
                 await combatant.setFlag(MODULE_ID, "reactionUsed", false);
                 await combatant.setFlag(MODULE_ID, "bossFastActionsUsed", []);
                 await combatant.setFlag(MODULE_ID, "bossFastActionsOnTurn", 2);
-                await combatant.setFlag(MODULE_ID, "flags_initialized", true);
+                await combatant.setFlag(MODULE_ID, "flags_initialized_version", game.modules?.get(MODULE_ID)?.version!);
             }
         }
         else{
-            if(!(await combatant.getFlag(MODULE_ID, "flags_initialized"))){
+            if(!(await combatant.getFlag(MODULE_ID, "flags_initialized_version"))){
+                //console.log(`${MODULE_ID}: Regular actor flags not initialized`);
                 await combatant.setFlag(MODULE_ID, "actionsUsed", []);
-                await combatant.setFlag(MODULE_ID, "actionsOnTurn", combatant.turnSpeed);
+                await combatant.setFlag(MODULE_ID, "actionsOnTurn", CombatantTurnActions.getActionsOnTurnFromTurnSpeed(combatant.turnSpeed));
                 await combatant.setFlag(MODULE_ID, "reactionUsed", false);
-                await combatant.setFlag(MODULE_ID, "flags_initialized", true);
+                await combatant.setFlag(MODULE_ID, "flags_initialized_version", game.modules?.get(MODULE_ID)?.version!);
             }
         }
+        //console.log(`${MODULE_ID}: Initialized flags on combatant ${combatant.id}:`);
+        //console.log(combatant);
     }
 }
 
@@ -151,6 +157,13 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
     public async resetAllActions(){
         // Set actionsOnTurn
+        this.context.actionsUsed = [];
+        this.context.reactionUsed = false;
+        this.setFlagAll();
+        this.calculateActionsLeft();
+    }
+
+    public async setActionsOnTurn(){
         if(this.combatant.isBoss){
             if(this.isBossFastTurn){
                 this.context.actionsOnTurn = 2;
@@ -167,10 +180,19 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
                 this.context.actionsOnTurn = 3;
             }
         }
-        this.context.actionsUsed = [];
-        this.context.reactionUsed = false;
-        this.setFlagAll();
-        this.calculateActionsLeft();
+        this.setFlagActionsOnTurn();
+    }
+
+    public static getActionsOnTurnFromTurnSpeed(turnSpeed: TurnSpeed){
+        if(turnSpeed == TurnSpeed.Fast){
+            return 2;
+        }
+        else if(turnSpeed == TurnSpeed.Slow){
+            return 3;
+        }
+        else{
+            return 0;
+        }
     }
 
     public async refreshActionsFromFlags(){
@@ -198,6 +220,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
     }
 
     public async onCombatantTurnSpeedChange(){
+        //console.log(`${MODULE_ID}: Combatant ${this.combatant.id} changed turn speed`)
         this.getFlagActionsOnTurn();
         this.calculateActionsLeft();
     }
@@ -376,6 +399,22 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
 /* --- CombatantTurnActions Hooks --- */
 
+Hooks.on("preUpdateCombatant", (
+    combatant : CosmereCombatant,
+    change : Combatant.UpdateData
+) => {
+    if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.turnSpeed`)){
+        let actionsOnTurn = CombatantTurnActions.getActionsOnTurnFromTurnSpeed(change.flags["cosmere-rpg"].turnSpeed as TurnSpeed);
+        foundry.utils.setProperty(
+                change,
+                `flags.${MODULE_ID}.actionsOnTurn`,
+                actionsOnTurn,
+            )
+        activeCombat.combatantActionsMap[combatant?.id!].combatantTurnActions.onCombatantTurnSpeedChange();
+    }
+    return true;
+});
+
 Hooks.on("updateCombatant", async (
     combatant : CosmereCombatant,
     change : Combatant.UpdateData,
@@ -389,6 +428,7 @@ Hooks.on("updateCombatant", async (
 
 export async function injectCombatantActions(combatant : Combatant, combatantJQuery : JQuery)
 {
+    //console.log(`${MODULE_ID}: Injecting combatant actions`);
     const combatantActions = activeCombat!.combatantActionsMap[combatant.id!]!;
     if(! combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER))
     {
@@ -426,7 +466,7 @@ export async function injectAllCombatantActions(
     advancedCombat : AdvancedCosmereCombat,
     html : HTMLElement)
 {
-    console.log("Injecting all combatant actions");
+    //console.log(`${MODULE_ID}: Injecting all combatant actions`);
     for (const combatant of (advancedCombat.combat.combatants ?? [])) {
         const combatantJQuery = $(html).find(`[data-combatant-id=\"${combatant.id}\"]`);
         await injectCombatantActions(combatant, combatantJQuery);
