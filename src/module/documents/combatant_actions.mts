@@ -75,6 +75,12 @@ export class CombatantActions{
 
     protected static async initializeCombatantFlags(combatant: CosmereCombatant){
         //console.log(`${MODULE_ID}: Initializing Combatant Flags`);
+
+        // If the user doesn't have ownership permissions over the document, never set the values
+        if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
+            return;
+        }
+
         if(combatant.isBoss){
             if(!(await combatant.getFlag(MODULE_ID, "flags_initialized_version") == game.modules?.get(MODULE_ID)?.version)){
                 //console.log(`${MODULE_ID}: Boss flags not initialized`);
@@ -343,6 +349,10 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
     }
 
     protected async setFlagActionsOnTurn(){
+        // If the user doesn't have ownership permissions over the document, never set the values
+        if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
+            return;
+        }
         if(this.isBossFastTurn){
             await this.combatant.setFlag(MODULE_ID, "bossFastActionsOnTurn", this.context.actionsOnTurn);
         }
@@ -352,6 +362,10 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
     }
 
     protected async setFlagActionsUsed(){
+        // If the user doesn't have ownership permissions over the document, never set the values
+        if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
+            return;
+        }
         if(this.isBossFastTurn){
             await this.combatant.setFlag(MODULE_ID, "bossFastActionsUsed", this.context.actionsUsed);
         }
@@ -361,6 +375,10 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
     }
 
     protected async setFlagReactionUsed(){
+        // If the user doesn't have ownership permissions over the document, never set the values
+        if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
+            return;
+        }
         await this.combatant.setFlag(MODULE_ID, "reactionUsed", this.context.reactionUsed);
     }
     //#endregion
