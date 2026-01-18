@@ -2,10 +2,10 @@ import { CosmereActor } from './actor';
 import { CosmereItem } from './item';
 import { SYSTEM_ID } from '../system/constants';
 export declare const enum MESSAGE_TYPES {
-    SKILL = string,
-    ACTION = string,
-    INJURY = string,
-    DAMAGE_TAKEN = string,
+    SKILL = 'skill',
+    ACTION = 'action',
+    INJURY = 'injury',
+    DAMAGE_TAKEN = 'taken',
 };
 export declare class CosmereChatMessage<out SubType extends ChatMessage.SubType = ChatMessage.SubType> extends ChatMessage<SubType> {
     get actorSource(): CosmereActor | null;
