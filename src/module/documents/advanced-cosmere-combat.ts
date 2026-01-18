@@ -1,4 +1,4 @@
-import { Dictionary } from "@src/index";
+import { activeCombat, Dictionary } from "@src/index";
 import { CombatantActions } from "./combatant_actions.mjs";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 
@@ -33,3 +33,7 @@ export class AdvancedCosmereCombat{
         this.combatantActionsMap[combatant.id!] = combatantActions;
     }
 }
+
+Hooks.on("combatRound", () => {
+
+});
