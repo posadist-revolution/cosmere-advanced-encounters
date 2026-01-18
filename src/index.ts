@@ -5,6 +5,7 @@ import { AdvancedCosmereCombat } from './module/documents/advanced-cosmere-comba
 import { injectAllCombatantActions } from './module/documents/combatant_actions.js'
 import { COSMERE_ADVANCED_ENCOUNTERS } from './module/helpers/config.mjs';
 import { preloadHandlebarsTemplates } from './module/helpers/templates.mjs';
+import { activateCombatantHooks } from './module/hooks/combatant.js';
 
 declare global {
 	interface LenientGlobalVariableTypes {
@@ -30,7 +31,7 @@ Hooks.once('init', async function() {
 });
 
 Hooks.once('ready', async function() {
-
+    activateCombatantHooks();
 });
 
 Hooks.on('renderCombatTracker', async (
