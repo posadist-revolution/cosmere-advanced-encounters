@@ -1,3 +1,5 @@
+import { ActionCostType } from "../system/types/cosmere";
+
 interface ShowConsumeDialogOptions {
     /**
      * The default state of the consume checkbox in the dialog
@@ -12,8 +14,46 @@ interface ShowConsumeDialogOptions {
      */
     consumeType?: ItemConsumeType;
 }
+
 declare class CosmereItem<
-    SystemType = {}
+    SystemType = {
+        id: string,
+        type: string,
+        description: {
+            value: string,
+            chat: string,
+            short: string,
+        },
+        activation: {
+            type: string,
+            cost: {
+                value: number,
+                type: ActionCostType
+            },
+            consume: [
+                {
+                    type: any,
+                    value: {
+                        min: number,
+                        max: number,
+                        actual: number
+                    },
+                    resource: any
+                }
+            ],
+            flavor: string,
+            plotDie: boolean,
+            opportunity: any,
+            complication: any,
+            uses: any,
+            attribute: any
+        },
+        damage: any,
+        modality: any,
+        ancestry: any,
+        events: any,
+        relationships: any
+    }
 > extends Item {
     name: string;
     type: ItemType;
@@ -100,7 +140,7 @@ declare class CosmereItem<
      * - Talents
      */
     set source(value: T extends TalentItemDataModel ? Talent.Source | null : never);
-    
+
     protected handleGoalComplete(): void;
     /**
      * Roll utility for activable items.
