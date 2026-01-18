@@ -1,12 +1,12 @@
 
-export const MESSAGE_TYPES = {
+export declare const MESSAGE_TYPES = {
     SKILL: 'skill',
     ACTION: 'action',
     INJURY: 'injury',
     DAMAGE_TAKEN: 'taken',
 };
 
-export class CosmereChatMessage<
+export declare class CosmereChatMessage<
     out SubType extends ChatMessage.SubType = ChatMessage.SubType,
 > extends ChatMessage<SubType> {
 
