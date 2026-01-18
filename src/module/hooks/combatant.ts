@@ -55,7 +55,7 @@ function handleReaction(combatantActions: CombatantActions, cosmereItem: Cosmere
 }
 
 function handleUseAction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
-    let usedAction = new UsedAction(cosmereItem.system.activation.cost.value!, cosmereItem.system.id);
+    let usedAction = new UsedAction(cosmereItem.system.activation.cost.value!, cosmereItem.name);
     if(activeCombat.combat.combatant?.turnSpeed == TurnSpeed.Fast && combatantActions?.isBoss){
         combatantActions.bossFastTurnActions.useAction(usedAction);
     }
