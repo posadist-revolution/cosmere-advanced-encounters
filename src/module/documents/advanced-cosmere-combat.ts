@@ -5,12 +5,12 @@ import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combat
 export class AdvancedCosmereCombat{
     readonly combat : Combat
     actorIdToCombatantActionsListMap: Dictionary<string[]>;
-    combatantActionsMap: Dictionary<CombatantActions>;
+    combatantIdToActionsMap: Map<string, CombatantActions>;
 
     constructor(combat: Combat){
         this.combat = combat;
         this.actorIdToCombatantActionsListMap = {};
-        this.combatantActionsMap = {};
+        this.combatantIdToActionsMap = new Map<string, CombatantActions>();
         for (const combatant of combat.combatants){
             this.addNewCombatantToCombat(combatant);
         }
@@ -30,7 +30,11 @@ export class AdvancedCosmereCombat{
     public addNewCombatantToCombat(combatant: CosmereCombatant){
         let combatantActions = new CombatantActions(combatant);
         this.registerActorCombatantActions(combatantActions);
-        this.combatantActionsMap[combatant.id!] = combatantActions;
+        this.combatantIdToActionsMap.set(combatant.id!, combatantActions);
+    }
+
+    public getCombatantActionsFromId(combatantId: string){
+        return this.combatantIdToActionsMap.get(combatantId);
     }
 }
 
