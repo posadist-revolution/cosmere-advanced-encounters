@@ -5,6 +5,7 @@ import { AdvancedCosmereCombat } from './module/documents/advanced-cosmere-comba
 import { injectAllCombatantActions } from './module/documents/combatant_actions.mjs'
 import { COSMERE_ADVANCED_ENCOUNTERS } from './module/helpers/config.mjs';
 import { preloadHandlebarsTemplates } from './module/helpers/templates.mjs';
+import { registerModuleSettings } from './module/settings.js';
 
 declare global {
 	interface LenientGlobalVariableTypes {
@@ -25,6 +26,7 @@ export interface Dictionary<T> {
 export var advancedCombatsMap: Dictionary<AdvancedCosmereCombat> = {};
 
 Hooks.once('init', async function() {
+    registerModuleSettings();
 	// Preload Handlebars templates.
 	return preloadHandlebarsTemplates();
 });
@@ -48,7 +50,7 @@ Hooks.on('renderCombatTracker', async (
         advancedCombatsMap[tracker.viewed.id] = new AdvancedCosmereCombat(tracker.viewed);
     }
     for (const combatant of tracker.viewed.combatants){
-        if(advancedCombatsMap[tracker.viewed.id].combatantActionsMap[combatant.id] == undefined){
+        if(advancedCombatsMap[tracker.viewed.id].getCombatantActionsFromId(combatant.id) == undefined){
             //console.log(`${MODULE_ID}: Adding new combatant`);
             advancedCombatsMap[tracker.viewed.id].addNewCombatantToCombat(combatant);
         }
@@ -98,5 +100,5 @@ Hooks.on("updateCombatant", async (
     if(change.flags?.[MODULE_ID] == null){
         return;
     }
-    activeCombat.combatantActionsMap[combatant?.id!].pullFlagInformation();
+    activeCombat.getCombatantActionsFromId(combatant?.id!)?.pullFlagInformation();
 });

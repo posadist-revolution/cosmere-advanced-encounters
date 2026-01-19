@@ -1,11 +1,13 @@
 import { MODULE_ID } from "../constants";
 import { AnyObject } from '@league-of-foundry-developers/foundry-vtt-types/utils';
 import { AdvancedCosmereCombat } from "./advanced-cosmere-combat";
-import { activeCombat } from "@src/index";
+import { activeCombat, advancedCombatsMap } from "@src/index";
 import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 import { TEMPLATES } from "../helpers/templates.mjs"
 import { CosmereTurnContext } from "@src/declarations/cosmere-rpg/applications/combat/combat_tracker";
+import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
+import { CosmereCombat } from "@src/declarations/cosmere-rpg/documents/combat";
 
 export class UsedAction{
     declare cost: number
@@ -66,12 +68,41 @@ export class CombatantActions{
         }
     }
 
-    public pullFlagInformation(){
-        this.combatantTurnActions.refreshActionsFromFlags();
+    public onCombatantTurnStart(turnSpeed: TurnSpeed){
+        this.getCombatantTurnActions(turnSpeed).onTurnStart();
+    }
+
+    public async pullFlagInformation(){
+        await this.combatantTurnActions.refreshActionsFromFlags();
         if(this.isBoss){
-            this.bossFastTurnActions.refreshActionsFromFlags();
+            await this.bossFastTurnActions.refreshActionsFromFlags();
         }
     }
+
+    public resetAllCombatantTurnActions(){
+        this.combatantTurnActions.resetAllActions();
+        if(this.isBoss){
+            this.bossFastTurnActions.resetAllActions();
+        }
+    }
+
+    public setFlagWithCombatTurn(scope: string, key: string, value: any){
+        const updateData = {
+            flags: {
+                [scope]: {
+                    [key]: value
+                }
+            }
+        };
+        const updateOperation: Combatant.Database.UpdateOperation = {
+            combatTurn: activeCombat.combat.turn as number,
+            turnEvents: false,
+            broadcast: true
+        };
+        this.combatant.update(updateData, updateOperation);
+    }
+
+    //#endregion
 
     protected static async initializeCombatantFlags(combatant: CosmereCombatant){
         //console.log(`${MODULE_ID}: Initializing Combatant Flags`);
@@ -160,6 +191,12 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
     /* --- Public action interfaces ---*/
     //#region CombatantTurnActions_PublicActionInterfaces
+    public async onTurnStart(){
+        this.context.actionsUsed = [];
+        this.context.reactionUsed = false;
+        this.setFlagAll();
+        this.calculateActionsLeft();
+    }
 
     public async resetAllActions(){
         // Set actionsOnTurn
@@ -264,7 +301,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         const li = btn.closest<HTMLElement>('.combatant')!;
 
         // Get the combatant actions and turn speed of what was clicked
-        const combatantActions = activeCombat!.combatantActionsMap[li.dataset.combatantId!]!;
+        const combatantActions = activeCombat!.getCombatantActionsFromId(li.dataset.combatantId!)!;
         const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
 
         // Get the associated CombatTurnActions
@@ -293,7 +330,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         const actionCost = btn.getAttribute("action-cost");
 
         // Get the combatant actions
-        const combatantActions = activeCombat!.combatantActionsMap[li.dataset.combatantId!]!;
+        const combatantActions = activeCombat!.getCombatantActionsFromId(li.dataset.combatantId!)!;
         const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
 
         // Get the associated CombatTurnActions
@@ -320,7 +357,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         const li = btn.closest<HTMLElement>('.combatant')!;
 
         // Get the combatant actions
-        const combatantActions = activeCombat!.combatantActionsMap[li.dataset.combatantId!]!;
+        const combatantActions = activeCombat!.getCombatantActionsFromId(li.dataset.combatantId!)!;
 
         // By convention, always trust that CombatantTurnActions to be trusted for reaction data is the default CombatantTurnActions
         // Get the associated CombatTurnActions
@@ -354,10 +391,10 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
         if(this.isBossFastTurn){
-            await this.combatant.setFlag(MODULE_ID, "bossFastActionsOnTurn", this.context.actionsOnTurn);
+            await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "bossFastActionsOnTurn", this.context.actionsOnTurn);
         }
         else{
-            await this.combatant.setFlag(MODULE_ID, "actionsOnTurn", this.context.actionsOnTurn);
+            await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "actionsOnTurn", this.context.actionsOnTurn);
         }
     }
 
@@ -367,10 +404,10 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
         if(this.isBossFastTurn){
-            await this.combatant.setFlag(MODULE_ID, "bossFastActionsUsed", this.context.actionsUsed);
+            await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "bossFastActionsUsed", this.context.actionsUsed);
         }
         else{
-            await this.combatant.setFlag(MODULE_ID, "actionsUsed", this.context.actionsUsed);
+            await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "actionsUsed", this.context.actionsUsed);
         }
     }
 
@@ -379,37 +416,37 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
             return;
         }
-        await this.combatant.setFlag(MODULE_ID, "reactionUsed", this.context.reactionUsed);
+        await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "reactionUsed", this.context.reactionUsed);
     }
     //#endregion
     //#region CombatantTurnActions_GetFlag
 
     protected async getFlagAll(){
-        this.getFlagActionsOnTurn();
-        this.getFlagActionsUsed();
-        this.getFlagReactionUsed();
+        await this.getFlagActionsOnTurn();
+        await this.getFlagActionsUsed();
+        await this.getFlagReactionUsed();
     }
 
     protected async getFlagActionsOnTurn(){
         if(this.isBossFastTurn){
-            this.context.actionsOnTurn = this.combatant.getFlag(MODULE_ID, "bossFastActionsOnTurn");
+            this.context.actionsOnTurn = await this.combatant.flags[MODULE_ID]?.bossFastActionsOnTurn!;
         }
         else{
-            this.context.actionsOnTurn = this.combatant.getFlag(MODULE_ID, "actionsOnTurn");
+            this.context.actionsOnTurn = await this.combatant.flags[MODULE_ID]?.actionsOnTurn!;
         }
     }
 
     protected async getFlagActionsUsed(){
         if(this.isBossFastTurn){
-            this.context.actionsUsed = this.combatant.getFlag(MODULE_ID, "bossFastActionsUsed");
+            this.context.actionsUsed = this.combatant.flags[MODULE_ID]?.bossFastActionsUsed!;
         }
         else{
-            this.context.actionsUsed = this.combatant.getFlag(MODULE_ID, "actionsUsed");
+            this.context.actionsUsed = this.combatant.flags[MODULE_ID]?.actionsUsed!;
         }
     }
 
     protected async getFlagReactionUsed(){
-        this.context.reactionUsed = this.combatant.getFlag(MODULE_ID, "reactionUsed");
+        this.context.reactionUsed = this.combatant.flags[MODULE_ID]?.reactionUsed!;
     }
     //#endregion
     //#endregion
@@ -417,6 +454,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
 /* --- CombatantTurnActions Hooks --- */
 
+// If a combatant is updated with a new turnSpeed, update actionsOnTurn accordingly
 Hooks.on("preUpdateCombatant", (
     combatant : CosmereCombatant,
     change : Combatant.UpdateData
@@ -428,7 +466,7 @@ Hooks.on("preUpdateCombatant", (
                 `flags.${MODULE_ID}.actionsOnTurn`,
                 actionsOnTurn,
             )
-        activeCombat.combatantActionsMap[combatant?.id!].combatantTurnActions.onCombatantTurnSpeedChange();
+        activeCombat.getCombatantActionsFromId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange();
     }
     return true;
 });
@@ -440,14 +478,29 @@ Hooks.on("updateCombatant", async (
     userId : string
 ) => {
     if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.turnSpeed`)){
-        activeCombat.combatantActionsMap[combatant?.id!].combatantTurnActions.onCombatantTurnSpeedChange();
+        activeCombat.getCombatantActionsFromId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange();
     }
+});
+
+Hooks.on("combatTurnChange", async (
+    combat: CosmereCombat,
+    prior: Combat.HistoryData,
+    current: Combat.HistoryData
+) => {
+    if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.turnStart){
+        return;
+    }
+    let turns = combat.turns;
+    let turnSpeed: TurnSpeed = turns[current.turn!].turnSpeed;
+    let combatantActions = advancedCombatsMap[combat?.id!].getCombatantActionsFromId(current?.combatantId!);
+
+    await combatantActions?.getCombatantTurnActions(turnSpeed).resetAllActions();
 });
 
 export async function injectCombatantActions(combatant : Combatant, combatantJQuery : JQuery)
 {
     //console.log(`${MODULE_ID}: Injecting combatant actions`);
-    const combatantActions = activeCombat!.combatantActionsMap[combatant.id!]!;
+    const combatantActions = activeCombat!.getCombatantActionsFromId(combatant?.id!)!;
     if(! combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER))
     {
         return;
