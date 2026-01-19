@@ -5,6 +5,7 @@ import { AdvancedCosmereCombat } from './module/documents/advanced-cosmere-comba
 import { injectAllCombatantActions } from './module/documents/combatant_actions.mjs'
 import { COSMERE_ADVANCED_ENCOUNTERS } from './module/helpers/config.mjs';
 import { preloadHandlebarsTemplates } from './module/helpers/templates.mjs';
+import { registerModuleSettings } from './module/settings.js';
 
 declare global {
 	interface LenientGlobalVariableTypes {
@@ -25,6 +26,7 @@ export interface Dictionary<T> {
 export var advancedCombatsMap: Dictionary<AdvancedCosmereCombat> = {};
 
 Hooks.once('init', async function() {
+    registerModuleSettings();
 	// Preload Handlebars templates.
 	return preloadHandlebarsTemplates();
 });

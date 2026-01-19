@@ -1,11 +1,13 @@
 import { MODULE_ID } from "../constants";
 import { AnyObject } from '@league-of-foundry-developers/foundry-vtt-types/utils';
 import { AdvancedCosmereCombat } from "./advanced-cosmere-combat";
-import { activeCombat } from "@src/index";
+import { activeCombat, advancedCombatsMap } from "@src/index";
 import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 import { TEMPLATES } from "../helpers/templates.mjs"
 import { CosmereTurnContext } from "@src/declarations/cosmere-rpg/applications/combat/combat_tracker";
+import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
+import { CosmereCombat } from "@src/declarations/cosmere-rpg/documents/combat";
 
 export class UsedAction{
     declare cost: number
@@ -66,12 +68,25 @@ export class CombatantActions{
         }
     }
 
+    public onCombatantTurnStart(turnSpeed: TurnSpeed){
+        this.getCombatantTurnActions(turnSpeed).onTurnStart();
+    }
+
     public pullFlagInformation(){
         this.combatantTurnActions.refreshActionsFromFlags();
         if(this.isBoss){
             this.bossFastTurnActions.refreshActionsFromFlags();
         }
     }
+
+    public resetAllCombatantTurnActions(){
+        this.combatantTurnActions.resetAllActions();
+        if(this.isBoss){
+            this.bossFastTurnActions.resetAllActions();
+        }
+    }
+
+    //#endregion
 
     protected static async initializeCombatantFlags(combatant: CosmereCombatant){
         //console.log(`${MODULE_ID}: Initializing Combatant Flags`);
@@ -160,6 +175,12 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
     /* --- Public action interfaces ---*/
     //#region CombatantTurnActions_PublicActionInterfaces
+    public async onTurnStart(){
+        this.context.actionsUsed = [];
+        this.context.reactionUsed = false;
+        this.setFlagAll();
+        this.calculateActionsLeft();
+    }
 
     public async resetAllActions(){
         // Set actionsOnTurn
@@ -443,6 +464,21 @@ Hooks.on("updateCombatant", async (
     if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.turnSpeed`)){
         activeCombat.getCombatantActionsFromId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange();
     }
+});
+
+Hooks.on("combatTurnChange", (
+    combat: CosmereCombat,
+    prior: Combat.HistoryData,
+    current: Combat.HistoryData
+) => {
+    if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.turnStart){
+        return;
+    }
+    let turns = combat.turns;
+    let turnSpeed: TurnSpeed = turns[current.turn!].turnSpeed;
+    let combatantActions = advancedCombatsMap[combat?.id!].getCombatantActionsFromId(current?.combatantId!);
+
+    combatantActions?.getCombatantTurnActions(turnSpeed).resetAllActions();
 });
 
 export async function injectCombatantActions(combatant : Combatant, combatantJQuery : JQuery)

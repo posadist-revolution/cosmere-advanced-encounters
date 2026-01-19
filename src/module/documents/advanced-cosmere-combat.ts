@@ -1,6 +1,7 @@
 import { activeCombat, Dictionary } from "@src/index";
 import { CombatantActions } from "./combatant_actions.mjs";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
+import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
 
 export class AdvancedCosmereCombat{
     readonly combat : Combat
@@ -36,8 +37,17 @@ export class AdvancedCosmereCombat{
     public getCombatantActionsFromId(combatantId: string){
         return this.combatantIdToActionsMap.get(combatantId);
     }
+
+    public resetAllCombatantActions(){
+        for (const combatantActions of this.combatantIdToActionsMap.values()){
+            combatantActions.resetAllCombatantTurnActions();
+        }
+    }
 }
 
 Hooks.on("combatRound", () => {
-
+    if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.roundStart){
+        return;
+    }
+    activeCombat.resetAllCombatantActions();
 });
