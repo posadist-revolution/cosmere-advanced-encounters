@@ -39,10 +39,23 @@ export function registerModuleSettings() {
 
 	configOptions.forEach(option => {
 		game.settings!.register(MODULE_ID, option.name, {
+            name: game.i18n?.localize(`cosmere-advanced-encounters.settings.${option.name}.name`),
+            hint: game.i18n?.localize(`cosmere-advanced-encounters.settings.${option.name}.hint`),
 			scope: option.scope as "world" | "client" | undefined,
 			default: option.default,
 			type: String,
 			config: true,
+            choices: {
+                [RefreshCombatantActionsWhenOptions.turnStart]: game.i18n?.localize(
+                    `cosmere-advanced-encounters.settings.refresh_combatant_actions_when_options.${RefreshCombatantActionsWhenOptions.turnStart}`,
+                ),
+                [RefreshCombatantActionsWhenOptions.roundStart]: game.i18n?.localize(
+                    `cosmere-advanced-encounters.settings.refresh_combatant_actions_when_options.${RefreshCombatantActionsWhenOptions.roundStart}`,
+                ),
+                [RefreshCombatantActionsWhenOptions.onlyManual]: game.i18n?.localize(
+                    `cosmere-advanced-encounters.settings.refresh_combatant_actions_when_options.${RefreshCombatantActionsWhenOptions.onlyManual}`,
+                )
+            },
 		});
 	});
 }

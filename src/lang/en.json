@@ -3,6 +3,17 @@
         "actions_remaining": "Actions remaining",
         "toggle_reaction": "Toggle reaction used",
         "revert_used_action": "Restore used action",
-        "cost_manual": "Manual Action"
+        "cost_manual": "Manual Action",
+        "settings": {
+            "refreshCombatantActionsWhen": {
+                "name": "Refresh combatant actions time",
+                "hint": "What event should enable combatants action graphics to refresh"
+            },
+            "refresh_combatant_actions_when_options" : {
+                "turnStart": "On combatant turn start",
+                "roundStart": "On combat round start",
+                "onlyManual": "Only allow manual refreshing of actions"
+            }
+        }
     }
 }
