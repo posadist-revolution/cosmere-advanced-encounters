@@ -25,6 +25,19 @@ export class UsedAction{
     }
 }
 
+export type ActionIsInGroupFunc = (action: CosmereItem) => boolean;
+
+export class ActionGroup{
+    declare count: number;
+    declare name?: string;
+    declare actionIsInGroup?: ActionIsInGroupFunc;
+    constructor(count: number, name? : string, actionIsInGroup? : ActionIsInGroupFunc){
+        this.count = count;
+        this.name = name;
+        this.actionIsInGroup = actionIsInGroup;
+    }
+}
+
 export class CombatantActions{
 
     readonly combatant: CosmereCombatant;
@@ -138,10 +151,10 @@ export class CombatantActions{
 }
 
 interface CombatTurnActionsContext{
-    actionsOnTurn: number;
+    actionsAvailableGroups: ActionGroup[];
     actionsUsed: UsedAction[];
-    actionsLeft: number;
-    reactionUsed: boolean;
+    reactionsAvailable: ActionGroup[];
+    reactionsUsed: UsedAction[];
 }
 
 export class CombatantTurnActions extends foundry.applications.api.HandlebarsApplicationMixin(
