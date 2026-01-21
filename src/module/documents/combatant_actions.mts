@@ -105,6 +105,16 @@ export class CombatantActions{
         }
     }
 
+    public updateDataWithCombatTurn(updateData: any){
+
+        const updateOperation: Combatant.Database.UpdateOperation = {
+            combatTurn: activeCombat.combat.turn as number,
+            turnEvents: false,
+            broadcast: true
+        };
+        this.combatant.update(updateData, updateOperation);
+    }
+
     public setFlagWithCombatTurn(scope: string, key: string, value: any){
         const updateData = {
             flags: {
@@ -518,14 +528,32 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
             return;
         }
+        var updateData = {};
         if(this.isBossFastTurn){
-            await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "bossFastActionsAvailableGroups", this.context.actionsAvailableGroups);
-            await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "bossFastActionsUsed", this.context.actionsUsed);
+            updateData = {
+                flags: {
+                    [MODULE_ID]: {
+                        ["bossFastActionsAvailableGroups"]: this.context.actionsAvailableGroups,
+                        ["bossFastActionsUsed"]: this.context.actionsUsed
+                    }
+                }
+            }
+            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "bossFastActionsAvailableGroups", this.context.actionsAvailableGroups);
+            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "bossFastActionsUsed", this.context.actionsUsed);
         }
         else{
-            await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "actionsAvailableGroups", this.context.actionsAvailableGroups);
-            await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "actionsUsed", this.context.actionsUsed);
+            updateData = {
+                flags: {
+                    [MODULE_ID]: {
+                        ["actionsAvailableGroups"]: this.context.actionsAvailableGroups,
+                        ["actionsUsed"]: this.context.actionsUsed
+                    }
+                }
+            }
+            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "actionsAvailableGroups", this.context.actionsAvailableGroups);
+            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "actionsUsed", this.context.actionsUsed);
         }
+        await this.combatantActions.updateDataWithCombatTurn(updateData);
     }
 
     protected async setFlagReactions(){
@@ -533,8 +561,17 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
             return;
         }
-        await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "reactionsAvailable", this.context.reactionsAvailable);
-        await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "reactionsUsed", this.context.reactionsUsed);
+        const updateData = {
+            flags: {
+                [MODULE_ID]: {
+                    ["reactionsAvailable"]: this.context.reactionsAvailable,
+                    ["reactionsUsed"]: this.context.reactionsUsed
+                }
+            }
+        };
+        await this.combatantActions.updateDataWithCombatTurn(updateData);
+        // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "reactionsAvailable", this.context.reactionsAvailable);
+        // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "reactionsUsed", this.context.reactionsUsed);
     }
     //#endregion
     //#region CombatantTurnActions_GetFlag
