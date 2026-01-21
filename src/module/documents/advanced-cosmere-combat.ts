@@ -1,16 +1,17 @@
-import { Dictionary } from "@src/index";
+import { activeCombat, Dictionary } from "@src/index";
 import { CombatantActions } from "./combatant_actions.mjs";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
+import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
 
 export class AdvancedCosmereCombat{
     readonly combat : Combat
     actorIdToCombatantActionsListMap: Dictionary<string[]>;
-    combatantActionsMap: Dictionary<CombatantActions>;
+    combatantIdToActionsMap: Map<string, CombatantActions>;
 
     constructor(combat: Combat){
         this.combat = combat;
         this.actorIdToCombatantActionsListMap = {};
-        this.combatantActionsMap = {};
+        this.combatantIdToActionsMap = new Map<string, CombatantActions>();
         for (const combatant of combat.combatants){
             this.addNewCombatantToCombat(combatant);
         }
@@ -30,6 +31,23 @@ export class AdvancedCosmereCombat{
     public addNewCombatantToCombat(combatant: CosmereCombatant){
         let combatantActions = new CombatantActions(combatant);
         this.registerActorCombatantActions(combatantActions);
-        this.combatantActionsMap[combatant.id!] = combatantActions;
+        this.combatantIdToActionsMap.set(combatant.id!, combatantActions);
+    }
+
+    public getCombatantActionsFromId(combatantId: string){
+        return this.combatantIdToActionsMap.get(combatantId);
+    }
+
+    public resetAllCombatantActions(){
+        for (const combatantActions of this.combatantIdToActionsMap.values()){
+            combatantActions.resetAllCombatantTurnActions();
+        }
     }
 }
+
+Hooks.on("combatRound", () => {
+    if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.roundStart){
+        return;
+    }
+    activeCombat.resetAllCombatantActions();
+});

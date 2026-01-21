@@ -1,5 +1,4 @@
-### Release 0.2.0
-<sup>2026-01-16</sup>
+### Release 0.3.0
+<sup>2026-01-19</sup>
 
-This release from a client standpoint is a minor change- the actions list has been moved to its own row in the Combatant view, and there are now some fancy tooltips to indicate what each button does.
-Under the hood, this is a fairly major refactor that opens the way for many of the changes I'm hopeful to enable in the future for better automation.
+Adds a setting to enable automatic resetting of combatant's actions- either resetting an individual combatant's actions when their turn starts, or resetting all combatant's actions when a new round starts.
