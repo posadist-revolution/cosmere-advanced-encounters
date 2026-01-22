@@ -2,13 +2,9 @@ import { MODULE_ID } from "../constants";
 import { AnyObject } from '@league-of-foundry-developers/foundry-vtt-types/utils';
 import { AdvancedCosmereCombat } from "./advanced-cosmere-combat";
 import { activeCombat, advancedCombatsMap } from "@src/index";
-import { activeCombat, advancedCombatsMap } from "@src/index";
 import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 import { TEMPLATES } from "../helpers/templates.mjs"
-import { CosmereTurnContext } from "@src/declarations/cosmere-rpg/applications/combat/combat_tracker";
-import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
-import { CosmereCombat } from "@src/declarations/cosmere-rpg/documents/combat";
 import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
 import { CosmereCombat } from "@src/declarations/cosmere-rpg/documents/combat";
 
@@ -469,7 +465,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         const actionGroupName = btn.getAttribute("action-group-name")!;
 
         // Get the combatant actions
-        const combatantActions = activeCombat!.getCombatantActionsFromId(li.dataset.combatantId!)!;
+        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
         const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
 
         // Get the associated CombatTurnActions
