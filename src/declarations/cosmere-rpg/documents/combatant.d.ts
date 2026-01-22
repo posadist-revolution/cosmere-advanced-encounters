@@ -34,11 +34,12 @@ declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
                 activated: boolean;
             };
             [MODULE_ID]: {
-                bossFastActionsUsed: any;
-                bossFastActionsOnTurn: number;
                 actionsUsed: any;
-                reactionUsed: boolean;
-                actionsOnTurn: number;
+                actionsAvailableGroups: any;
+                bossFastActionsUsed: any;
+                bossFastActionsAvailableGroups: any;
+                reactionsUsed: any;
+                reactionsAvailable: any;
                 flags_initialized_version: string;
             }
         };
