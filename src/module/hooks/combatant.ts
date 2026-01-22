@@ -3,7 +3,7 @@ import { activeCombat } from "@src/index";
 import { CombatantActions, UsedAction } from "../documents/combatant_actions.js";
 import { CosmereItem } from "../../declarations/cosmere-rpg/documents/item";
 import { CosmereChatMessage, MESSAGE_TYPES } from '../../declarations/cosmere-rpg/documents/chat-message';
-import { MODULE_ID } from "../constants";
+import { MODULE_ID, SYSTEM_ID } from "../constants";
 
 
 export function activateCombatantHooks(){
@@ -11,14 +11,19 @@ export function activateCombatantHooks(){
     Hooks.on("preCreateChatMessage", (
         chatMessage: CosmereChatMessage
     ) => {
-        console.log(`${MODULE_ID}: Running preCreateChatMessage`);
+        // console.log(`${MODULE_ID}: Running preCreateChatMessage`);
         if(chatMessage.getFlag("cosmere-rpg", "message")?.type != MESSAGE_TYPES.ACTION){
-            console.log(`${MODULE_ID}: Message is not an action`);
+            // console.log(`${MODULE_ID}: Message is not an action`);
             return true;
         }
         let cosmereItem: CosmereItem = chatMessage.itemSource!;
-        console.log(`${MODULE_ID}: Message associated item:`);
-        console.log(cosmereItem);
+        if(!cosmereItem){
+            let id = chatMessage.getFlag(SYSTEM_ID, "message.item");
+            // TODO: Figure out how to find an item from a compendium
+            console.log(`Item ID: ${id}`);
+        }
+        // console.log(`${MODULE_ID}: Message associated item:`);
+        // console.log(cosmereItem);
         let tokenId = chatMessage.speaker.token;
         let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId!)!;
         switch(cosmereItem.system.activation.cost.type){
@@ -51,7 +56,7 @@ function handleSpecialAction(combatantActions: CombatantActions, cosmereItem: Co
 }
 
 function handleReaction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
-    combatantActions.combatantTurnActions.useReaction()
+    combatantActions.combatantTurnActions.useReaction(new UsedAction(1, cosmereItem.name));
 }
 
 function handleUseAction(combatantActions: CombatantActions, cosmereItem: CosmereItem){

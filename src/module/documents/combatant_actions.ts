@@ -11,8 +11,8 @@ import { CosmereCombat } from "@src/declarations/cosmere-rpg/documents/combat";
 export class UsedAction{
     declare cost: number
     declare name: string
-    declare actionGroupUsedFromName: string
-    constructor(cost: number, actionGroupName: string, name?: string){
+    declare actionGroupUsedFromName?: string
+    constructor(cost: number, name?: string, actionGroupName?: string){
         this.cost = cost;
         this.actionGroupUsedFromName = actionGroupName;
         if(name !== undefined)
@@ -256,7 +256,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
     public async removeAction(action: UsedAction){
         let actionIndex = this.context.actionsUsed.findIndex((element) => (element.cost == action.cost && element.name == action.name));
-        let actionGroup = this.getActionGroupByName(action.actionGroupUsedFromName);
+        let actionGroup = this.getActionGroupByName(action.actionGroupUsedFromName!);
         this.removeActionFromGroup(actionGroup, action);
         this.context.actionsUsed.splice(actionIndex, 1);
         await this.setFlagActions();
@@ -277,7 +277,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
     public async removeReaction(reaction: UsedAction){
         let reactionIndex = this.context.actionsUsed.findIndex((element) => (element.cost == reaction.cost && element.name == reaction.name));
-        let reactionGroup = this.getReactionGroupByName(reaction.actionGroupUsedFromName);
+        let reactionGroup = this.getReactionGroupByName(reaction.actionGroupUsedFromName!);
         this.removeActionFromGroup(reactionGroup, reaction);
         this.context.reactionsUsed.splice(reactionIndex, 1);
         this.setFlagReactions();
@@ -419,7 +419,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.useAction(new UsedAction(1, actionGroupName));
+        void await combatantTurnActions.useAction(new UsedAction(1, game.i18n?.localize("cosmere-advanced-encounters.cost_manual"), actionGroupName));
     }
 
     protected static async _onRestoreActionButton(
@@ -449,7 +449,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.removeAction(new UsedAction(Number(actionCost), actionGroupName, actionName));
+        void await combatantTurnActions.removeAction(new UsedAction(Number(actionCost), actionName, actionGroupName));
     }
 
     protected static async _onUseReactionButton(
@@ -477,7 +477,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.useReaction(new UsedAction(1, actionGroupName));
+        void await combatantTurnActions.useReaction(new UsedAction(1, game.i18n?.localize("cosmere-advanced-encounters.cost_manual"), actionGroupName));
 
         void await combatantTurnActions.setFlagReactions();
     }
@@ -508,7 +508,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.removeReaction(new UsedAction(1, actionGroupName, actionName));
+        void await combatantTurnActions.removeReaction(new UsedAction(1, actionName, actionGroupName));
 
         void await combatantTurnActions.setFlagReactions();
     }
