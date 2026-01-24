@@ -407,7 +407,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         const actionGroupName = btn.getAttribute("action-group-name")!;
 
         // Get the combatant actions and turn speed of what was clicked
-        const combatantActions = activeCombat!.getCombatantActionsFromId(li.dataset.combatantId!)!;
+        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
         const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
 
         // Get the associated CombatTurnActions
@@ -437,7 +437,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         const actionGroupName = btn.getAttribute("action-group-name")!;
 
         // Get the combatant actions
-        const combatantActions = activeCombat!.getCombatantActionsFromId(li.dataset.combatantId!)!;
+        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
         const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
 
         // Get the associated CombatTurnActions
@@ -465,7 +465,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         const actionGroupName = btn.getAttribute("action-group-name")!;
 
         // Get the combatant actions
-        const combatantActions = activeCombat!.getCombatantActionsFromId(li.dataset.combatantId!)!;
+        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
         const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
 
         // Get the associated CombatTurnActions
@@ -496,7 +496,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         const actionName = btn.getAttribute("action-name")!;
 
         // Get the combatant actions
-        const combatantActions = activeCombat!.getCombatantActionsFromId(li.dataset.combatantId!)!;
+        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
         const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
 
         // Get the associated CombatTurnActions
@@ -609,7 +609,7 @@ Hooks.on("preUpdateCombatant", (
 ) => {
     //TODO: Is this anything?
     if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.turnSpeed`)){
-        activeCombat.getCombatantActionsFromId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange();
+        activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange();
     }
     return true;
 });
@@ -621,7 +621,7 @@ Hooks.on("updateCombatant", async (
     userId : string
 ) => {
     if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.turnSpeed`)){
-        activeCombat.getCombatantActionsFromId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange();
+        activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange();
     }
 });
 
@@ -635,7 +635,7 @@ Hooks.on("combatTurnChange", async (
     }
     let turns = combat.turns;
     let turnSpeed: TurnSpeed = turns[current.turn!].turnSpeed;
-    let combatantActions = advancedCombatsMap[combat?.id!].getCombatantActionsFromId(current?.combatantId!);
+    let combatantActions = advancedCombatsMap[combat?.id!].getCombatantActionsByCombatantId(current?.combatantId!);
 
     await combatantActions?.getCombatantTurnActions(turnSpeed).onTurnStart();
 });
@@ -643,7 +643,7 @@ Hooks.on("combatTurnChange", async (
 export async function injectCombatantActions(combatant : Combatant, combatantJQuery : JQuery)
 {
     //console.log(`${MODULE_ID}: Injecting combatant actions`);
-    const combatantActions = activeCombat!.getCombatantActionsFromId(combatant?.id!)!;
+    const combatantActions = activeCombat!.getCombatantActionsByCombatantId(combatant?.id!)!;
     if(! combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER))
     {
         return;
