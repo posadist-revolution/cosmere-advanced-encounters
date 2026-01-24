@@ -50,7 +50,7 @@ Hooks.on('renderCombatTracker', async (
         advancedCombatsMap[tracker.viewed.id] = new AdvancedCosmereCombat(tracker.viewed);
     }
     for (const combatant of tracker.viewed.combatants){
-        if(advancedCombatsMap[tracker.viewed.id].getCombatantActionsFromId(combatant.id) == undefined){
+        if(advancedCombatsMap[tracker.viewed.id].getCombatantActionsByCombatantId(combatant.id) == undefined){
             //console.log(`${MODULE_ID}: Adding new combatant`);
             advancedCombatsMap[tracker.viewed.id].addNewCombatantToCombat(combatant);
         }
@@ -100,5 +100,5 @@ Hooks.on("updateCombatant", async (
     if(change.flags?.[MODULE_ID] == null){
         return;
     }
-    activeCombat.getCombatantActionsFromId(combatant?.id!)?.pullFlagInformation();
+    activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.pullFlagInformation();
 });

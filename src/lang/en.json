@@ -1,8 +1,10 @@
 {
     "cosmere-advanced-encounters": {
-        "actions_remaining": "Actions remaining",
-        "toggle_reaction": "Toggle reaction used",
-        "revert_used_action": "Restore used action",
+        "use_action": "Use action",
+        "use_reaction": "Use reaction",
+        "restore_action": "Restore used action",
+        "remove_action": "Remove used action",
+        "restore_reaction": "Restore used reaction",
         "cost_manual": "Manual Action",
         "settings": {
             "refreshCombatantActionsWhen": {

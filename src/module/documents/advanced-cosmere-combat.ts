@@ -6,12 +6,12 @@ import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "
 export class AdvancedCosmereCombat{
     readonly combat : Combat
     actorIdToCombatantActionsListMap: Dictionary<string[]>;
-    combatantIdToActionsMap: Map<string, CombatantActions>;
+    combatantIdToCombatantActionsMap: Map<string, CombatantActions>;
 
     constructor(combat: Combat){
         this.combat = combat;
         this.actorIdToCombatantActionsListMap = {};
-        this.combatantIdToActionsMap = new Map<string, CombatantActions>();
+        this.combatantIdToCombatantActionsMap = new Map<string, CombatantActions>();
         for (const combatant of combat.combatants){
             this.addNewCombatantToCombat(combatant);
         }
@@ -31,15 +31,15 @@ export class AdvancedCosmereCombat{
     public addNewCombatantToCombat(combatant: CosmereCombatant){
         let combatantActions = new CombatantActions(combatant);
         this.registerActorCombatantActions(combatantActions);
-        this.combatantIdToActionsMap.set(combatant.id!, combatantActions);
+        this.combatantIdToCombatantActionsMap.set(combatant.id!, combatantActions);
     }
 
-    public getCombatantActionsFromId(combatantId: string){
-        return this.combatantIdToActionsMap.get(combatantId);
+    public getCombatantActionsByCombatantId(combatantId: string){
+        return this.combatantIdToCombatantActionsMap.get(combatantId);
     }
 
     public resetAllCombatantActions(){
-        for (const combatantActions of this.combatantIdToActionsMap.values()){
+        for (const combatantActions of this.combatantIdToCombatantActionsMap.values()){
             combatantActions.resetAllCombatantTurnActions();
         }
     }
