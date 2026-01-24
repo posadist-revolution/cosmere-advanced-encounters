@@ -105,23 +105,10 @@ export class CombatantActions{
     }
 
     public updateDataWithCombatTurn(updateData: any){
-
-        const updateOperation: Combatant.Database.UpdateOperation = {
-            combatTurn: activeCombat.combat.turn as number,
-            turnEvents: false,
-            broadcast: true
-        };
-        this.combatant.update(updateData, updateOperation);
-    }
-
-    public setFlagWithCombatTurn(scope: string, key: string, value: any){
-        const updateData = {
-            flags: {
-                [scope]: {
-                    [key]: value
-                }
-            }
-        };
+        // If the user doesn't have ownership permissions over the document, never set the values
+        if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
+            return;
+        }
         const updateOperation: Combatant.Database.UpdateOperation = {
             combatTurn: activeCombat.combat.turn as number,
             turnEvents: false,
@@ -615,8 +602,6 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
                     }
                 }
             }
-            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "bossFastActionsAvailableGroups", this.context.actionsAvailableGroups);
-            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "bossFastActionsUsed", this.context.actionsUsed);
         }
         else{
             updateData = {
@@ -629,8 +614,6 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
                     }
                 }
             }
-            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "actionsAvailableGroups", this.context.actionsAvailableGroups);
-            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "actionsUsed", this.context.actionsUsed);
         }
         await this.combatantActions.updateDataWithCombatTurn(updateData);
     }
