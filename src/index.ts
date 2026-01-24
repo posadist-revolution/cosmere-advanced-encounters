@@ -61,36 +61,6 @@ Hooks.on('renderCombatTracker', async (
     return true;
 });
 
-Hooks.on(
-    "preCreateCombatant",
-    (
-        combatant: CosmereCombatant,
-        data: Combatant.CreateData,
-        options: Combatant.Database.PreCreateOptions,
-        userId: string
-    ) => {
-
-    // Configure default combatant flags
-    const flags = {
-        [MODULE_ID]: {
-            actionsUsed: [],
-            actionsLeft: 3,
-            reactionUsed: false,
-        },
-    };
-    if ((combatant).isBoss){
-        const boss_flags = {
-            [MODULE_ID]: {
-                bossFastActionsUsed: [],
-                bossFastActionsLeft: 2
-            }
-        }
-        mergeObject(flags, boss_flags);
-    }
-    mergeObject(flags, combatant.flags);
-    combatant.updateSource({ flags });
-});
-
 Hooks.on("updateCombatant", async (
     combatant : CosmereCombatant,
     change : Combatant.UpdateData,

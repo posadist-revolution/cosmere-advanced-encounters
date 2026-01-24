@@ -45,6 +45,11 @@ declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
                 bossFastFreeActionsUsed: any;
                 bossFastSpecialActionsUsed: any;
                 flags_initialized_version: string;
+
+                //@deprecated These flags are kept in the configuration to allow for intelligently updating combats in progress to new module versions
+                reactionUsed: boolean;
+                bossFastActionsOnTurn: number;
+                actionsOnTurn: number;
             }
         };
     }

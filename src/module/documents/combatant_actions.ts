@@ -7,6 +7,7 @@ import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combat
 import { TEMPLATES } from "../helpers/templates.mjs"
 import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
 import { CosmereCombat } from "@src/declarations/cosmere-rpg/documents/combat";
+import { migrateFlags } from "../helpers/flag-migration-helper";
 
 export class UsedAction{
     declare cost: number
@@ -14,15 +15,8 @@ export class UsedAction{
     declare actionGroupUsedFromName?: string
     constructor(cost: number, name?: string, actionGroupName?: string){
         this.cost = cost;
-        this.actionGroupUsedFromName = actionGroupName;
-        if(name !== undefined)
-        {
-            this.name = name;
-        }
-        else
-        {
-            this.name = game.i18n!.localize(`cosmere-advanced-encounters.cost_manual`);
-        }
+        this.actionGroupUsedFromName = actionGroupName ?? "base";
+        this.name = name ?? game.i18n!.localize(`cosmere-advanced-encounters.cost_manual`);
     }
 }
 
@@ -56,7 +50,13 @@ export class CombatantActions{
         if(this.isBoss){
             this.bossFastTurnActions = new CombatantTurnActions(this, true);
         }
-        if(!(this.combatant.getFlag(MODULE_ID, "flags_initialized_version") == game.modules?.get(MODULE_ID)?.version)){
+        if(this.combatant.getFlag(MODULE_ID, "flags_initialized_version")){
+            if(!(this.combatant.getFlag(MODULE_ID, "flags_initialized_version") == game.modules?.get(MODULE_ID)?.version)){
+                // Combatant has flags from a previous version
+                migrateFlags(this);
+            }
+        }
+        else{
             CombatantActions.initializeCombatantFlags(this.combatant);
         }
     }
@@ -120,8 +120,6 @@ export class CombatantActions{
     //#endregion
 
     protected static async initializeCombatantFlags(combatant: CosmereCombatant){
-        //console.log(`${MODULE_ID}: Initializing Combatant Flags`);
-
         // If the user doesn't have ownership permissions over the document, never set the values
         if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
             return;
@@ -149,8 +147,6 @@ export class CombatantActions{
                 await combatant.setFlag(MODULE_ID, "flags_initialized_version", game.modules?.get(MODULE_ID)?.version!);
             }
         }
-        //console.log(`${MODULE_ID}: Initialized flags on combatant ${combatant.id}:`);
-        //console.log(combatant);
     }
 }
 
