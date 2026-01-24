@@ -5,15 +5,14 @@ import { activeCombat, advancedCombatsMap } from "@src/index";
 import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 import { TEMPLATES } from "../helpers/templates.mjs"
-import { CosmereTurnContext } from "@src/declarations/cosmere-rpg/applications/combat/combat_tracker";
 import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
 import { CosmereCombat } from "@src/declarations/cosmere-rpg/documents/combat";
 
 export class UsedAction{
     declare cost: number
     declare name: string
-    declare actionGroupUsedFromName: string
-    constructor(cost: number, actionGroupName: string, name?: string){
+    declare actionGroupUsedFromName?: string
+    constructor(cost: number, name?: string, actionGroupName?: string){
         this.cost = cost;
         this.actionGroupUsedFromName = actionGroupName;
         if(name !== undefined)
@@ -106,23 +105,10 @@ export class CombatantActions{
     }
 
     public updateDataWithCombatTurn(updateData: any){
-
-        const updateOperation: Combatant.Database.UpdateOperation = {
-            combatTurn: activeCombat.combat.turn as number,
-            turnEvents: false,
-            broadcast: true
-        };
-        this.combatant.update(updateData, updateOperation);
-    }
-
-    public setFlagWithCombatTurn(scope: string, key: string, value: any){
-        const updateData = {
-            flags: {
-                [scope]: {
-                    [key]: value
-                }
-            }
-        };
+        // If the user doesn't have ownership permissions over the document, never set the values
+        if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
+            return;
+        }
         const updateOperation: Combatant.Database.UpdateOperation = {
             combatTurn: activeCombat.combat.turn as number,
             turnEvents: false,
@@ -135,12 +121,6 @@ export class CombatantActions{
 
     protected static async initializeCombatantFlags(combatant: CosmereCombatant){
         //console.log(`${MODULE_ID}: Initializing Combatant Flags`);
-
-        // If the user doesn't have ownership permissions over the document, never set the values
-        if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
-            return;
-        }
-
 
         // If the user doesn't have ownership permissions over the document, never set the values
         if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
@@ -266,12 +246,12 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         }
         this.useActionFromGroup(actionGroupToUse, action);
         this.context.actionsUsed.push(action);
-        this.setFlagActions();
+        await this.setFlagActions();
     }
 
     public async removeAction(action: UsedAction){
         let actionIndex = this.context.actionsUsed.findIndex((element) => (element.cost == action.cost && element.name == action.name));
-        let actionGroup = this.getActionGroupByName(action.actionGroupUsedFromName);
+        let actionGroup = this.getActionGroupByName(action.actionGroupUsedFromName!);
         this.removeActionFromGroup(actionGroup, action);
         this.context.actionsUsed.splice(actionIndex, 1);
         await this.setFlagActions();
@@ -287,27 +267,37 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         }
         this.useActionFromGroup(reactionGroupToUse, reaction);
         this.context.reactionsUsed.push(reaction);
-        this.setFlagReactions();
+        await this.setFlagReactions();
     }
 
     public async removeReaction(reaction: UsedAction){
         let reactionIndex = this.context.actionsUsed.findIndex((element) => (element.cost == reaction.cost && element.name == reaction.name));
-        let reactionGroup = this.getReactionGroupByName(reaction.actionGroupUsedFromName);
+        let reactionGroup = this.getReactionGroupByName(reaction.actionGroupUsedFromName!);
         this.removeActionFromGroup(reactionGroup, reaction);
         this.context.reactionsUsed.splice(reactionIndex, 1);
-        this.setFlagReactions();
+        await this.setFlagReactions();
+    }
+
+    public async useFreeAction(action: UsedAction){
+        this.context.freeActionsUsed.push(action);
+        await this.setFlagActions();
     }
 
     public async removeFreeAction(freeAction: UsedAction){
         let freeActionIndex = this.context.freeActionsUsed.findIndex((element) => (element.cost == freeAction.cost && element.name == freeAction.name));
         this.context.freeActionsUsed.splice(freeActionIndex, 1);
-        this.setFlagActions();
+        await this.setFlagActions();
+    }
+
+    public async useSpecialAction(action: UsedAction){
+        this.context.specialActionsUsed.push(action);
+        await this.setFlagActions();
     }
 
     public async removeSpecialAction(specialAction: UsedAction){
         let specialActionIndex = this.context.specialActionsUsed.findIndex((element) => (element.cost == specialAction.cost && element.name == specialAction.name));
         this.context.specialActionsUsed.splice(specialActionIndex, 1);
-        this.setFlagActions();
+        await this.setFlagActions();
     }
 
     public async onCombatantTurnSpeedChange(){
@@ -445,7 +435,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.useAction(new UsedAction(1, actionGroupName));
+        void await combatantTurnActions.useAction(new UsedAction(1, game.i18n?.localize("cosmere-advanced-encounters.cost_manual"), actionGroupName));
     }
 
     protected static async _onRestoreActionButton(
@@ -475,7 +465,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.removeAction(new UsedAction(Number(actionCost), actionGroupName, actionName));
+        void await combatantTurnActions.removeAction(new UsedAction(Number(actionCost), actionName, actionGroupName));
     }
 
     protected static async _onUseReactionButton(
@@ -503,7 +493,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.useReaction(new UsedAction(1, actionGroupName));
+        void await combatantTurnActions.useReaction(new UsedAction(1, game.i18n?.localize("cosmere-advanced-encounters.cost_manual"), actionGroupName));
 
         void await combatantTurnActions.setFlagReactions();
     }
@@ -534,7 +524,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.removeReaction(new UsedAction(1, actionGroupName, actionName));
+        void await combatantTurnActions.removeReaction(new UsedAction(1, actionName, actionGroupName));
 
         void await combatantTurnActions.setFlagReactions();
     }
@@ -564,7 +554,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.removeFreeAction(new UsedAction(1, "", actionName));
+        void await combatantTurnActions.removeFreeAction(new UsedAction(1, actionName));
     }
 
     protected static async _onRestoreSpecialActionButton(
@@ -592,7 +582,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.removeSpecialAction(new UsedAction(1, "", actionName));
+        void await combatantTurnActions.removeSpecialAction(new UsedAction(1, actionName));
     }
     //#endregion
 
@@ -622,8 +612,6 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
                     }
                 }
             }
-            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "bossFastActionsAvailableGroups", this.context.actionsAvailableGroups);
-            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "bossFastActionsUsed", this.context.actionsUsed);
         }
         else{
             updateData = {
@@ -636,8 +624,6 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
                     }
                 }
             }
-            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "actionsAvailableGroups", this.context.actionsAvailableGroups);
-            // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "actionsUsed", this.context.actionsUsed);
         }
         await this.combatantActions.updateDataWithCombatTurn(updateData);
     }
@@ -656,8 +642,6 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             }
         };
         await this.combatantActions.updateDataWithCombatTurn(updateData);
-        // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "reactionsAvailable", this.context.reactionsAvailable);
-        // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "reactionsUsed", this.context.reactionsUsed);
     }
     //#endregion
     //#region CombatantTurnActions_GetFlag
@@ -677,6 +661,8 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         else{
             this.context.actionsAvailableGroups = this.combatant.flags[MODULE_ID]?.actionsAvailableGroups!;
             this.context.actionsUsed = this.combatant.flags[MODULE_ID]?.actionsUsed!;
+            this.context.freeActionsUsed = this.combatant.flags[MODULE_ID]?.freeActionsUsed!;
+            this.context.specialActionsUsed = this.combatant.flags[MODULE_ID]?.specialActionsUsed!;
         }
     }
 

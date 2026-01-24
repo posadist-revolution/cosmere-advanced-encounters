@@ -2,10 +2,11 @@ import { CosmereCombatTracker, CosmereTrackerContext } from './declarations/cosm
 import { CosmereCombatant } from './declarations/cosmere-rpg/documents/combatant';
 import { MODULE_ID } from './module/constants';
 import { AdvancedCosmereCombat } from './module/documents/advanced-cosmere-combat';
-import { injectAllCombatantActions } from './module/documents/combatant_actions.mjs'
+import { injectAllCombatantActions } from './module/documents/combatant_actions.js'
 import { COSMERE_ADVANCED_ENCOUNTERS } from './module/helpers/config.mjs';
 import { preloadHandlebarsTemplates } from './module/helpers/templates.mjs';
 import { registerModuleSettings } from './module/settings.js';
+import { activateCombatantHooks } from './module/hooks/combatant.js';
 
 declare global {
 	interface LenientGlobalVariableTypes {
@@ -32,7 +33,7 @@ Hooks.once('init', async function() {
 });
 
 Hooks.once('ready', async function() {
-
+    activateCombatantHooks();
 });
 
 Hooks.on('renderCombatTracker', async (
