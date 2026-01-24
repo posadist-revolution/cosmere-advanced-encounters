@@ -55,9 +55,9 @@ export class CombatantActions{
                 // Combatant has flags from a previous version
                 migrateFlags(this);
             }
-            else{
-                CombatantActions.initializeCombatantFlags(this.combatant);
-            }
+        }
+        else{
+            CombatantActions.initializeCombatantFlags(this.combatant);
         }
     }
 
