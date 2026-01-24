@@ -3,12 +3,15 @@ import { MODULE_ID } from "./constants";
 export const SETTINGS = {
 	REFRESH_COMBATANT_ACTIONS_WHEN: 'refreshCombatantActionsWhen',
     PULL_ACTIONS_FROM_CHAT: 'pullActionsFromChat',
+    PLAYERS_CAN_RESTORE_ACTIONS: 'playersCanRestoreActions',
 } as const;
 
 type ModuleSettingsConfig = {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN}`]: string;
 } & {
-    [key in `${typeof MODULE_ID}.${typeof SETTINGS.PULL_ACTIONS_FROM_CHAT}`]: boolean;};
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.PULL_ACTIONS_FROM_CHAT}`]: boolean;
+} & {
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.PLAYERS_CAN_RESTORE_ACTIONS}`]: boolean;};
 
 type ModuleSettingsKey = (typeof SETTINGS)[keyof typeof SETTINGS];
 export function getModuleSetting<
@@ -35,6 +38,11 @@ export function registerModuleSettings() {
     const toggleOptions = [
         {
             name: SETTINGS.PULL_ACTIONS_FROM_CHAT,
+            default: true,
+            scope: 'world',
+        },
+        {
+            name: SETTINGS.PLAYERS_CAN_RESTORE_ACTIONS,
             default: true,
             scope: 'world',
         }
