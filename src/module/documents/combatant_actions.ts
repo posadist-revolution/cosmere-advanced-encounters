@@ -642,8 +642,6 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             }
         };
         await this.combatantActions.updateDataWithCombatTurn(updateData);
-        // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "reactionsAvailable", this.context.reactionsAvailable);
-        // await this.combatantActions.setFlagWithCombatTurn(MODULE_ID, "reactionsUsed", this.context.reactionsUsed);
     }
     //#endregion
     //#region CombatantTurnActions_GetFlag
