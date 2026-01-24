@@ -5,6 +5,7 @@ import { CosmereItem } from "../../declarations/cosmere-rpg/documents/item";
 import { CosmereChatMessage, MESSAGE_TYPES } from '../../declarations/cosmere-rpg/documents/chat-message';
 import { MODULE_ID, SYSTEM_ID } from "../constants";
 import { HOOKS } from "../../declarations/cosmere-rpg/system/constants/hooks";
+import { getModuleSetting, SETTINGS } from "../settings";
 
 
 export function activateCombatantHooks(){
@@ -13,13 +14,19 @@ export function activateCombatantHooks(){
         item: CosmereItem,
         options: CosmereItem.UseOptions
     ) => {
-        activeCombat.setLastUsedItemData(item);
+        //TODO: Add checks for "Does the combatant have enough actions to use this?"
+        if(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT)){
+            activeCombat.setLastUsedItemData(item);
+        }
         return true;
     });
 
     Hooks.on("preCreateChatMessage", (
         chatMessage: CosmereChatMessage
     ) => {
+        if(!getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT)){
+            return true;
+        }
         // console.log(`${MODULE_ID}: Running preCreateChatMessage`);
         if(chatMessage.getFlag("cosmere-rpg", "message")?.type != MESSAGE_TYPES.ACTION){
             // console.log(`${MODULE_ID}: Message is not an action`);

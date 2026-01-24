@@ -6,6 +6,10 @@
         "restore_reaction": "Restore used reaction",
         "cost_manual": "Manual Action",
         "settings": {
+            "pullActionsFromChat": {
+                "name": "Pull actions from chat",
+                "hint": "When enabled, actions used in the chat will automatically be removed from the relevant token's turn actions."
+            },
             "refreshCombatantActionsWhen": {
                 "name": "Refresh combatant actions time",
                 "hint": "What event should enable combatants action graphics to refresh"
