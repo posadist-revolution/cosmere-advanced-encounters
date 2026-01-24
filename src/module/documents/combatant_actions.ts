@@ -155,6 +155,7 @@ export class CombatantActions{
 }
 
 interface CombatTurnActionsContext{
+    combatantId: string;
     actionsAvailableGroups: ActionGroup[];
     actionsUsed: UsedAction[];
     reactionsAvailable: ActionGroup[];
@@ -203,6 +204,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         this.combatant = combatantActions.combatant;
         this.isBossFastTurn = bossFastTurn;
         this.context = {
+            combatantId: this.combatant.id!,
             actionsAvailableGroups: [],
             actionsUsed: [],
             reactionsAvailable: [],

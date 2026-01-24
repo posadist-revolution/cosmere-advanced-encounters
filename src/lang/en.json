@@ -11,6 +11,10 @@
                 "name": "Pull actions from chat",
                 "hint": "When enabled, actions used in the chat will automatically be removed from the relevant token's turn actions."
             },
+            "playersCanRestoreActions": {
+                "name": "Players can restore used actions",
+                "hint": "When enabled, players with owner permissions on a combatant can remove used actions from that combatant's action tracker."
+            },
             "refreshCombatantActionsWhen": {
                 "name": "Refresh combatant actions time",
                 "hint": "What event should enable combatants action graphics to refresh"
