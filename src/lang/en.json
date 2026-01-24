@@ -3,6 +3,7 @@
         "use_action": "Use action",
         "use_reaction": "Use reaction",
         "restore_action": "Restore used action",
+        "remove_action": "Remove used action",
         "restore_reaction": "Restore used reaction",
         "cost_manual": "Manual Action",
         "settings": {
