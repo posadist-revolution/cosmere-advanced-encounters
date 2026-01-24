@@ -4,10 +4,19 @@ import { CombatantActions, UsedAction } from "../documents/combatant_actions.js"
 import { CosmereItem } from "../../declarations/cosmere-rpg/documents/item";
 import { CosmereChatMessage, MESSAGE_TYPES } from '../../declarations/cosmere-rpg/documents/chat-message';
 import { MODULE_ID, SYSTEM_ID } from "../constants";
+import { HOOKS } from "../../declarations/cosmere-rpg/system/constants/hooks";
 
 
 export function activateCombatantHooks(){
     console.log(`${MODULE_ID}: Registering combatant hooks`);
+    Hooks.on(HOOKS.PRE_USE_ITEM, (
+        item: CosmereItem,
+        options: CosmereItem.UseOptions
+    ) => {
+        activeCombat.setLastUsedItemData(item);
+        return true;
+    });
+
     Hooks.on("preCreateChatMessage", (
         chatMessage: CosmereChatMessage
     ) => {
@@ -16,7 +25,7 @@ export function activateCombatantHooks(){
             // console.log(`${MODULE_ID}: Message is not an action`);
             return true;
         }
-        let cosmereItem: CosmereItem = chatMessage.itemSource!;
+        let cosmereItem: CosmereItem = chatMessage.itemSource ?? activeCombat.lastUsedItem!;
         if(!cosmereItem){
             let id = chatMessage.getFlag(SYSTEM_ID, "message.item");
             // TODO: Figure out how to find an item from a compendium
@@ -61,6 +70,7 @@ function handleReaction(combatantActions: CombatantActions, cosmereItem: Cosmere
 
 function handleUseAction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
     let usedAction = new UsedAction(cosmereItem.system.activation.cost.value!, cosmereItem.name);
+    //TODO: Add a way to choose which boss turn the action was used on if it's not currently either boss's turn
     if(activeCombat.combat.combatant?.turnSpeed == TurnSpeed.Fast && combatantActions?.isBoss){
         combatantActions.bossFastTurnActions.useAction(usedAction);
     }

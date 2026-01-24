@@ -2,11 +2,13 @@ import { activeCombat, Dictionary } from "@src/index";
 import { CombatantActions } from "./combatant_actions.js";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
+import { CosmereItem } from "@src/declarations/cosmere-rpg/documents/item.js";
 
 export class AdvancedCosmereCombat{
     readonly combat : Combat
     tokenIdToCombatantIdMap: Map<string, string>;
     combatantIdToCombatantActionsMap: Map<string, CombatantActions>;
+    lastUsedItem: CosmereItem | undefined;
 
     constructor(combat: Combat){
         this.combat = combat;
@@ -42,6 +44,10 @@ export class AdvancedCosmereCombat{
         for (const combatantActions of this.combatantIdToCombatantActionsMap.values()){
             combatantActions.resetAllCombatantTurnActions();
         }
+    }
+
+    public setLastUsedItemData(item: CosmereItem){
+        this.lastUsedItem = item;
     }
 }
 
