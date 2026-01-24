@@ -14,15 +14,8 @@ export class UsedAction{
     declare actionGroupUsedFromName?: string
     constructor(cost: number, name?: string, actionGroupName?: string){
         this.cost = cost;
-        this.actionGroupUsedFromName = actionGroupName;
-        if(name !== undefined)
-        {
-            this.name = name;
-        }
-        else
-        {
-            this.name = game.i18n!.localize(`cosmere-advanced-encounters.cost_manual`);
-        }
+        this.actionGroupUsedFromName = actionGroupName ?? "base";
+        this.name = name ?? game.i18n!.localize(`cosmere-advanced-encounters.cost_manual`);
     }
 }
 
@@ -120,8 +113,6 @@ export class CombatantActions{
     //#endregion
 
     protected static async initializeCombatantFlags(combatant: CosmereCombatant){
-        //console.log(`${MODULE_ID}: Initializing Combatant Flags`);
-
         // If the user doesn't have ownership permissions over the document, never set the values
         if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
             return;
@@ -149,8 +140,6 @@ export class CombatantActions{
                 await combatant.setFlag(MODULE_ID, "flags_initialized_version", game.modules?.get(MODULE_ID)?.version!);
             }
         }
-        //console.log(`${MODULE_ID}: Initialized flags on combatant ${combatant.id}:`);
-        //console.log(combatant);
     }
 }
 
