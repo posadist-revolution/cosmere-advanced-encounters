@@ -12,3 +12,4 @@ I hope you all enjoy, and if you have anything you'd like me to add, or find any
 
 ## Minor Changes
 - Improved the naming of the setting which controls when combatant turn actions repopulate
+- Added a system to migrate flags from combats currently in progress. Only functional for combats in progress on version 0.3.0 and above. If you're on a lower version, I suggest finishing any combats in progress before updating.
