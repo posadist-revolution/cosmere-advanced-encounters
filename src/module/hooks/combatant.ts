@@ -64,11 +64,25 @@ export function activateCombatantHooks(){
 }
 
 function handleFreeAction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
-
+    let usedAction = new UsedAction(1, cosmereItem.name);
+    //TODO: Add a way to choose which boss turn the action was used on if it's not currently either boss's turns
+    if(activeCombat.combat.combatant?.turnSpeed == TurnSpeed.Fast && combatantActions?.isBoss){
+        combatantActions.bossFastTurnActions.useFreeAction(usedAction);
+    }
+    else{
+        combatantActions.combatantTurnActions.useFreeAction(usedAction);
+    }
 }
 
 function handleSpecialAction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
-
+    let usedAction = new UsedAction(1, cosmereItem.name);
+    //TODO: Add a way to choose which boss turn the action was used on if it's not currently either boss's turns
+    if(activeCombat.combat.combatant?.turnSpeed == TurnSpeed.Fast && combatantActions?.isBoss){
+        combatantActions.bossFastTurnActions.useSpecialAction(usedAction);
+    }
+    else{
+        combatantActions.combatantTurnActions.useSpecialAction(usedAction);
+    }
 }
 
 function handleReaction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
@@ -77,7 +91,7 @@ function handleReaction(combatantActions: CombatantActions, cosmereItem: Cosmere
 
 function handleUseAction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
     let usedAction = new UsedAction(cosmereItem.system.activation.cost.value!, cosmereItem.name);
-    //TODO: Add a way to choose which boss turn the action was used on if it's not currently either boss's turn
+    //TODO: Add a way to choose which boss turn the action was used on if it's not currently either boss's turns
     if(activeCombat.combat.combatant?.turnSpeed == TurnSpeed.Fast && combatantActions?.isBoss){
         combatantActions.bossFastTurnActions.useAction(usedAction);
     }

@@ -246,7 +246,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         }
         this.useActionFromGroup(actionGroupToUse, action);
         this.context.actionsUsed.push(action);
-        this.setFlagActions();
+        await this.setFlagActions();
     }
 
     public async removeAction(action: UsedAction){
@@ -267,7 +267,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         }
         this.useActionFromGroup(reactionGroupToUse, reaction);
         this.context.reactionsUsed.push(reaction);
-        this.setFlagReactions();
+        await this.setFlagReactions();
     }
 
     public async removeReaction(reaction: UsedAction){
@@ -275,19 +275,29 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         let reactionGroup = this.getReactionGroupByName(reaction.actionGroupUsedFromName!);
         this.removeActionFromGroup(reactionGroup, reaction);
         this.context.reactionsUsed.splice(reactionIndex, 1);
-        this.setFlagReactions();
+        await this.setFlagReactions();
+    }
+
+    public async useFreeAction(action: UsedAction){
+        this.context.freeActionsUsed.push(action);
+        await this.setFlagActions();
     }
 
     public async removeFreeAction(freeAction: UsedAction){
         let freeActionIndex = this.context.freeActionsUsed.findIndex((element) => (element.cost == freeAction.cost && element.name == freeAction.name));
         this.context.freeActionsUsed.splice(freeActionIndex, 1);
-        this.setFlagActions();
+        await this.setFlagActions();
+    }
+
+    public async useSpecialAction(action: UsedAction){
+        this.context.specialActionsUsed.push(action);
+        await this.setFlagActions();
     }
 
     public async removeSpecialAction(specialAction: UsedAction){
         let specialActionIndex = this.context.specialActionsUsed.findIndex((element) => (element.cost == specialAction.cost && element.name == specialAction.name));
         this.context.specialActionsUsed.splice(specialActionIndex, 1);
-        this.setFlagActions();
+        await this.setFlagActions();
     }
 
     public async onCombatantTurnSpeedChange(){
@@ -544,7 +554,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.removeFreeAction(new UsedAction(1, "", actionName));
+        void await combatantTurnActions.removeFreeAction(new UsedAction(1, actionName));
     }
 
     protected static async _onRestoreSpecialActionButton(
@@ -572,7 +582,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return;
         }
 
-        void await combatantTurnActions.removeSpecialAction(new UsedAction(1, "", actionName));
+        void await combatantTurnActions.removeSpecialAction(new UsedAction(1, actionName));
     }
     //#endregion
 
@@ -653,6 +663,8 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         else{
             this.context.actionsAvailableGroups = this.combatant.flags[MODULE_ID]?.actionsAvailableGroups!;
             this.context.actionsUsed = this.combatant.flags[MODULE_ID]?.actionsUsed!;
+            this.context.freeActionsUsed = this.combatant.flags[MODULE_ID]?.freeActionsUsed!;
+            this.context.specialActionsUsed = this.combatant.flags[MODULE_ID]?.specialActionsUsed!;
         }
     }
 
