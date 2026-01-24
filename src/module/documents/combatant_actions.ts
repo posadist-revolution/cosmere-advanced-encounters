@@ -172,6 +172,8 @@ interface CombatTurnActionsContext{
     actionsUsed: UsedAction[];
     reactionsAvailable: ActionGroup[];
     reactionsUsed: UsedAction[];
+    freeActionsUsed: UsedAction[];
+    specialActionsUsed: UsedAction[];
 }
 
 export class CombatantTurnActions extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -183,6 +185,8 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             restoreAction: this._onRestoreActionButton,
             useReaction: this._onUseReactionButton,
             restoreReaction: this._onRestoreReactionButton,
+            restoreFreeAction: this._onRestoreFreeActionButton,
+            restoreSpecialAction: this._onRestoreSpecialActionButton
         },
         window: {
             frame: false
@@ -215,7 +219,9 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             actionsAvailableGroups: [],
             actionsUsed: [],
             reactionsAvailable: [],
-            reactionsUsed: []
+            reactionsUsed: [],
+            freeActionsUsed: [],
+            specialActionsUsed: []
         };
         this.refreshActionsFromFlags();
     }
@@ -228,6 +234,8 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         this.context.reactionsAvailable = [new ActionGroup(1, "base")];
         this.context.actionsUsed = [];
         this.context.reactionsUsed = [];
+        this.context.freeActionsUsed = [];
+        this.context.specialActionsUsed = [];
         this.setFlagAll();
     }
 
@@ -281,6 +289,18 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         this.removeActionFromGroup(reactionGroup, reaction);
         this.context.reactionsUsed.splice(reactionIndex, 1);
         this.setFlagReactions();
+    }
+
+    public async removeFreeAction(freeAction: UsedAction){
+        let freeActionIndex = this.context.freeActionsUsed.findIndex((element) => (element.cost == freeAction.cost && element.name == freeAction.name));
+        this.context.freeActionsUsed.splice(freeActionIndex, 1);
+        this.setFlagActions();
+    }
+
+    public async removeSpecialAction(specialAction: UsedAction){
+        let specialActionIndex = this.context.specialActionsUsed.findIndex((element) => (element.cost == specialAction.cost && element.name == specialAction.name));
+        this.context.specialActionsUsed.splice(specialActionIndex, 1);
+        this.setFlagActions();
     }
 
     public async onCombatantTurnSpeedChange(){
@@ -407,7 +427,6 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
         // Get the combatant actions and turn speed of what was clicked
         const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
-
         const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
 
         // Get the associated CombatTurnActions
@@ -512,6 +531,62 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
         void await combatantTurnActions.setFlagReactions();
     }
+
+    protected static async _onRestoreFreeActionButton(
+        event: Event
+    ){
+        // console.log("Toggle reaction button pressed");
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Get the button and the closest combatant list item
+        const btn = event.target as HTMLElement;
+        const li = btn.closest<HTMLElement>('.combatant')!;
+        const actionName = btn.getAttribute("action-name")!;
+
+        // Get the combatant actions
+        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
+        const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
+
+        // Get the associated CombatTurnActions
+        const combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
+
+        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
+        if(!combatantActions.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
+        {
+            return;
+        }
+
+        void await combatantTurnActions.removeFreeAction(new UsedAction(1, "", actionName));
+    }
+
+    protected static async _onRestoreSpecialActionButton(
+        event: Event
+    ){
+        // console.log("Toggle reaction button pressed");
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Get the button and the closest combatant list item
+        const btn = event.target as HTMLElement;
+        const li = btn.closest<HTMLElement>('.combatant')!;
+        const actionName = btn.getAttribute("action-name")!;
+
+        // Get the combatant actions
+        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
+        const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
+
+        // Get the associated CombatTurnActions
+        const combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
+
+        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
+        if(!combatantActions.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
+        {
+            return;
+        }
+
+        void await combatantTurnActions.removeSpecialAction(new UsedAction(1, "", actionName));
+    }
     //#endregion
 
     /* --- Flag Operations --- */
@@ -534,7 +609,9 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
                 flags: {
                     [MODULE_ID]: {
                         ["bossFastActionsAvailableGroups"]: this.context.actionsAvailableGroups,
-                        ["bossFastActionsUsed"]: this.context.actionsUsed
+                        ["bossFastActionsUsed"]: this.context.actionsUsed,
+                        ["bossFastFreeActionsUsed"]: this.context.freeActionsUsed,
+                        ["bossFastSpecialActionsUsed"]: this.context.specialActionsUsed,
                     }
                 }
             }
@@ -546,7 +623,9 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
                 flags: {
                     [MODULE_ID]: {
                         ["actionsAvailableGroups"]: this.context.actionsAvailableGroups,
-                        ["actionsUsed"]: this.context.actionsUsed
+                        ["actionsUsed"]: this.context.actionsUsed,
+                        ["freeActionsUsed"]: this.context.freeActionsUsed,
+                        ["specialActionsUsed"]: this.context.specialActionsUsed,
                     }
                 }
             }
@@ -585,6 +664,8 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         if(this.isBossFastTurn){
             this.context.actionsAvailableGroups = this.combatant.flags[MODULE_ID]?.bossFastActionsAvailableGroups!;
             this.context.actionsUsed = this.combatant.flags[MODULE_ID]?.bossFastActionsUsed!;
+            this.context.freeActionsUsed = this.combatant.flags[MODULE_ID]?.bossFastFreeActionsUsed!;
+            this.context.specialActionsUsed = this.combatant.flags[MODULE_ID]?.bossFastSpecialActionsUsed!;
         }
         else{
             this.context.actionsAvailableGroups = this.combatant.flags[MODULE_ID]?.actionsAvailableGroups!;

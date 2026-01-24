@@ -40,6 +40,10 @@ declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
                 bossFastActionsAvailableGroups: any;
                 reactionsUsed: any;
                 reactionsAvailable: any;
+                freeActionsUsed: any;
+                specialActionsUsed: any;
+                bossFastFreeActionsUsed: any;
+                bossFastSpecialActionsUsed: any;
                 flags_initialized_version: string;
             }
         };
