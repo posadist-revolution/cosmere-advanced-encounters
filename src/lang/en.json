@@ -17,7 +17,7 @@
             },
             "refreshCombatantActionsWhen": {
                 "name": "Refresh combatant actions time",
-                "hint": "What event should enable combatants action graphics to refresh"
+                "hint": "Determines what event should reset combatant action trackers to their turn start values"
             },
             "refresh_combatant_actions_when_options" : {
                 "turnStart": "On combatant turn start",
