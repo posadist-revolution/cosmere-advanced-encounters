@@ -214,7 +214,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
     /* --- Public action interfaces ---*/
     //#region CombatantTurnActions_PublicActionInterfaces
     public async onTurnStart(){
-        let actionsOnTurn = this.getMaxBaseActionsOnTurn();
+        let actionsOnTurn = this.getMaxBaseActionsOnTurn(this.combatant.turnSpeed);
         this.context.actionsAvailableGroups = [new ActionGroup(actionsOnTurn, "base")];
         this.context.reactionsAvailable = [new ActionGroup(1, "base")];
         this.context.actionsUsed = [];
@@ -224,9 +224,10 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         this.setFlagAll();
     }
 
-    public async setMaxBaseActions(){
-        this.context.actionsAvailableGroups[0].max = this.getMaxBaseActionsOnTurn();
+    public async setMaxBaseActions(turnSpeed: TurnSpeed){
+        this.context.actionsAvailableGroups[0].max = this.getMaxBaseActionsOnTurn(turnSpeed);
         this.recalculateRemaining(this.context.actionsAvailableGroups[0]);
+        await this.setFlagActions();
     }
 
     public async refreshActionsFromFlags(){
@@ -298,13 +299,13 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         await this.setFlagActions();
     }
 
-    public async onCombatantTurnSpeedChange(){
+    public async onCombatantTurnSpeedChange(turnSpeed: TurnSpeed){
         //console.log(`${MODULE_ID}: Combatant ${this.combatant.id} changed turn speed`)
-        this.setMaxBaseActions();
+        this.setMaxBaseActions(turnSpeed);
     }
     //#endregion
 
-    protected getMaxBaseActionsOnTurn(){
+    protected getMaxBaseActionsOnTurn(turnSpeed: TurnSpeed){
         var actionsOnTurn = 0;
         if(this.combatant.isBoss){
             if(this.isBossFastTurn){
@@ -315,7 +316,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             }
         }
         else{
-            if(this.combatant.turnSpeed == TurnSpeed.Fast){
+            if(turnSpeed == TurnSpeed.Fast){
                 actionsOnTurn = 2;
             }
             else{
@@ -679,22 +680,10 @@ Hooks.on("preUpdateCombatant", (
     combatant : CosmereCombatant,
     change : Combatant.UpdateData
 ) => {
-    //TODO: Is this anything?
     if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.turnSpeed`)){
-        activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange();
+        activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange(change.flags["cosmere-rpg"].turnSpeed!);
     }
     return true;
-});
-
-Hooks.on("updateCombatant", async (
-    combatant : CosmereCombatant,
-    change : Combatant.UpdateData,
-    options : Combatant.Database.UpdateOptions,
-    userId : string
-) => {
-    if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.turnSpeed`)){
-        activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange();
-    }
 });
 
 Hooks.on("combatTurnChange", async (
