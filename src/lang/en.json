@@ -1,13 +1,23 @@
 {
     "cosmere-advanced-encounters": {
-        "actions_remaining": "Actions remaining",
-        "toggle_reaction": "Toggle reaction used",
-        "revert_used_action": "Restore used action",
+        "use_action": "Use action",
+        "use_reaction": "Use reaction",
+        "restore_action": "Restore used action",
+        "remove_action": "Remove used action",
+        "restore_reaction": "Restore used reaction",
         "cost_manual": "Manual Action",
         "settings": {
+            "pullActionsFromChat": {
+                "name": "Pull actions from chat",
+                "hint": "When enabled, actions used in the chat will automatically be removed from the relevant token's turn actions."
+            },
+            "playersCanRestoreActions": {
+                "name": "Players can restore used actions",
+                "hint": "When enabled, players with owner permissions on a combatant can remove used actions from that combatant's action tracker."
+            },
             "refreshCombatantActionsWhen": {
                 "name": "Refresh combatant actions time",
-                "hint": "What event should enable combatants action graphics to refresh"
+                "hint": "Determines what event should reset combatant action trackers to their turn start values"
             },
             "refresh_combatant_actions_when_options" : {
                 "turnStart": "On combatant turn start",

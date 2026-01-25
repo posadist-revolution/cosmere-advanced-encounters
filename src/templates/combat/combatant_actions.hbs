@@ -1,13 +1,65 @@
-<button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon {{#unless reactionUsed}}active{{/unless}} reaction-used" data-action="toggleReaction" data-tooltip="cosmere-advanced-encounters.toggle_reaction">
-    <i class = "cosmere-icon">r</i>
-</button>
-{{#if (gt actionsLeft 0)}}
-<button type="button" class="inline-control combatant-control icon fa-solid active actions-left" data-action="useAction" data-tooltip="cosmere-advanced-encounters.actions_remaining">
-    <i class = "cosmere-icon">{{actionsLeft}}</i>
-</button>
-{{/if}}
-{{#each actionsUsed as |usedAction|}}
-<button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon actions-used" data-action="restoreAction" data-tooltip-text="{{localize "cosmere-advanced-encounters.revert_used_action"}}: {{usedAction.name}}" action-name="{{usedAction.name}}" action-cost="{{usedAction.cost}}">
-    <i class = "cosmere-icon">{{usedAction.cost}}</i>
-</button>
-{{/each}}
+<div class="combatant-controls flexrow">
+    {{#each reactionsAvailable as |availableReaction|}}
+        {{#if (gt availableReaction.remaining 0)}}
+            <button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon active reactions-available"
+                data-action="useReaction"
+                data-tooltip="cosmere-advanced-encounters.use_reaction"
+                action-group-name="{{availableReaction.name}}">
+                <i class = "cosmere-icon">r</i>
+            </button>
+        {{/if}}
+    {{/each}}
+    {{#each reactionsUsed as |usedReaction|}}
+        <button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon reaction-used"
+            {{#if (allowRestoreButtonAction @root.combatantId)}}
+            data-action="restoreReaction"
+            {{/if}}
+            data-tooltip-text="{{localize "cosmere-advanced-encounters.restore_reaction"}}: {{usedReaction.name}}"
+            action-group-name = "{{usedReaction.actionGroupUsedFromName}}"
+            action-name="{{usedReaction.name}}">
+            <i class = "cosmere-icon">r</i>
+        </button>
+    {{/each}}
+    {{#each actionsAvailableGroups as |availableActionGroup|}}
+        {{#if (gt availableActionGroup.remaining 0)}}
+            <button type="button" class="inline-control combatant-control icon fa-solid active actions-available"
+                data-action="useAction"
+                data-tooltip="cosmere-advanced-encounters.use_action"
+                action-group-name="{{availableActionGroup.name}}">
+                <i class = "cosmere-icon">{{availableActionGroup.remaining}}</i>
+            </button>
+        {{/if}}
+    {{/each}}
+    {{#each actionsUsed as |usedAction|}}
+        <button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon actions-used"
+            {{#if (allowRestoreButtonAction @root.combatantId)}}
+            data-action="restoreAction"
+            {{/if}}
+            data-tooltip-text="{{localize "cosmere-advanced-encounters.restore_action"}}: {{usedAction.name}}"
+            action-group-name = "{{usedAction.actionGroupUsedFromName}}"
+            action-name="{{usedAction.name}}" action-cost="{{usedAction.cost}}">
+            <i class = "cosmere-icon">{{usedAction.cost}}</i>
+        </button>
+    {{/each}}
+    {{#each freeActionsUsed as |usedAction|}}
+        <button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon actions-used"
+            {{#if (allowRestoreButtonAction @root.combatantId)}}
+            data-action="restoreFreeAction"
+            {{/if}}
+            data-tooltip-text="{{localize "cosmere-advanced-encounters.remove_action"}}: {{usedAction.name}}"
+            action-group-name = "{{usedAction.actionGroupUsedFromName}}"
+            action-name="{{usedAction.name}}">
+            <i class = "cosmere-icon">0</i>
+        </button>
+    {{/each}}
+    {{#each specialActionsUsed as |usedAction|}}
+        <button type="button" class="inline-control combatant-control icon fa-solid cosmere-icon actions-used"
+            {{#if (allowRestoreButtonAction @root.combatantId)}}
+            data-action="restoreSpecialAction"
+            {{/if}}
+            data-tooltip-text="{{localize "cosmere-advanced-encounters.remove_action"}}: {{usedAction.name}}"
+            action-name="{{usedAction.name}}">
+            <i class = "cosmere-icon">*</i>
+        </button>
+    {{/each}}
+</div>

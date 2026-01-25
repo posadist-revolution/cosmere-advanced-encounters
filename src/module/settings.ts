@@ -2,10 +2,16 @@ import { MODULE_ID } from "./constants";
 
 export const SETTINGS = {
 	REFRESH_COMBATANT_ACTIONS_WHEN: 'refreshCombatantActionsWhen',
+    PULL_ACTIONS_FROM_CHAT: 'pullActionsFromChat',
+    PLAYERS_CAN_RESTORE_ACTIONS: 'playersCanRestoreActions',
 } as const;
 
 type ModuleSettingsConfig = {
-    [key in `${typeof MODULE_ID}.${typeof SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN}`]: string;};
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN}`]: string;
+} & {
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.PULL_ACTIONS_FROM_CHAT}`]: boolean;
+} & {
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.PLAYERS_CAN_RESTORE_ACTIONS}`]: boolean;};
 
 type ModuleSettingsKey = (typeof SETTINGS)[keyof typeof SETTINGS];
 export function getModuleSetting<
@@ -28,6 +34,31 @@ export const enum RefreshCombatantActionsWhenOptions {
 }
 
 export function registerModuleSettings() {
+    // TOGGLE REGISTRATION
+    const toggleOptions = [
+        {
+            name: SETTINGS.PULL_ACTIONS_FROM_CHAT,
+            default: true,
+            scope: 'world',
+        },
+        {
+            name: SETTINGS.PLAYERS_CAN_RESTORE_ACTIONS,
+            default: true,
+            scope: 'world',
+        }
+    ];
+
+    toggleOptions.forEach(option => {
+		game.settings!.register(MODULE_ID, option.name, {
+            name: game.i18n?.localize(`cosmere-advanced-encounters.settings.${option.name}.name`),
+            hint: game.i18n?.localize(`cosmere-advanced-encounters.settings.${option.name}.hint`),
+			scope: option.scope as "world" | "client" | undefined,
+			default: option.default,
+			type: Boolean,
+			config: true
+		});
+    });
+
 	// CONFIG REGISTRATION
 	const configOptions = [
 		{

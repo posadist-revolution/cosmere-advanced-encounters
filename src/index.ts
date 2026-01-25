@@ -2,10 +2,11 @@ import { CosmereCombatTracker, CosmereTrackerContext } from './declarations/cosm
 import { CosmereCombatant } from './declarations/cosmere-rpg/documents/combatant';
 import { MODULE_ID } from './module/constants';
 import { AdvancedCosmereCombat } from './module/documents/advanced-cosmere-combat';
-import { injectAllCombatantActions } from './module/documents/combatant_actions.mjs'
+import { injectAllCombatantActions } from './module/documents/combatant_actions.js'
 import { COSMERE_ADVANCED_ENCOUNTERS } from './module/helpers/config.mjs';
 import { preloadHandlebarsTemplates } from './module/helpers/templates.mjs';
 import { registerModuleSettings } from './module/settings.js';
+import { activateCombatantHooks } from './module/hooks/combatant.js';
 
 declare global {
 	interface LenientGlobalVariableTypes {
@@ -32,7 +33,7 @@ Hooks.once('init', async function() {
 });
 
 Hooks.once('ready', async function() {
-
+    activateCombatantHooks();
 });
 
 Hooks.on('renderCombatTracker', async (
@@ -50,7 +51,7 @@ Hooks.on('renderCombatTracker', async (
         advancedCombatsMap[tracker.viewed.id] = new AdvancedCosmereCombat(tracker.viewed);
     }
     for (const combatant of tracker.viewed.combatants){
-        if(advancedCombatsMap[tracker.viewed.id].getCombatantActionsFromId(combatant.id) == undefined){
+        if(advancedCombatsMap[tracker.viewed.id].getCombatantActionsByCombatantId(combatant.id) == undefined){
             //console.log(`${MODULE_ID}: Adding new combatant`);
             advancedCombatsMap[tracker.viewed.id].addNewCombatantToCombat(combatant);
         }
@@ -58,36 +59,6 @@ Hooks.on('renderCombatTracker', async (
     activeCombat = advancedCombatsMap[tracker.viewed.id];
     await injectAllCombatantActions(activeCombat, html);
     return true;
-});
-
-Hooks.on(
-    "preCreateCombatant",
-    (
-        combatant: CosmereCombatant,
-        data: Combatant.CreateData,
-        options: Combatant.Database.PreCreateOptions,
-        userId: string
-    ) => {
-
-    // Configure default combatant flags
-    const flags = {
-        [MODULE_ID]: {
-            actionsUsed: [],
-            actionsLeft: 3,
-            reactionUsed: false,
-        },
-    };
-    if ((combatant).isBoss){
-        const boss_flags = {
-            [MODULE_ID]: {
-                bossFastActionsUsed: [],
-                bossFastActionsLeft: 2
-            }
-        }
-        mergeObject(flags, boss_flags);
-    }
-    mergeObject(flags, combatant.flags);
-    combatant.updateSource({ flags });
 });
 
 Hooks.on("updateCombatant", async (
@@ -100,5 +71,5 @@ Hooks.on("updateCombatant", async (
     if(change.flags?.[MODULE_ID] == null){
         return;
     }
-    activeCombat.getCombatantActionsFromId(combatant?.id!)?.pullFlagInformation();
+    activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.pullFlagInformation();
 });
