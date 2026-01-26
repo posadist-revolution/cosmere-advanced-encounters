@@ -22,7 +22,7 @@ export const preloadHandlebarsTemplates = async function () {
         {} as Record<string, string>,
     );
 
-    return await loadTemplates(templates);
+    return await foundry.applications.handlebars.loadTemplates(templates);
 };
 
 
