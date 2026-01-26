@@ -7,6 +7,7 @@ import { COSMERE_ADVANCED_ENCOUNTERS } from './module/helpers/config.mjs';
 import { preloadHandlebarsTemplates } from './module/helpers/templates.mjs';
 import { registerModuleSettings } from './module/settings.js';
 import { activateCombatantHooks } from './module/hooks/combatant.js';
+import { AdvancedCosmereCombatTracker } from './module/applications/combat/advanced-combat-tracker';
 
 declare global {
 	interface LenientGlobalVariableTypes {

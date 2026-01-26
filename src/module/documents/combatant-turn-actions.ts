@@ -8,7 +8,7 @@ import { TEMPLATES } from "../helpers/templates.mjs";
 import { CombatantActions } from "./combatant-actions";
 
 
-interface CombatTurnActionsContext{
+export interface CombatTurnActionsContext{
     combatantId: string;
     actionsAvailableGroups: ActionGroup[];
     actionsUsed: UsedAction[];
@@ -23,12 +23,6 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 ){
     static DEFAULT_OPTIONS = {
         actions: {
-            useAction: this._onUseActionButton,
-            restoreAction: this._onRestoreActionButton,
-            useReaction: this._onUseReactionButton,
-            restoreReaction: this._onRestoreReactionButton,
-            restoreFreeAction: this._onRestoreFreeActionButton,
-            restoreSpecialAction: this._onRestoreSpecialActionButton
         },
         window: {
             frame: false
@@ -264,184 +258,6 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
     protected async _prepareContext(options: any){
         return this.context as any;
     }
-
-    /* --- Actions --- */
-    //#region CombatantTurnActions_Actions
-    protected static async _onUseActionButton(
-        event: Event
-    ){
-        // console.log("Use action button pressed");
-        event.preventDefault();
-        event.stopPropagation();
-
-        // Get the button and the closest combatant list item
-        const btn = event.target as HTMLElement;
-        const li = btn.closest<HTMLElement>('.combatant')!;
-        const actionGroupName = btn.getAttribute("action-group-name")!;
-
-        // Get the combatant actions and turn speed of what was clicked
-        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
-        const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
-
-        // Get the associated CombatTurnActions
-        const combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
-
-        // console.log(`UsedAction on combatant ${li.dataset.combatantId} with turn speed ${turnSpeed}`);
-        if(!combatantActions.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
-        {
-            return;
-        }
-
-        void await combatantTurnActions.useAction(new UsedAction(1, game.i18n?.localize("cosmere-advanced-encounters.cost_manual"), actionGroupName));
-    }
-
-    protected static async _onRestoreActionButton(
-        event: Event
-    ){
-        // console.log("Restore action button pressed");
-        event.preventDefault();
-        event.stopPropagation();
-
-        // Get the button and the closest combatant list item
-        const btn = event.target as HTMLElement;
-        const li = btn.closest<HTMLElement>('.combatant')!;
-        const actionName = btn.getAttribute("action-name")!;
-        const actionCost = btn.getAttribute("action-cost")!;
-        const actionGroupName = btn.getAttribute("action-group-name")!;
-
-        // Get the combatant actions
-        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
-        const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
-
-        // Get the associated CombatTurnActions
-        const combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
-
-        // console.log(`RestoredAction on combatant ${li.dataset.combatantId} with turn speed ${turnSpeed}`);
-        if(!combatantActions.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
-        {
-            return;
-        }
-
-        void await combatantTurnActions.removeAction(new UsedAction(Number(actionCost), actionName, actionGroupName));
-    }
-
-    protected static async _onUseReactionButton(
-        event: Event
-    ){
-        // console.log("Use reaction button pressed");
-        event.preventDefault();
-        event.stopPropagation();
-
-        // Get the button and the closest combatant list item
-        const btn = event.target as HTMLElement;
-        const li = btn.closest<HTMLElement>('.combatant')!;
-        const actionGroupName = btn.getAttribute("action-group-name")!;
-
-        // Get the combatant actions
-        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
-        const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
-
-        // Get the associated CombatTurnActions
-        const combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
-
-        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
-        if(!combatantActions.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
-        {
-            return;
-        }
-
-        void await combatantTurnActions.useReaction(new UsedAction(1, game.i18n?.localize("cosmere-advanced-encounters.cost_manual"), actionGroupName));
-
-        void await combatantTurnActions.setFlagReactions();
-    }
-
-    protected static async _onRestoreReactionButton(
-        event: Event
-    ){
-        // console.log("Toggle reaction button pressed");
-        event.preventDefault();
-        event.stopPropagation();
-
-        // Get the button and the closest combatant list item
-        const btn = event.target as HTMLElement;
-        const li = btn.closest<HTMLElement>('.combatant')!;
-        const actionGroupName = btn.getAttribute("action-group-name")!;
-        const actionName = btn.getAttribute("action-name")!;
-
-        // Get the combatant actions
-        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
-        const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
-
-        // Get the associated CombatTurnActions
-        const combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
-
-        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
-        if(!combatantActions.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
-        {
-            return;
-        }
-
-        void await combatantTurnActions.removeReaction(new UsedAction(1, actionName, actionGroupName));
-
-        void await combatantTurnActions.setFlagReactions();
-    }
-
-    protected static async _onRestoreFreeActionButton(
-        event: Event
-    ){
-        // console.log("Toggle reaction button pressed");
-        event.preventDefault();
-        event.stopPropagation();
-
-        // Get the button and the closest combatant list item
-        const btn = event.target as HTMLElement;
-        const li = btn.closest<HTMLElement>('.combatant')!;
-        const actionName = btn.getAttribute("action-name")!;
-
-        // Get the combatant actions
-        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
-        const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
-
-        // Get the associated CombatTurnActions
-        const combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
-
-        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
-        if(!combatantActions.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
-        {
-            return;
-        }
-
-        void await combatantTurnActions.removeFreeAction(new UsedAction(1, actionName));
-    }
-
-    protected static async _onRestoreSpecialActionButton(
-        event: Event
-    ){
-        // console.log("Toggle reaction button pressed");
-        event.preventDefault();
-        event.stopPropagation();
-
-        // Get the button and the closest combatant list item
-        const btn = event.target as HTMLElement;
-        const li = btn.closest<HTMLElement>('.combatant')!;
-        const actionName = btn.getAttribute("action-name")!;
-
-        // Get the combatant actions
-        const combatantActions = activeCombat!.getCombatantActionsByCombatantId(li.dataset.combatantId!)!;
-        const turnSpeed = CombatantActions.findTurnSpeedForElement(li);
-
-        // Get the associated CombatTurnActions
-        const combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
-
-        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
-        if(!combatantActions.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
-        {
-            return;
-        }
-
-        void await combatantTurnActions.removeSpecialAction(new UsedAction(1, actionName));
-    }
-    //#endregion
 
     /* --- Flag Operations --- */
     //#region CombatantTurnActions_FlagOperations
