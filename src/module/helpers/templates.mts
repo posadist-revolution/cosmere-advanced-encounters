@@ -3,7 +3,7 @@ import { activeCombat } from "@src/index";
 import { getModuleSetting, SETTINGS } from "../settings";
 
 export const TEMPLATES = {
-	COMBATANT_ACTIONS_TEMPLATE: 'modules/cosmere-advanced-encounters/templates/combat/combatant_actions.hbs',
+	COMBATANT_ACTIONS_TEMPLATE: 'modules/cosmere-advanced-encounters/templates/combat/combatant-actions.hbs',
 } as const;
 
 /**

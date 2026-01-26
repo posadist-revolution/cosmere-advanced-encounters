@@ -1,6 +1,6 @@
 import { ActionCostType, TurnSpeed } from "../../declarations/cosmere-rpg/system/types/cosmere";
 import { activeCombat } from "@src/index";
-import { CombatantActions, UsedAction } from "../documents/combatant_actions.js";
+import { CombatantActions, UsedAction } from "../documents/combatant-actions.js";
 import { CosmereItem } from "../../declarations/cosmere-rpg/documents/item";
 import { CosmereChatMessage, MESSAGE_TYPES } from '../../declarations/cosmere-rpg/documents/chat-message';
 import { MODULE_ID, SYSTEM_ID } from "../constants";

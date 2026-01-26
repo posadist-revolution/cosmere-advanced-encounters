@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../constants";
-import { ActionGroup, CombatantActions, UsedAction } from "../documents/combatant_actions";
+import { ActionGroup, CombatantActions, UsedAction } from "../documents/combatant-actions";
 
 export async function migrateFlags(combatantActions: CombatantActions){
 
