@@ -1,11 +1,12 @@
 import { ActionCostType, TurnSpeed } from "../../declarations/cosmere-rpg/system/types/cosmere";
 import { activeCombat } from "@src/index";
-import { CombatantActions, UsedAction } from "../documents/combatant-actions.js";
+import { CombatantActions } from "../documents/combatant-actions.js";
 import { CosmereItem } from "../../declarations/cosmere-rpg/documents/item";
 import { CosmereChatMessage, MESSAGE_TYPES } from '../../declarations/cosmere-rpg/documents/chat-message';
 import { MODULE_ID, SYSTEM_ID } from "../constants";
 import { HOOKS } from "../../declarations/cosmere-rpg/system/constants/hooks";
 import { getModuleSetting, SETTINGS } from "../settings";
+import { UsedAction } from "../documents/used-action";
 
 
 export function activateCombatantHooks(){
