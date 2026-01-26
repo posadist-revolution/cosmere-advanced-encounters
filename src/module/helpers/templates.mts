@@ -16,7 +16,7 @@ export const preloadHandlebarsTemplates = async function () {
     const templates = Object.values(TEMPLATES).reduce(
         (partials, path) => {
             partials[path.split('/').pop()!.replace('.hbs', '')] =
-                `module/${MODULE_ID}/templates/${path}`;
+                `${path}`;
             return partials;
         },
         {} as Record<string, string>,
