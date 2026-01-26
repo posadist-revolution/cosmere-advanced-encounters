@@ -5,6 +5,8 @@ import { MODULE_ID } from "../constants";
 
 export const TEMPLATES = {
 	COMBATANT_ACTIONS_TEMPLATE: 'modules/cosmere-advanced-encounters/templates/combat/combatant-actions.hbs',
+	COMBAT_TRACKER: 'modules/cosmere-advanced-encounters/templates/combat/combat-tracker.hbs',
+	COMBATANT: 'modules/cosmere-advanced-encounters/templates/combat/combatant.hbs',
 } as const;
 
 /**
