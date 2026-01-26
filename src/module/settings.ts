@@ -4,6 +4,7 @@ export const SETTINGS = {
 	REFRESH_COMBATANT_ACTIONS_WHEN: 'refreshCombatantActionsWhen',
     PULL_ACTIONS_FROM_CHAT: 'pullActionsFromChat',
     PLAYERS_CAN_RESTORE_ACTIONS: 'playersCanRestoreActions',
+    CHECK_ACTION_USABILITY: 'checkActionUsability',
 } as const;
 
 type ModuleSettingsConfig = {
@@ -11,7 +12,9 @@ type ModuleSettingsConfig = {
 } & {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.PULL_ACTIONS_FROM_CHAT}`]: boolean;
 } & {
-    [key in `${typeof MODULE_ID}.${typeof SETTINGS.PLAYERS_CAN_RESTORE_ACTIONS}`]: boolean;};
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.PLAYERS_CAN_RESTORE_ACTIONS}`]: boolean;
+} & {
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.CHECK_ACTION_USABILITY}`]: string;};
 
 type ModuleSettingsKey = (typeof SETTINGS)[keyof typeof SETTINGS];
 export function getModuleSetting<
@@ -31,6 +34,12 @@ export const enum RefreshCombatantActionsWhenOptions {
     turnStart = `turnStart`,
     roundStart = `roundStart`,
     onlyManual = `onlyManual`,
+}
+
+export const enum CheckActionUsabilityOptions {
+    none = `none`,
+    warn = `warn`,
+    block = `block`,
 }
 
 export function registerModuleSettings() {
@@ -62,20 +71,9 @@ export function registerModuleSettings() {
 	// CONFIG REGISTRATION
 	const configOptions = [
 		{
-			name: SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN,
+			name: SETTINGS.CHECK_ACTION_USABILITY,
             default: RefreshCombatantActionsWhenOptions.turnStart,
 			scope: 'world',
-		},
-	];
-
-	configOptions.forEach(option => {
-		game.settings!.register(MODULE_ID, option.name, {
-            name: game.i18n?.localize(`cosmere-advanced-encounters.settings.${option.name}.name`),
-            hint: game.i18n?.localize(`cosmere-advanced-encounters.settings.${option.name}.hint`),
-			scope: option.scope as "world" | "client" | undefined,
-			default: option.default,
-			type: String,
-			config: true,
             choices: {
                 [RefreshCombatantActionsWhenOptions.turnStart]: game.i18n?.localize(
                     `cosmere-advanced-encounters.settings.refresh_combatant_actions_when_options.${RefreshCombatantActionsWhenOptions.turnStart}`,
@@ -87,6 +85,33 @@ export function registerModuleSettings() {
                     `cosmere-advanced-encounters.settings.refresh_combatant_actions_when_options.${RefreshCombatantActionsWhenOptions.onlyManual}`,
                 )
             },
+		},
+        {
+			name: SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN,
+            default: CheckActionUsabilityOptions.warn,
+			scope: 'world',
+            choices: {
+                [CheckActionUsabilityOptions.none]: game.i18n?.localize(
+                    `cosmere-advanced-encounters.settings.check_action_usability_options.${CheckActionUsabilityOptions.none}`,
+                ),
+                [CheckActionUsabilityOptions.warn]: game.i18n?.localize(
+                    `cosmere-advanced-encounters.settings.check_action_usability_options.${CheckActionUsabilityOptions.warn}`,
+                ),
+                [CheckActionUsabilityOptions.block]: game.i18n?.localize(
+                    `cosmere-advanced-encounters.settings.check_action_usability_options.${CheckActionUsabilityOptions.block}`,
+                )
+            },
+        }
+	];
+
+	configOptions.forEach(option => {
+		game.settings!.register(MODULE_ID, option.name, {
+            name: game.i18n?.localize(`cosmere-advanced-encounters.settings.${option.name}.name`),
+            hint: game.i18n?.localize(`cosmere-advanced-encounters.settings.${option.name}.hint`),
+			scope: option.scope as "world" | "client" | undefined,
+			default: option.default,
+			type: String,
+			config: true,
 		});
 	});
 }

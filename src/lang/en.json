@@ -23,17 +23,27 @@
                 "turnStart": "On combatant turn start",
                 "roundStart": "On combat round start",
                 "onlyManual": "Only allow manual refreshing of actions"
+            },
+            "checkActionUsability": {
+                "name": "Action usability check type",
+                "hint": "Determines what the behavior should be when a combatant uses actions or reactions that they don't have enough remaining to use."
+            },
+            "check_action_usability_options":
+            {
+                "none": "Nothing",
+                "warn": "Warn the player",
+                "block": "Warn the player and block the action"
             }
         },
         "warning":
         {
-            "notEnoughActionType": "{actor} does not have enough {actionCostType} to use {actionName}!"
+            "notEnoughActionType": "{actor} does not have enough {actionCostType}s to use {actionName}!"
         },
         "actionCostType":{
-            "act": "Actions",
-            "rea": "Reactions",
-            "fre": "Free actions",
-            "spe": "Special actions"
+            "act": "action",
+            "rea": "reaction",
+            "fre": "free action",
+            "spe": "special action"
         }
     }
 }
