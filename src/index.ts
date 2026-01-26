@@ -2,7 +2,7 @@ import { CosmereCombatTracker, CosmereTrackerContext } from './declarations/cosm
 import { CosmereCombatant } from './declarations/cosmere-rpg/documents/combatant';
 import { MODULE_ID } from './module/constants';
 import { AdvancedCosmereCombat } from './module/documents/advanced-cosmere-combat';
-import { injectAllCombatantActions } from './module/documents/combatant_actions.js'
+import { injectAllCombatantActions } from './module/documents/combatant-actions.js'
 import { COSMERE_ADVANCED_ENCOUNTERS } from './module/helpers/config.mjs';
 import { preloadHandlebarsTemplates } from './module/helpers/templates.mjs';
 import { registerModuleSettings } from './module/settings.js';
@@ -45,7 +45,7 @@ Hooks.on('renderCombatTracker', async (
     if(tracker.viewed == null){
         return true
     }
-    //console.log(`${MODULE_ID}: Rendering combat tracker`);
+    // console.log(`${MODULE_ID}: Rendering combat tracker`);
     if(advancedCombatsMap[tracker.viewed.id] == null){
         //console.log(`${MODULE_ID}: Making new AdvancedCombat`);
         advancedCombatsMap[tracker.viewed.id] = new AdvancedCosmereCombat(tracker.viewed);
@@ -57,7 +57,7 @@ Hooks.on('renderCombatTracker', async (
         }
     }
     activeCombat = advancedCombatsMap[tracker.viewed.id];
-    await injectAllCombatantActions(activeCombat, html);
+    await injectAllCombatantActions(activeCombat, html, tracker.id == "combat-popout");
     return true;
 });
 

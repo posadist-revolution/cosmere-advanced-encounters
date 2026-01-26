@@ -1,9 +1,10 @@
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 import { activeCombat } from "@src/index";
 import { getModuleSetting, SETTINGS } from "../settings";
+import { MODULE_ID } from "../constants";
 
 export const TEMPLATES = {
-	COMBATANT_ACTIONS_TEMPLATE: 'modules/cosmere-advanced-encounters/templates/combat/combatant_actions.hbs',
+	COMBATANT_ACTIONS_TEMPLATE: 'modules/cosmere-advanced-encounters/templates/combat/combatant-actions.hbs',
 } as const;
 
 /**
@@ -12,9 +13,16 @@ export const TEMPLATES = {
  * @return {Promise}
  */
 export const preloadHandlebarsTemplates = async function () {
-	return foundry.applications.handlebars.loadTemplates([
-		TEMPLATES.COMBATANT_ACTIONS_TEMPLATE,
-	]);
+    const templates = Object.values(TEMPLATES).reduce(
+        (partials, path) => {
+            partials[path.split('/').pop()!.replace('.hbs', '')] =
+                `module/${MODULE_ID}/templates/${path}`;
+            return partials;
+        },
+        {} as Record<string, string>,
+    );
+
+    return await foundry.applications.handlebars.loadTemplates(templates);
 };
 
 
