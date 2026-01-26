@@ -1,4 +1,4 @@
-import { ActionCostType, TurnSpeed } from "../../declarations/cosmere-rpg/system/types/cosmere";
+import { ActionCostType, Status, TurnSpeed } from "../../declarations/cosmere-rpg/system/types/cosmere";
 import { activeCombat } from "@src/index";
 import { CombatantActions } from "../documents/combatant-actions.js";
 import { CosmereItem } from "../../declarations/cosmere-rpg/documents/item";
@@ -62,6 +62,40 @@ export function activateCombatantHooks(){
                 break;
         }
         return true;
+    });
+
+    Hooks.on("preCreateActiveEffect", (
+        activeEffect: ActiveEffect
+    ) => {
+        if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
+            const actor = activeEffect.parent as unknown as CosmereActor;
+            const tokenId = actor.getActiveTokens()[0].id;
+
+            // Get the associated combatant turn actions information
+            let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId)!;
+            let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
+            let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
+
+            //Apply the condition effects associated with this active effect
+            combatantTurnActions.applyConditionsOffTurn(activeEffect.statuses);
+        }
+    });
+
+    Hooks.on("preDeleteActiveEffect", (
+        activeEffect: ActiveEffect
+    ) => {
+        if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
+            const actor = activeEffect.parent as unknown as CosmereActor;
+            const tokenId = actor.getActiveTokens()[0].id;
+
+            // Get the associated combatant turn actions information
+            let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId)!;
+            let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
+            let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
+
+            //Remove the condition effects associated with this active effect
+            combatantTurnActions.removeConditionsOffTurn(activeEffect.statuses);
+        }
     });
 }
 
