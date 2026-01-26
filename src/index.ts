@@ -45,7 +45,7 @@ Hooks.on('renderCombatTracker', async (
     if(tracker.viewed == null){
         return true
     }
-    //console.log(`${MODULE_ID}: Rendering combat tracker`);
+    // console.log(`${MODULE_ID}: Rendering combat tracker`);
     if(advancedCombatsMap[tracker.viewed.id] == null){
         //console.log(`${MODULE_ID}: Making new AdvancedCombat`);
         advancedCombatsMap[tracker.viewed.id] = new AdvancedCosmereCombat(tracker.viewed);
@@ -57,7 +57,7 @@ Hooks.on('renderCombatTracker', async (
         }
     }
     activeCombat = advancedCombatsMap[tracker.viewed.id];
-    await injectAllCombatantActions(activeCombat, html);
+    await injectAllCombatantActions(activeCombat, html, tracker.id == "combat-popout");
     return true;
 });
 

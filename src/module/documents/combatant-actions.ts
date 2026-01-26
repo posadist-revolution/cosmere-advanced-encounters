@@ -14,6 +14,8 @@ export class CombatantActions{
     readonly combatant: CosmereCombatant;
     declare combatantTurnActions: CombatantTurnActions;
     declare bossFastTurnActions: CombatantTurnActions;
+    declare combatantTurnActionsPopout?: CombatantTurnActions;
+    declare bossFastTurnActionsPopout?: CombatantTurnActions;
 
     constructor(combatant: CosmereCombatant) {
         this.combatant = combatant;
@@ -89,6 +91,13 @@ export class CombatantActions{
         this.combatant.update(updateData, updateOperation);
     }
 
+    public async createPopoutTurns(){
+        this.combatantTurnActionsPopout = new CombatantTurnActions(this)
+        if(this.isBoss){
+            this.bossFastTurnActionsPopout = new CombatantTurnActions(this, true);
+        }
+    }
+
     //#endregion
 
     protected static async initializeCombatantFlags(combatant: CosmereCombatant){
@@ -150,9 +159,9 @@ Hooks.on("combatTurnChange", async (
     await combatantActions?.getCombatantTurnActions(turnSpeed).onTurnStart();
 });
 
-export async function injectCombatantActions(combatant : Combatant, combatantJQuery : JQuery)
+export async function injectCombatantActions(combatant : Combatant, combatantJQuery : JQuery, isPopoutWindow?: boolean)
 {
-    //console.log(`${MODULE_ID}: Injecting combatant actions`);
+    // console.log(`${MODULE_ID}: Injecting combatant actions`);
     const combatantActions = activeCombat!.getCombatantActionsByCombatantId(combatant?.id!)!;
     if(! combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER))
     {
@@ -161,12 +170,25 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
 
     // console.log("Injecting actions for combatant:");
     // console.log(combatant)
-    const actionsButtons = await combatantActions.combatantTurnActions.render({force:true});
+    var actionsButtons: CombatantTurnActions;
+    if(isPopoutWindow){
+        await combatantActions.createPopoutTurns();
+        actionsButtons = await combatantActions.combatantTurnActionsPopout!.render({force:true});
+    }
+    else{
+        actionsButtons = await combatantActions.combatantTurnActions.render({force:true});
+    }
     // console.log("Actions buttons: ");
     // console.log(actionsButtons);
     // console.log(combatantActions);
     if(combatantActions.isBoss){
-        const bossFastActionsButtons = await combatantActions.bossFastTurnActions.render({force:true});
+        var bossFastActionsButtons: CombatantTurnActions;
+        if(isPopoutWindow){
+            await combatantActions.bossFastTurnActionsPopout!.render({force:true});
+        }
+        else{
+            await combatantActions.bossFastTurnActions.render({force:true});
+        }
         combatantJQuery.each((index: number, element: HTMLElement) => {
             let turnSpeed = CombatantActions.findTurnSpeedForElement(element);
             if(turnSpeed == TurnSpeed.Fast){
@@ -179,8 +201,9 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
         });
         return;
     }
-
+    // console.log("Finding location to add the actionsButtons");
     combatantJQuery.find("h4.combatant-name").after(actionsButtons.element)
+    // console.log("Done finding location");
 
     //else
         //combatantJQuery.find("button.inline-control.combatant-control.icon.fa-solid.fa-arrows-to-eye").before(actionsButtons);
@@ -188,12 +211,16 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
 
 export async function injectAllCombatantActions(
     advancedCombat : AdvancedCosmereCombat,
-    html : HTMLElement)
+    html : HTMLElement,
+    isPopoutWindow?: boolean)
 {
-    //console.log(`${MODULE_ID}: Injecting all combatant actions`);
+    // console.log(`${MODULE_ID}: Injecting all combatant actions with popout = ${isPopoutWindow}`);
     for (const combatant of (advancedCombat.combat.combatants ?? [])) {
+        // console.log(`${MODULE_ID}: Looking for combatant with: [data-combatant-id=\"${combatant.id}\"]`);
         const combatantJQuery = $(html).find(`[data-combatant-id=\"${combatant.id}\"]`);
-        await injectCombatantActions(combatant, combatantJQuery);
+        // console.log(`${MODULE_ID}: Found the following jQuery`);
+        // console.log(combatantJQuery);
+        await injectCombatantActions(combatant, combatantJQuery, isPopoutWindow);
     }
     return true;
 }
