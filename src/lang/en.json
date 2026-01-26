@@ -24,6 +24,16 @@
                 "roundStart": "On combat round start",
                 "onlyManual": "Only allow manual refreshing of actions"
             }
+        },
+        "warning":
+        {
+            "notEnoughActionType": "{actor} does not have enough {actionCostType} to use {actionName}!"
+        },
+        "actionCostType":{
+            "act": "Actions",
+            "rea": "Reactions",
+            "fre": "Free actions",
+            "spe": "Special actions"
         }
     }
 }

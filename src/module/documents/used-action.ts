@@ -1,3 +1,4 @@
+import { CosmereItem } from "@src/declarations/cosmere-rpg/documents/item";
 
 export class UsedAction{
     declare cost: number
@@ -10,7 +11,7 @@ export class UsedAction{
     }
 }
 
-export type ActionIsInGroupFunc = (action: UsedAction) => boolean;
+export type ActionIsInGroupFunc = (action: CosmereItem | UsedAction) => boolean;
 
 export class ActionGroup{
     declare max: number;

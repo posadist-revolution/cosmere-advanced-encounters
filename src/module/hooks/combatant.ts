@@ -16,6 +16,25 @@ export function activateCombatantHooks(){
         options: CosmereItem.UseOptions
     ) => {
         //TODO: Add checks for "Does the combatant have enough actions to use this?"
+        let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens()[0].id!)!;
+        let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
+        let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
+        if(!combatantTurnActions.canUseItem(item)){
+            if(!(game.i18n)){
+                return false;
+            }
+            if(!(options.actor)){
+                return false;
+            }
+            ui.notifications?.warn(
+                game.i18n?.format(`${MODULE_ID}.warning.notEnoughActionType`, {
+                    actor: options.actor.name,
+                    actionCostType: game.i18n.localize(`${MODULE_ID}.actionCostType.${item.system.activation.cost.type}`),
+                    actionName: item.name
+                }),
+            );
+            return false;
+        }
         if(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT)){
             activeCombat.setLastUsedItemData(item);
         }
