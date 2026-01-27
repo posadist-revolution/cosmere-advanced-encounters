@@ -71,7 +71,7 @@ export function registerModuleSettings() {
 	// CONFIG REGISTRATION
 	const configOptions = [
 		{
-			name: SETTINGS.CHECK_ACTION_USABILITY,
+			name: SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN,
             default: RefreshCombatantActionsWhenOptions.turnStart,
 			scope: 'world',
             choices: {
