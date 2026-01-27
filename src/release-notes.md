@@ -6,3 +6,5 @@
     - Do nothing
     - Display a warning message to the player using the action, but allow the action to occur and add it to the tracker
     - Display a warning message to the player using the action, and prevent the action from being used (in either the tracker or the chat)
+- Conditions like Disoriented, Stunned, and Surprised now affect actions on a turn
+- Added a setting to enable/disable condition effects on action tracker
