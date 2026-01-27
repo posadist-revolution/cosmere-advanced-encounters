@@ -1,11 +1,12 @@
 import { AnyObject } from "@league-of-foundry-developers/foundry-vtt-types/utils";
 import { ActionGroup, UsedAction } from "./used-action";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
-import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
+import { ActionCostType, TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
 import { activeCombat } from "@src/index";
 import { MODULE_ID } from "../constants";
 import { TEMPLATES } from "../helpers/templates.mjs";
 import { CombatantActions } from "./combatant-actions";
+import { CosmereItem } from "@src/declarations/cosmere-rpg/documents/item";
 
 
 interface CombatTurnActionsContext{
@@ -160,6 +161,33 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
     public async onCombatantTurnSpeedChange(turnSpeed: TurnSpeed){
         //console.log(`${MODULE_ID}: Combatant ${this.combatant.id} changed turn speed`)
         this.setMaxBaseActions(turnSpeed);
+    }
+
+    public canUseItem(item: CosmereItem): boolean{
+        switch(item.system.activation.cost.type){
+            case ActionCostType.Action:
+                for(const actionGroup of this.context.actionsAvailableGroups){
+                    if(actionGroup.actionIsInGroup && (!actionGroup.actionIsInGroup(item))){
+                        continue;
+                    }
+                    if(actionGroup.remaining >= item.system.activation.cost.value){
+                        return true;
+                    }
+                }
+                return false;
+            case ActionCostType.Reaction:
+                for(const reactionGroup of this.context.reactionsAvailable){
+                    if(reactionGroup.actionIsInGroup && (!reactionGroup.actionIsInGroup(item))){
+                        continue;
+                    }
+                    if(reactionGroup.remaining > 0){
+                        return true;
+                    }
+                }
+                return false;
+            default:
+                return true;
+        }
     }
     //#endregion
 
