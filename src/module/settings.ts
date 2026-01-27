@@ -5,6 +5,7 @@ export const SETTINGS = {
     PULL_ACTIONS_FROM_CHAT: 'pullActionsFromChat',
     PLAYERS_CAN_RESTORE_ACTIONS: 'playersCanRestoreActions',
     CHECK_ACTION_USABILITY: 'checkActionUsability',
+    CONDITIONS_APPLY_TO_ACTIONS: 'conditionsApplyToActions',
 } as const;
 
 type ModuleSettingsConfig = {
@@ -14,7 +15,9 @@ type ModuleSettingsConfig = {
 } & {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.PLAYERS_CAN_RESTORE_ACTIONS}`]: boolean;
 } & {
-    [key in `${typeof MODULE_ID}.${typeof SETTINGS.CHECK_ACTION_USABILITY}`]: string;};
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.CHECK_ACTION_USABILITY}`]: string;
+} & {
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.CONDITIONS_APPLY_TO_ACTIONS}`]: boolean;};
 
 type ModuleSettingsKey = (typeof SETTINGS)[keyof typeof SETTINGS];
 export function getModuleSetting<
@@ -52,6 +55,11 @@ export function registerModuleSettings() {
         },
         {
             name: SETTINGS.PLAYERS_CAN_RESTORE_ACTIONS,
+            default: true,
+            scope: 'world',
+        },
+        {
+            name: SETTINGS.CONDITIONS_APPLY_TO_ACTIONS,
             default: true,
             scope: 'world',
         }
