@@ -7,6 +7,7 @@ import { MODULE_ID } from "../constants";
 import { TEMPLATES } from "../helpers/templates.mjs";
 import { CombatantActions } from "./combatant-actions";
 import { CosmereItem } from "@src/declarations/cosmere-rpg/documents/item";
+import { getModuleSetting, SETTINGS } from "../settings";
 
 
 interface CombatTurnActionsContext{
@@ -85,6 +86,10 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
     }
 
     public applyConditionsToActions(){
+        // Check the setting, and if we don't apply conditions to actions, return
+        if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
+            return;
+        }
         if(this.combatant.actor.statuses.has(Status.Stunned)) {
             this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Stunned")), "base");
             this.useAction(new UsedAction(2, game.i18n?.localize("COSMERE.Status.Stunned")), "base");

@@ -67,6 +67,9 @@ export function activateCombatantHooks(){
     Hooks.on("preCreateActiveEffect", (
         activeEffect: ActiveEffect
     ) => {
+        if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
+            return;
+        }
         if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
             const actor = activeEffect.parent as unknown as CosmereActor;
             const tokenId = actor.getActiveTokens()[0].id;
@@ -84,6 +87,9 @@ export function activateCombatantHooks(){
     Hooks.on("preDeleteActiveEffect", (
         activeEffect: ActiveEffect
     ) => {
+        if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
+            return;
+        }
         if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
             const actor = activeEffect.parent as unknown as CosmereActor;
             const tokenId = actor.getActiveTokens()[0].id;
