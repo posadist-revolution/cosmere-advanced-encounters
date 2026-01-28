@@ -6,6 +6,7 @@
         "remove_action": "Remove used action",
         "restore_reaction": "Restore used reaction",
         "cost_manual": "Manual Action",
+        "activate_combatant": "Activate Combatant",
         "settings": {
             "pullActionsFromChat": {
                 "name": "Pull actions from chat",
