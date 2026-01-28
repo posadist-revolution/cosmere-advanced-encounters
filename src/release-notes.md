@@ -1,15 +1,16 @@
-### Release 1.0.0
-<sup>2026-01-25</sup>
+### Release 1.1.0
+<sup>2026-01-27</sup>
 
-This module has reached a point where I'm finally comfortable calling it version 1.0.0!
-There are still more changes I would like to do, but they are smaller and all built around the core functionality that is brought by this version.
-I hope you all enjoy, and if you have anything you'd like me to add, or find any bugs, please throw something up on the issues section of the GitHub page!
+#### Features
+- Can now track and prevent combatants from using more actions or reactions than they have available
+- Added a setting which determines behavior on a combatant using too many actions, either:
+    - Do nothing
+    - Display a warning message to the player using the action, but allow the action to occur and add it to the tracker
+    - Display a warning message to the player using the action, and prevent the action from being used (in either the tracker or the chat)
+- Conditions like Disoriented, Stunned, and Surprised now affect actions on a turn
+- Added a setting to enable/disable condition effects on action tracker
+- Which combatant's turn it is can now be controlled through the "Mark as Acted" button
+- Added a setting to determine whether to use the new "Mark as Acted" setting turn behavior (defaults to true)
 
-## Major Changes
-- Automatically populates the Combatant Action Tracker when actions are used from a combatant
-- Added a setting to determine whether the above automatic action tracker population is active or not (defaults to true)
-- Added a setting to determine whether players can remove used actions from the combatant action tracker of combatants that they have owner permissions for
-
-## Minor Changes
-- Improved the naming of the setting which controls when combatant turn actions repopulate
-- Added a system to migrate flags from combats currently in progress. Only functional for combats in progress on version 0.3.0 and above. If you're on a lower version, I suggest finishing any combats in progress before updating.
+#### Fixes
+- The previous fix for popout windows introduced a major issue with boss turns failing to render, which is now fixed.

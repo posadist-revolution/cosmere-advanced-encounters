@@ -1,11 +1,13 @@
 import { AnyObject } from "@league-of-foundry-developers/foundry-vtt-types/utils";
 import { ActionGroup, UsedAction } from "./used-action";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
-import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
+import { ActionCostType, Status, TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
 import { activeCombat } from "@src/index";
 import { MODULE_ID } from "../constants";
 import { TEMPLATES } from "../helpers/templates.mjs";
 import { CombatantActions } from "./combatant-actions";
+import { CosmereItem } from "@src/declarations/cosmere-rpg/documents/item";
+import { getModuleSetting, SETTINGS } from "../settings";
 
 
 interface CombatTurnActionsContext{
@@ -79,7 +81,61 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         this.context.reactionsUsed = [];
         this.context.freeActionsUsed = [];
         this.context.specialActionsUsed = [];
+        this.applyConditionsToActions();
         this.setFlagAll();
+    }
+
+    public applyConditionsToActions(){
+        // Check the setting, and if we don't apply conditions to actions, return
+        if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
+            return;
+        }
+        if(this.combatant.actor.statuses.has(Status.Stunned)) {
+            this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Stunned")), "base");
+            this.useAction(new UsedAction(2, game.i18n?.localize("COSMERE.Status.Stunned")), "base");
+            return;
+        }
+        if(this.combatant.actor.statuses.has(Status.Surprised)) {
+            this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Surprised")), "base");
+            this.useAction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Surprised")), "base");
+            return;
+        }
+        if(this.combatant.actor.statuses.has(Status.Disoriented)) {
+            this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Disoriented")), "base");
+            return;
+        }
+    }
+
+    public async applyConditionsOffTurn(statuses: Set<string>){
+        for(const reactionAvailable of this.context.reactionsAvailable){
+            if(reactionAvailable.remaining > 0){
+                if(statuses.has(Status.Stunned)){
+                    this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Stunned")), reactionAvailable.name);
+                }
+                else if(statuses.has(Status.Surprised)){
+                    this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Surprised")), reactionAvailable.name);
+                }
+                else if(statuses.has(Status.Disoriented)){
+                    this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Disoriented")), reactionAvailable.name);
+                }
+            }
+        }
+        await this.setFlagReactions();
+    }
+
+    public async removeConditionsOffTurn(statuses: Set<string>){
+        for(const reactionUsed of this.context.reactionsUsed){
+            if(statuses.has(Status.Stunned) && reactionUsed.name == game.i18n?.localize("COSMERE.Status.Stunned")){
+                this.removeReaction(reactionUsed);
+            }
+            else if(statuses.has(Status.Surprised) && reactionUsed.name == game.i18n?.localize("COSMERE.Status.Surprised")){
+                this.removeReaction(reactionUsed);
+            }
+            else if(statuses.has(Status.Disoriented) && reactionUsed.name == game.i18n?.localize("COSMERE.Status.Disoriented")){
+                this.removeReaction(reactionUsed);
+            }
+        }
+        await this.setFlagReactions();
     }
 
     public async setMaxBaseActions(turnSpeed: TurnSpeed){
@@ -161,6 +217,33 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         //console.log(`${MODULE_ID}: Combatant ${this.combatant.id} changed turn speed`)
         this.setMaxBaseActions(turnSpeed);
     }
+
+    public canUseItem(item: CosmereItem): boolean{
+        switch(item.system.activation.cost.type){
+            case ActionCostType.Action:
+                for(const actionGroup of this.context.actionsAvailableGroups){
+                    if(actionGroup.actionIsInGroup && (!actionGroup.actionIsInGroup(item))){
+                        continue;
+                    }
+                    if(actionGroup.remaining >= item.system.activation.cost.value){
+                        return true;
+                    }
+                }
+                return false;
+            case ActionCostType.Reaction:
+                for(const reactionGroup of this.context.reactionsAvailable){
+                    if(reactionGroup.actionIsInGroup && (!reactionGroup.actionIsInGroup(item))){
+                        continue;
+                    }
+                    if(reactionGroup.remaining > 0){
+                        return true;
+                    }
+                }
+                return false;
+            default:
+                return true;
+        }
+    }
     //#endregion
 
     protected getMaxBaseActionsOnTurn(turnSpeed: TurnSpeed){
@@ -196,11 +279,16 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
     protected getBestGroupForAction(action: UsedAction){
         let matchingLimitedActionGroups = [];
-        // Find all the action groups which are limited
+        let matchingActionGroups = [];
+        // Find all the action groups which this action could fit into
         for (const actionGroup of this.context.actionsAvailableGroups){
-            if(actionGroup.actionIsInGroup){
-                if(actionGroup.actionIsInGroup(action)){
+            if(actionGroup.remaining >= action.cost){
+                if(actionGroup.actionIsInGroup && actionGroup.actionIsInGroup(action)){
                     matchingLimitedActionGroups.push(actionGroup);
+                    matchingActionGroups.push(actionGroup);
+                }
+                else if(!(actionGroup.actionIsInGroup)){
+                    matchingActionGroups.push(actionGroup);
                 }
             }
         }
@@ -209,7 +297,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return matchingLimitedActionGroups[0];
         }
         else{
-            return this.context.actionsAvailableGroups[0];
+            return matchingActionGroups[0];
         }
     }
 
@@ -225,11 +313,16 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
 
     protected getBestGroupForReaction(action: UsedAction){
         let matchingLimitedActionGroups = [];
-        // Find all the action groups which are limited
+        let matchingActionGroups = [];
+        // Find all the action groups which this action could fit into
         for (const actionGroup of this.context.reactionsAvailable){
-            if(actionGroup.actionIsInGroup){
-                if(actionGroup.actionIsInGroup(action)){
+            if(actionGroup.remaining >= action.cost){
+                if(actionGroup.actionIsInGroup && actionGroup.actionIsInGroup(action)){
                     matchingLimitedActionGroups.push(actionGroup);
+                    matchingActionGroups.push(actionGroup);
+                }
+                else if(!(actionGroup.actionIsInGroup)){
+                    matchingActionGroups.push(actionGroup);
                 }
             }
         }
@@ -238,7 +331,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
             return matchingLimitedActionGroups[0];
         }
         else{
-            return this.context.reactionsAvailable[0];
+            return matchingActionGroups[0];
         }
     }
 

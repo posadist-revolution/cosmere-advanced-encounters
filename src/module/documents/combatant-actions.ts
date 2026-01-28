@@ -144,11 +144,33 @@ Hooks.on("preUpdateCombatant", (
     return true;
 });
 
+// If a combatant is activated using the "Activate" button, set the current turn to that combatant
+Hooks.on("preUpdateCombatant", (
+    combatant : CosmereCombatant,
+    change : Combatant.UpdateData
+) => {
+    if(!getModuleSetting(SETTINGS.ACTIVATE_SETS_TURN)){
+        return;
+    }
+    if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.activated`) && change.flags["cosmere-rpg"].activated){
+        // Regular turn has activated
+        activeCombat.setCurrentTurnFromCombatant(combatant.id!, false);
+    }
+    else if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.bossFastActivated`) && change.flags["cosmere-rpg"].bossFastActivated){
+        // Boss fast turn has activated
+        activeCombat.setCurrentTurnFromCombatant(combatant.id!, true);
+    }
+});
+
 Hooks.on("combatTurnChange", async (
     combat: CosmereCombat,
     prior: Combat.HistoryData,
     current: Combat.HistoryData
 ) => {
+    if(current.round != prior.round){
+        // This is a round start turn change, we shouldn't refresh the combatant's actions because the turn order might change
+        return;
+    }
     if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.turnStart){
         return;
     }
@@ -184,10 +206,10 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
     if(combatantActions.isBoss){
         var bossFastActionsButtons: CombatantTurnActions;
         if(isPopoutWindow){
-            await combatantActions.bossFastTurnActionsPopout!.render({force:true});
+            bossFastActionsButtons = await combatantActions.bossFastTurnActionsPopout!.render({force:true});
         }
         else{
-            await combatantActions.bossFastTurnActions.render({force:true});
+            bossFastActionsButtons = await combatantActions.bossFastTurnActions.render({force:true});
         }
         combatantJQuery.each((index: number, element: HTMLElement) => {
             let turnSpeed = CombatantActions.findTurnSpeedForElement(element);
@@ -207,6 +229,11 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
 
     //else
         //combatantJQuery.find("button.inline-control.combatant-control.icon.fa-solid.fa-arrows-to-eye").before(actionsButtons);
+
+    if(getModuleSetting(SETTINGS.ACTIVATE_SETS_TURN)){
+        // Update the tooltip text for the activate combatant button
+        combatantJQuery.find('[data-action="activateCombatant"]').attr('data-tooltip', `${MODULE_ID}.activate_combatant`);
+    }
 }
 
 export async function injectAllCombatantActions(

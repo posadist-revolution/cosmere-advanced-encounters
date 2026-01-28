@@ -1,66 +1,107 @@
-import { ActionCostType, TurnSpeed } from "../../declarations/cosmere-rpg/system/types/cosmere";
+import { ActionCostType, Status, TurnSpeed } from "../../declarations/cosmere-rpg/system/types/cosmere";
 import { activeCombat } from "@src/index";
 import { CombatantActions } from "../documents/combatant-actions.js";
 import { CosmereItem } from "../../declarations/cosmere-rpg/documents/item";
 import { CosmereChatMessage, MESSAGE_TYPES } from '../../declarations/cosmere-rpg/documents/chat-message';
 import { MODULE_ID, SYSTEM_ID } from "../constants";
 import { HOOKS } from "../../declarations/cosmere-rpg/system/constants/hooks";
-import { getModuleSetting, SETTINGS } from "../settings";
+import { CheckActionUsabilityOptions, getModuleSetting, SETTINGS } from "../settings";
 import { UsedAction } from "../documents/used-action";
 
 
 export function activateCombatantHooks(){
     console.log(`${MODULE_ID}: Registering combatant hooks`);
+
+    // Before an actor uses an item, register that usage in the combatant actions tracker
     Hooks.on(HOOKS.PRE_USE_ITEM, (
         item: CosmereItem,
         options: CosmereItem.UseOptions
     ) => {
-        //TODO: Add checks for "Does the combatant have enough actions to use this?"
-        if(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT)){
-            activeCombat.setLastUsedItemData(item);
-        }
-        return true;
-    });
+        // Check the settings for what level of control the module has over using actions
+        let checkActionUsability = getModuleSetting(SETTINGS.CHECK_ACTION_USABILITY);
 
-    Hooks.on("preCreateChatMessage", (
-        chatMessage: CosmereChatMessage
-    ) => {
+        // Get all relevant combatant actions information
+        let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens()[0].id!)!;
+        let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
+        let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
+
+        if(checkActionUsability == CheckActionUsabilityOptions.warn || checkActionUsability == CheckActionUsabilityOptions.block){
+            if(combatantTurnActions && !combatantTurnActions.canUseItem(item)){
+                if((game.i18n) && (options.actor)){
+                    ui.notifications?.warn(
+                        game.i18n?.format(`${MODULE_ID}.warning.notEnoughActionType`, {
+                            actor: options.actor.name,
+                            actionCostType: game.i18n.localize(`${MODULE_ID}.actionCostType.${item.system.activation.cost.type}`),
+                            actionName: item.name
+                        }),
+                    );
+                }
+
+                if(checkActionUsability == CheckActionUsabilityOptions.block){
+                    return false;
+                }
+            }
+        }
         if(!getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT)){
             return true;
         }
-        // console.log(`${MODULE_ID}: Running preCreateChatMessage`);
-        if(chatMessage.getFlag("cosmere-rpg", "message")?.type != MESSAGE_TYPES.ACTION){
-            // console.log(`${MODULE_ID}: Message is not an action`);
-            return true;
-        }
-        let cosmereItem: CosmereItem = chatMessage.itemSource ?? activeCombat.lastUsedItem!;
-        if(!cosmereItem){
-            let id = chatMessage.getFlag(SYSTEM_ID, "message.item");
-            // TODO: Figure out how to find an item from a compendium
-            console.log(`Item ID: ${id}`);
-        }
-        // console.log(`${MODULE_ID}: Message associated item:`);
-        // console.log(cosmereItem);
-        let tokenId = chatMessage.speaker.token;
-        let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId!)!;
-        switch(cosmereItem.system.activation.cost.type){
+        switch(item.system.activation.cost.type){
             case ActionCostType.Action:
-                handleUseAction(combatantActions, cosmereItem);
+                handleUseAction(combatantActions, item);
                 break;
             case ActionCostType.FreeAction:
-                handleFreeAction(combatantActions, cosmereItem);
+                handleFreeAction(combatantActions, item);
                 break;
             case ActionCostType.Reaction:
-                handleReaction(combatantActions, cosmereItem);
+                handleReaction(combatantActions, item);
                 break;
             case ActionCostType.Special:
-                handleSpecialAction(combatantActions, cosmereItem);
+                handleSpecialAction(combatantActions, item);
                 break;
             default:
                 break;
         }
-
         return true;
+    });
+
+    Hooks.on("preCreateActiveEffect", (
+        activeEffect: ActiveEffect
+    ) => {
+        if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
+            return;
+        }
+        if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
+            const actor = activeEffect.parent as unknown as CosmereActor;
+            const tokenId = actor.getActiveTokens()[0].id;
+
+            // Get the associated combatant turn actions information
+            let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId)!;
+            let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
+            let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
+
+            //Apply the condition effects associated with this active effect
+            combatantTurnActions.applyConditionsOffTurn(activeEffect.statuses);
+        }
+    });
+
+    Hooks.on("preDeleteActiveEffect", (
+        activeEffect: ActiveEffect
+    ) => {
+        if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
+            return;
+        }
+        if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
+            const actor = activeEffect.parent as unknown as CosmereActor;
+            const tokenId = actor.getActiveTokens()[0].id;
+
+            // Get the associated combatant turn actions information
+            let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId)!;
+            let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
+            let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
+
+            //Remove the condition effects associated with this active effect
+            combatantTurnActions.removeConditionsOffTurn(activeEffect.statuses);
+        }
     });
 }
 
