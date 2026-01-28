@@ -39,6 +39,11 @@
             {
                 "name": "Conditions apply to combatant actions",
                 "hint": "Determines whether conditions which affect actions (like disoriented, stunned, and surprised) affect the actions on a combatant's turn"
+            },
+            "activateSetsTurn":
+            {
+                "name": "Use activate button to set turn",
+                "hint": "Changes the 'Mark as Acted' button to an 'activate' button, which sets the combat turn to be that actor's turn."
             }
         },
         "warning":

@@ -149,6 +149,9 @@ Hooks.on("preUpdateCombatant", (
     combatant : CosmereCombatant,
     change : Combatant.UpdateData
 ) => {
+    if(!getModuleSetting(SETTINGS.ACTIVATE_SETS_TURN)){
+        return;
+    }
     if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.activated`) && change.flags["cosmere-rpg"].activated){
         // Regular turn has activated
         activeCombat.setCurrentTurnFromCombatant(combatant.id!, false);
@@ -157,7 +160,6 @@ Hooks.on("preUpdateCombatant", (
         // Boss fast turn has activated
         activeCombat.setCurrentTurnFromCombatant(combatant.id!, true);
     }
-    return true;
 });
 
 Hooks.on("combatTurnChange", async (
@@ -224,8 +226,10 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
     //else
         //combatantJQuery.find("button.inline-control.combatant-control.icon.fa-solid.fa-arrows-to-eye").before(actionsButtons);
 
-    // Update the tooltip text for the activate combatant button
-    combatantJQuery.find('[data-action="activateCombatant"]').attr('data-tooltip', `${MODULE_ID}.activate_combatant`);
+    if(getModuleSetting(SETTINGS.ACTIVATE_SETS_TURN)){
+        // Update the tooltip text for the activate combatant button
+        combatantJQuery.find('[data-action="activateCombatant"]').attr('data-tooltip', `${MODULE_ID}.activate_combatant`);
+    }
 }
 
 export async function injectAllCombatantActions(
