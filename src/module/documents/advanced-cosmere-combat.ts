@@ -62,6 +62,10 @@ export class AdvancedCosmereCombat{
         }
 
         if(turnIndex !== -1){
+            if(this.combat.turn == turnIndex){
+                // It is this combatant's turn already, and we should refresh their actions to make sure
+                await this.getCombatantActionsByCombatantId(combatantId)?.getCombatantTurnActions(this.combat.combatant?.turnSpeed!).onTurnStart();
+            }
             await this.combat.update({ turn: turnIndex });
         }
     }

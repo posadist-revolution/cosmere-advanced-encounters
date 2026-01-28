@@ -167,6 +167,10 @@ Hooks.on("combatTurnChange", async (
     prior: Combat.HistoryData,
     current: Combat.HistoryData
 ) => {
+    if(current.round != prior.round){
+        // This is a round start turn change, we shouldn't refresh the combatant's actions because the turn order might change
+        return;
+    }
     if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.turnStart){
         return;
     }
