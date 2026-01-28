@@ -315,7 +315,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         let matchingLimitedActionGroups = [];
         let matchingActionGroups = [];
         // Find all the action groups which this action could fit into
-        for (const actionGroup of this.context.actionsAvailableGroups){
+        for (const actionGroup of this.context.reactionsAvailable){
             if(actionGroup.remaining >= action.cost){
                 if(actionGroup.actionIsInGroup && actionGroup.actionIsInGroup(action)){
                     matchingLimitedActionGroups.push(actionGroup);

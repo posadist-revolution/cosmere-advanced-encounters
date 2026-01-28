@@ -3,6 +3,7 @@ import { CombatantActions } from "./combatant-actions.js";
 import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
 import { CosmereItem } from "@src/declarations/cosmere-rpg/documents/item.js";
+import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere.js";
 
 export class AdvancedCosmereCombat{
     readonly combat : Combat
@@ -46,8 +47,27 @@ export class AdvancedCosmereCombat{
         }
     }
 
-    public setLastUsedItemData(item: CosmereItem){
-        this.lastUsedItem = item;
+    public async setCurrentTurnFromCombatant(combatantId: string, isBossFastTurn: boolean = false){
+        var turnIndex: number;
+        if(isBossFastTurn){
+            // Find the turn index that matches this combatant and turn speed
+            turnIndex = this.combat.turns.findIndex((turn: CosmereCombatant) =>
+                turn.id === combatantId && turn.turnSpeed === TurnSpeed.Fast
+            );
+        }
+        else{
+            turnIndex = this.combat.turns.findLastIndex((turn: CosmereCombatant) =>
+                turn.id === combatantId
+            );
+        }
+
+        if(turnIndex !== -1){
+            if(this.combat.turn == turnIndex){
+                // It is this combatant's turn already, and we should refresh their actions to make sure
+                await this.getCombatantActionsByCombatantId(combatantId)?.getCombatantTurnActions(this.combat.combatant?.turnSpeed!).onTurnStart();
+            }
+            await this.combat.update({ turn: turnIndex });
+        }
     }
 }
 
