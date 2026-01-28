@@ -184,10 +184,10 @@ export async function injectCombatantActions(combatant : Combatant, combatantJQu
     if(combatantActions.isBoss){
         var bossFastActionsButtons: CombatantTurnActions;
         if(isPopoutWindow){
-            await combatantActions.bossFastTurnActionsPopout!.render({force:true});
+            bossFastActionsButtons = await combatantActions.bossFastTurnActionsPopout!.render({force:true});
         }
         else{
-            await combatantActions.bossFastTurnActions.render({force:true});
+            bossFastActionsButtons = await combatantActions.bossFastTurnActions.render({force:true});
         }
         combatantJQuery.each((index: number, element: HTMLElement) => {
             let turnSpeed = CombatantActions.findTurnSpeedForElement(element);
