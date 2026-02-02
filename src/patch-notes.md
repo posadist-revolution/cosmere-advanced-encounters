@@ -1,7 +1,9 @@
-### Patch 1.0.1
-<sup>2026-01-25</sup>
+### Patch 1.1.1
+<sup>2026-02-02</sup>
 
-Fixed an issue with action trackers not appearing on the combat tracker when it's been popped out by right-clicking the tab.
+- Fixed module.json having an incorrect manifest link
+- Made version incrementing easier
+- Removed manifestPlusVersion
 
 <br>
 
