@@ -1,5 +1,5 @@
 import { HOOKS } from '../constants/hooks';
-import { CosmereItem } from '../../documents/item';
+import { CosmereItem } from '../documents/item';
 
 /**
  * --- Item activation/usage hooks ---

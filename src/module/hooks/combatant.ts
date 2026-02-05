@@ -1,12 +1,14 @@
-import { ActionCostType, Status, TurnSpeed } from "../../declarations/cosmere-rpg/system/types/cosmere";
+// System Imports
+import { CosmereItem, CosmereActiveEffect, CosmereChatMessage, MESSAGE_TYPES } from "@system/documents";
+import { ActionCostType, Status, TurnSpeed } from "@system/types/cosmere";
+import { HOOKS } from "@system/constants/hooks";
+
+// Module Imports
 import { activeCombat } from "@src/index";
-import { CombatantActions } from "../documents/combatant-actions.js";
-import { CosmereItem } from "../../declarations/cosmere-rpg/documents/item";
-import { CosmereChatMessage, MESSAGE_TYPES } from '../../declarations/cosmere-rpg/documents/chat-message';
-import { MODULE_ID, SYSTEM_ID } from "../constants";
-import { HOOKS } from "../../declarations/cosmere-rpg/system/constants/hooks";
-import { CheckActionUsabilityOptions, getModuleSetting, SETTINGS } from "../settings";
-import { UsedAction } from "../documents/used-action";
+import { CombatantActions } from "@module/documents/combatant-actions.js";
+import { MODULE_ID } from "@module/constants";
+import { CheckActionUsabilityOptions, getModuleSetting, SETTINGS } from "@module/settings";
+import { UsedAction } from "@module/documents/used-action";
 
 
 export function activateCombatantHooks(){
@@ -65,7 +67,7 @@ export function activateCombatantHooks(){
     });
 
     Hooks.on("preCreateActiveEffect", (
-        activeEffect: ActiveEffect
+        activeEffect: CosmereActiveEffect
     ) => {
         if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
             return;
@@ -85,7 +87,7 @@ export function activateCombatantHooks(){
     });
 
     Hooks.on("preDeleteActiveEffect", (
-        activeEffect: ActiveEffect
+        activeEffect: CosmereActiveEffect
     ) => {
         if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
             return;

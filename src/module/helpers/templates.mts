@@ -1,7 +1,9 @@
-import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
+// System Imports
+import { CosmereCombatant } from "@system/documents/combatant";
+
+// Module Imports
 import { activeCombat } from "@src/index";
-import { getModuleSetting, SETTINGS } from "../settings";
-import { MODULE_ID } from "../constants";
+import { getModuleSetting, SETTINGS } from "@module/settings";
 
 export const TEMPLATES = {
 	COMBATANT_ACTIONS_TEMPLATE: 'modules/cosmere-advanced-encounters/templates/combat/combatant-actions.hbs',

@@ -1,13 +1,15 @@
+// System Imports
+import { CosmereCombatant, CosmereItem } from "@system/documents";
+import { ActionCostType, Status, TurnSpeed } from "@system/types/cosmere";
 import { AnyObject } from "@league-of-foundry-developers/foundry-vtt-types/utils";
-import { ActionGroup, UsedAction } from "./used-action";
-import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
-import { ActionCostType, Status, TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
+
+// Module Imports
 import { activeCombat } from "@src/index";
-import { MODULE_ID } from "../constants";
-import { TEMPLATES } from "../helpers/templates.mjs";
+import { getModuleSetting, SETTINGS } from "@module/settings";
+import { MODULE_ID } from "@module/constants";
+import { TEMPLATES } from "@module/helpers/templates.mjs";
 import { CombatantActions } from "./combatant-actions";
-import { CosmereItem } from "@src/declarations/cosmere-rpg/documents/item";
-import { getModuleSetting, SETTINGS } from "../settings";
+import { ActionGroup, UsedAction } from "./used-action";
 
 
 interface CombatTurnActionsContext{

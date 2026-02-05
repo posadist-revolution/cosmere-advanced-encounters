@@ -1,12 +1,15 @@
-import { CosmereCombatTracker, CosmereTrackerContext } from './declarations/cosmere-rpg/applications/combat/combat_tracker';
-import { CosmereCombatant } from './declarations/cosmere-rpg/documents/combatant';
-import { MODULE_ID } from './module/constants';
-import { AdvancedCosmereCombat } from './module/documents/advanced-cosmere-combat';
-import { injectAllCombatantActions } from './module/documents/combatant-actions.js'
-import { COSMERE_ADVANCED_ENCOUNTERS } from './module/helpers/config.mjs';
-import { preloadHandlebarsTemplates } from './module/helpers/templates.mjs';
-import { registerModuleSettings } from './module/settings.js';
-import { activateCombatantHooks } from './module/hooks/combatant.js';
+// System imports
+import { CosmereCombatTracker, CosmereTrackerContext } from '@system/applications/combat/combat_tracker';
+import { CosmereCombatant } from '@system/documents/combatant';
+
+// Module imports
+import { MODULE_ID } from '@module/constants';
+import { AdvancedCosmereCombat } from '@module/documents/advanced-cosmere-combat';
+import { injectAllCombatantActions } from '@module/documents/combatant-actions.js'
+import { COSMERE_ADVANCED_ENCOUNTERS } from '@module/helpers/config.mjs';
+import { preloadHandlebarsTemplates } from '@module/helpers/templates.mjs';
+import { registerModuleSettings } from '@module/settings.js';
+import { activateCombatantHooks } from '@module/hooks/combatant.js';
 
 declare global {
 	interface LenientGlobalVariableTypes {
