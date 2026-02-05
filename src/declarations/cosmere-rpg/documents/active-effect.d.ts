@@ -1,5 +1,4 @@
 import { CosmereActor } from '@system/documents/actor';
-import { SimpleMerge } from '@system/types/utils';
 import { ActiveEffectDataModel } from '@system/data/active-effect';
 
 export declare class CosmereActiveEffect<out SubType extends ActiveEffect.SubType = ActiveEffect.SubType> extends ActiveEffect<SubType> {
