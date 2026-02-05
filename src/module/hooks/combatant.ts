@@ -73,7 +73,7 @@ export function activateCombatantHooks(){
             return;
         }
         if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
-            const actor = activeEffect.parent as unknown as CosmereActor;
+            const actor = activeEffect.parent as CosmereActor;
             const tokenId = actor.getActiveTokens(true)[0].id;
 
             // Get the associated combatant turn actions information
@@ -93,7 +93,7 @@ export function activateCombatantHooks(){
             return;
         }
         if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
-            const actor = activeEffect.parent as unknown as CosmereActor;
+            const actor = activeEffect.parent as CosmereActor;
             const tokenId = actor.getActiveTokens(true)[0].id;
 
             // Get the associated combatant turn actions information
