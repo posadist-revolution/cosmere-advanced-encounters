@@ -1,5 +1,5 @@
 // System Imports
-import { CosmereItem, CosmereActiveEffect, CosmereChatMessage, MESSAGE_TYPES } from "@system/documents";
+import { CosmereItem, CosmereActiveEffect, CosmereActor, CosmereChatMessage, MESSAGE_TYPES} from "@system/documents";
 import { ActionCostType, Status, TurnSpeed } from "@system/types/cosmere";
 import { HOOKS } from "@system/constants/hooks";
 
@@ -23,7 +23,7 @@ export function activateCombatantHooks(){
         let checkActionUsability = getModuleSetting(SETTINGS.CHECK_ACTION_USABILITY);
 
         // Get all relevant combatant actions information
-        let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens()[0].id!)!;
+        let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens(true)[0].id!)!;
         let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
         let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
 
@@ -74,7 +74,7 @@ export function activateCombatantHooks(){
         }
         if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
             const actor = activeEffect.parent as unknown as CosmereActor;
-            const tokenId = actor.getActiveTokens()[0].id;
+            const tokenId = actor.getActiveTokens(true)[0].id;
 
             // Get the associated combatant turn actions information
             let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId)!;
@@ -94,7 +94,7 @@ export function activateCombatantHooks(){
         }
         if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
             const actor = activeEffect.parent as unknown as CosmereActor;
-            const tokenId = actor.getActiveTokens()[0].id;
+            const tokenId = actor.getActiveTokens(true)[0].id;
 
             // Get the associated combatant turn actions information
             let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId)!;
