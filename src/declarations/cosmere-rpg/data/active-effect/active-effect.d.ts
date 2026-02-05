@@ -10,7 +10,5 @@ interface ActiveEffectData {
      */
     stacks?: number;
 }
-export declare class ActiveEffectDataModel extends foundry.abstract.TypeDataModel<ActiveEffectData, CosmereActiveEffect> implements ActiveEffectData {
-    isStackable: boolean;
-    stacks?: number;
+export declare class ActiveEffectDataModel extends foundry.abstract.TypeDataModel<ActiveEffectData, CosmereActiveEffect>{
 }

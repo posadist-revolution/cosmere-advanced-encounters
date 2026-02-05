@@ -19,9 +19,6 @@ interface CombatantData {
     bossFastActivated: boolean
 }
 
-export class CombatantDataModel extends foundry.abstract.TypeDataModel<CombatantData, CosmereCombatant> implements CombatantData {
-    turnSpeed: TurnSpeed;
-    activated: boolean;
-    bossFastActivated: boolean;
+export class CombatantDataModel extends foundry.abstract.TypeDataModel<CombatantData, CosmereCombatant>{
     static defineSchema(): DataSchema;
 }
