@@ -552,7 +552,7 @@ export class CombatantTurnActions extends foundry.applications.api.HandlebarsApp
         if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
             return;
         }
-        var updateData = {};
+        var updateData: Combatant.UpdateData = {};
         if(this.isBossFastTurn){
             updateData = {
                 flags: {

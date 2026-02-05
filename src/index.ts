@@ -6,7 +6,7 @@ import { CosmereCombatant } from '@system/documents/combatant';
 import { MODULE_ID } from '@module/constants';
 import { AdvancedCosmereCombat } from '@module/documents/advanced-cosmere-combat';
 import { injectAllCombatantActions } from '@module/documents/combatant-actions.js'
-import { COSMERE_ADVANCED_ENCOUNTERS } from '@module/helpers/config.mjs';
+import { COSMERE_ADVANCED_ENCOUNTERS } from '@module/config';
 import { preloadHandlebarsTemplates } from '@module/helpers/templates.mjs';
 import { registerModuleSettings } from '@module/settings.js';
 import { activateCombatantHooks } from '@module/hooks/combatant.js';

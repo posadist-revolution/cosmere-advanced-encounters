@@ -80,7 +80,7 @@ export class CombatantActions{
         }
     }
 
-    public updateDataWithCombatTurn(updateData: any){
+    public updateDataWithCombatTurn(updateData: Combatant.UpdateData){
         // If the user doesn't have ownership permissions over the document, never set the values
         if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
             return;
