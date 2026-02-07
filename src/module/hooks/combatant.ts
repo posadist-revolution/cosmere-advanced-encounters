@@ -22,8 +22,24 @@ export function activateCombatantHooks(){
         // Check the settings for what level of control the module has over using actions
         let checkActionUsability = getModuleSetting(SETTINGS.CHECK_ACTION_USABILITY);
 
+        let actor: CosmereActor;
         // Get all relevant combatant actions information
-        let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens(true)[0].id!)!;
+        if(options.actor){
+            actor = options.actor;
+        }
+        else if(item.actor){
+            actor = item.actor;
+        }
+        else if(game.canvas?.tokens?.controlled?.[0]?.actor){
+            actor = game.canvas?.tokens?.controlled?.[0]?.actor
+        }
+        else{
+            ui.notifications?.warn(
+                game.i18n?.localize('GENERIC.Warning.NoActor')!,
+            );
+            return false;
+        }
+        let combatantActions = activeCombat.getCombatantActionsByTokenId(actor.getActiveTokens(true)[0].id!)!;
         let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
         let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
 
