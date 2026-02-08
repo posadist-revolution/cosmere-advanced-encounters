@@ -1,12 +1,14 @@
-import { ActionCostType, Status, TurnSpeed } from "../../declarations/cosmere-rpg/system/types/cosmere";
+// System Imports
+import { CosmereItem, CosmereActiveEffect, CosmereActor, CosmereChatMessage, MESSAGE_TYPES} from "@system/documents";
+import { ActionCostType, Status, TurnSpeed } from "@system/types/cosmere";
+import { HOOKS } from "@system/constants/hooks";
+
+// Module Imports
 import { activeCombat } from "@src/index";
-import { CombatantActions } from "../documents/combatant-actions.js";
-import { CosmereItem } from "../../declarations/cosmere-rpg/documents/item";
-import { CosmereChatMessage, MESSAGE_TYPES } from '../../declarations/cosmere-rpg/documents/chat-message';
-import { MODULE_ID, SYSTEM_ID } from "../constants";
-import { HOOKS } from "../../declarations/cosmere-rpg/system/constants/hooks";
-import { CheckActionUsabilityOptions, getModuleSetting, SETTINGS } from "../settings";
-import { UsedAction } from "../documents/used-action";
+import { CombatantActions } from "@module/documents/combatant-actions.js";
+import { MODULE_ID } from "@module/constants";
+import { CheckActionUsabilityOptions, getModuleSetting, SETTINGS } from "@module/settings";
+import { UsedAction } from "@module/documents/used-action";
 
 
 export function activateCombatantHooks(){
@@ -21,7 +23,7 @@ export function activateCombatantHooks(){
         let checkActionUsability = getModuleSetting(SETTINGS.CHECK_ACTION_USABILITY);
 
         // Get all relevant combatant actions information
-        let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens()[0].id!)!;
+        let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens(true)[0].id!)!;
         let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
         let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
 
@@ -65,14 +67,14 @@ export function activateCombatantHooks(){
     });
 
     Hooks.on("preCreateActiveEffect", (
-        activeEffect: ActiveEffect
+        activeEffect: CosmereActiveEffect
     ) => {
         if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
             return;
         }
         if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
-            const actor = activeEffect.parent as unknown as CosmereActor;
-            const tokenId = actor.getActiveTokens()[0].id;
+            const actor = activeEffect.parent as CosmereActor;
+            const tokenId = actor.getActiveTokens(true)[0].id;
 
             // Get the associated combatant turn actions information
             let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId)!;
@@ -85,14 +87,14 @@ export function activateCombatantHooks(){
     });
 
     Hooks.on("preDeleteActiveEffect", (
-        activeEffect: ActiveEffect
+        activeEffect: CosmereActiveEffect
     ) => {
         if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
             return;
         }
         if(activeEffect.statuses.has(Status.Stunned) || activeEffect.statuses.has(Status.Disoriented) || activeEffect.statuses.has(Status.Surprised)){
-            const actor = activeEffect.parent as unknown as CosmereActor;
-            const tokenId = actor.getActiveTokens()[0].id;
+            const actor = activeEffect.parent as CosmereActor;
+            const tokenId = actor.getActiveTokens(true)[0].id;
 
             // Get the associated combatant turn actions information
             let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId)!;

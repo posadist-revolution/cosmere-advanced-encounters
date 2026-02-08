@@ -71,7 +71,7 @@ type CosmereActorRollData<T extends CommonActorData = CommonActorData> = {
         name: string;
     };
 };
-declare class CosmereActor<T extends CommonActorDataModel = CommonActorDataModel, SystemType extends CommonActorData = T extends CommonActorDataModel<infer S> ? S : never> extends Actor {
+export declare class CosmereActor<T extends CommonActorDataModel = CommonActorDataModel, SystemType extends CommonActorData = T extends CommonActorDataModel<infer S> ? S : never> extends Actor {
     name: string;
     system: SystemType;
     type: ActorType;
@@ -169,4 +169,36 @@ declare class CosmereActor<T extends CommonActorDataModel = CommonActorDataModel
      *
      */
     private migrateGoals;
+}
+declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
+    interface ConfiguredActor<SubType extends Actor.SubType> {
+        document: CosmereActor;
+    }
+
+    interface FlagConfig {
+        Actor: {
+            'cosmere-rpg': {
+                sheet: object;
+                'sheet.mode': 'edit' | 'view';
+                'sheet.expertisesCollapsed': boolean;
+                'sheet.immunitiesCollapsed': boolean;
+                'sheet.skillsCollapsed': boolean;
+                'sheet.hideUnranked': boolean;
+                'sheet.autosetPrototypeTokenValues': boolean;
+                goals: object;
+                'goals.hide-completed': boolean;
+                [key: `meta.update.mode.${string}`]: string;
+                [key: `mode.${string}`]: string;
+            };
+        };
+
+        TableResult: {
+            [SYSTEM_ID]: {
+                'injury-data': {
+                    type: InjuryType;
+                    durationFormula: string;
+                };
+            };
+        };
+    }
 }

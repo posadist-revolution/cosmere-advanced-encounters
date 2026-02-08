@@ -1,17 +1,20 @@
-import { activeCombat, Dictionary } from "@src/index";
+// System imports
+import { CosmereItem, CosmereCombatant, CosmereCombat } from "@system/documents";
+import { TurnSpeed } from "@system/types/cosmere.js";
+
+// Module imports
+import { activeCombat } from "@src/index";
 import { CombatantActions } from "./combatant-actions.js";
-import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
 import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
-import { CosmereItem } from "@src/declarations/cosmere-rpg/documents/item.js";
-import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere.js";
+
 
 export class AdvancedCosmereCombat{
-    readonly combat : Combat
+    readonly combat : CosmereCombat
     tokenIdToCombatantIdMap: Map<string, string>;
     combatantIdToCombatantActionsMap: Map<string, CombatantActions>;
     lastUsedItem: CosmereItem | undefined;
 
-    constructor(combat: Combat){
+    constructor(combat: CosmereCombat){
         this.combat = combat;
         this.tokenIdToCombatantIdMap = new Map<string, string>();
         this.combatantIdToCombatantActionsMap = new Map<string, CombatantActions>();

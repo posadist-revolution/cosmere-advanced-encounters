@@ -1,0 +1,1 @@
+export const COSMERE_ADVANCED_ENCOUNTERS: any = {};

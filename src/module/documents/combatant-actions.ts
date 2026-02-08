@@ -1,11 +1,13 @@
-import { MODULE_ID } from "../constants";
-import { AdvancedCosmereCombat } from "./advanced-cosmere-combat";
+// System Imports
+import { TurnSpeed } from "@system/types/cosmere";
+import { CosmereCombatant, CosmereCombat } from "@system/documents";
+
+// Module Imports
+import { MODULE_ID } from "@module/constants";
+import { migrateFlags } from "@module/helpers/flag-migration-helper";
+import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "@module/settings";
 import { activeCombat, advancedCombatsMap } from "@src/index";
-import { TurnSpeed } from "@src/declarations/cosmere-rpg/system/types/cosmere";
-import { CosmereCombatant } from "@src/declarations/cosmere-rpg/documents/combatant";
-import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "../settings";
-import { CosmereCombat } from "@src/declarations/cosmere-rpg/documents/combat";
-import { migrateFlags } from "../helpers/flag-migration-helper";
+import { AdvancedCosmereCombat } from "./advanced-cosmere-combat";
 import { CombatantTurnActions } from "./combatant-turn-actions";
 import { ActionGroup } from "./used-action";
 
@@ -78,7 +80,7 @@ export class CombatantActions{
         }
     }
 
-    public updateDataWithCombatTurn(updateData: any){
+    public updateDataWithCombatTurn(updateData: Combatant.UpdateData){
         // If the user doesn't have ownership permissions over the document, never set the values
         if(!this.combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)){
             return;
@@ -181,7 +183,7 @@ Hooks.on("combatTurnChange", async (
     await combatantActions?.getCombatantTurnActions(turnSpeed).onTurnStart();
 });
 
-export async function injectCombatantActions(combatant : Combatant, combatantJQuery : JQuery, isPopoutWindow?: boolean)
+export async function injectCombatantActions(combatant: CosmereCombatant, combatantJQuery : JQuery, isPopoutWindow?: boolean)
 {
     // console.log(`${MODULE_ID}: Injecting combatant actions`);
     const combatantActions = activeCombat!.getCombatantActionsByCombatantId(combatant?.id!)!;

@@ -1,4 +1,20 @@
-import { ActionCostType } from "../system/types/cosmere";
+import { ActionCostType } from "../types/cosmere";
+import {
+    WeaponItemData, WeaponItemDataModel,
+    ArmorItemData, ArmorItemDataModel,
+    EquipmentItemData, EquipmentItemDataModel,
+    LootItemData, LootItemDataModel,
+    AncestryItemData, AncestryItemDataModel,
+    CultureItemData, CultureItemDataModel,
+    PathItemData, PathItemDataModel,
+    TalentItemData, TalentItemDataModel,
+    TraitItemData, TraitItemDataModel,
+    ActionItemData, ActionItemDataModel,
+    InjuryItemData, InjuryItemDataModel,
+    ConnectionItemData, ConnectionItemDataModel,
+    GoalItemData, GoalItemDataModel,
+    PowerItemData, PowerItemDataModel,
+    TalentTreeItemData, TalentTreeItemDataModel } from "@system/data/item"
 
 interface ShowConsumeDialogOptions {
     /**
@@ -295,3 +311,26 @@ type WeaponItem = CosmereItem<WeaponItemData>;
 type GoalItem = CosmereItem<GoalItemData>;
 type PowerItem = CosmereItem<PowerItemData>;
 type TalentTreeItem = CosmereItem<TalentTreeItemData>;
+
+declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
+    interface ConfiguredItem<SubType extends Item.SubType> {
+        document: CosmereItem;
+    }
+
+    interface FlagConfig {
+        Item: {
+            [SYSTEM_ID]: {
+                sheet: {
+                    mode: 'edit' | 'view';
+                };
+                'sheet.mode': 'edit' | 'view';
+                meta: {
+                    origin: ItemOrigin;
+                };
+                'meta.origin': ItemOrigin;
+                previousLevel?: number;
+                isStartingPath?: boolean;
+            };
+        };
+    }
+}

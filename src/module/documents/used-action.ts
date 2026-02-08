@@ -1,4 +1,7 @@
-import { CosmereItem } from "@src/declarations/cosmere-rpg/documents/item";
+// System Imports
+import { CosmereItem } from "@system/documents";
+
+// Module Imports
 
 export class UsedAction{
     declare cost: number
