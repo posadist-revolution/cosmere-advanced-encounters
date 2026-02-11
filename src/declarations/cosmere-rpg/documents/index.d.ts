@@ -13,14 +13,3 @@ import type { CosmereChatMessage } from './chat-message';
 // import type { CosmereTokenDocument } from './token';
 import type { CosmereActiveEffect } from './active-effect';
 export type CosmereDocument = CosmereActor | CosmereItem | CosmereCombat | CosmereCombatant | CosmereChatMessage | CosmereTokenDocument | CosmereActiveEffect;
-declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {
-    interface DocumentClassConfig {
-        Actor: CosmereActor;
-        Item: CosmereItem;
-        Combat: CosmereCombat;
-        Combatant: CosmereCombatant;
-        ChatMessage: CosmereChatMessage;
-        // Token: CosmereTokenDocument;
-        ActiveEffect: CosmereActiveEffect;
-    }
-}

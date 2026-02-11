@@ -9,7 +9,7 @@ export const SETTINGS = {
     ACTIVATE_SETS_TURN: 'activateSetsTurn'
 } as const;
 
-type ModuleSettingsConfig = {
+export type ModuleSettingsConfig = {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN}`]: string;
 } & {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.PULL_ACTIONS_FROM_CHAT}`]: boolean;
@@ -131,9 +131,4 @@ export function registerModuleSettings() {
             choices: option.choices
 		});
 	});
-}
-
-
-declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
-    interface SettingConfig extends ModuleSettingsConfig {}
 }

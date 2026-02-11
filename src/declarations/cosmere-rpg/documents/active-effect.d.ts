@@ -1,4 +1,3 @@
-import { CosmereActor } from '@system/documents/actor';
 import { ActiveEffectDataModel } from '@system/data/active-effect';
 
 export declare class CosmereActiveEffect<out SubType extends ActiveEffect.SubType = ActiveEffect.SubType> extends ActiveEffect<SubType> {
@@ -28,9 +27,4 @@ export declare class CosmereActiveEffect<out SubType extends ActiveEffect.SubTyp
 }
 export declare namespace CosmereActiveEffect {
     type Schema = ActiveEffect.Schema;
-}
-declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
-    interface ConfiguredActiveEffect<SubType extends ActiveEffect.SubType> {
-        document: CosmereActiveEffect<SubType>;
-    }
 }

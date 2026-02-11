@@ -9,8 +9,3 @@ export declare class CosmereCombat extends Combat {
     nextRound(): Promise<this>;
     setupTurns(): CosmereCombatant[];
 }
-declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
-    interface ConfiguredCombat<SubType extends Combat.SubType> {
-        document: CosmereCombat;
-    }
-}

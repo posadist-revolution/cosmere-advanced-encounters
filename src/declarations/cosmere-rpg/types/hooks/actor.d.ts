@@ -31,16 +31,3 @@ export interface DamageValues {
     calculated: number;
     dealt?: number;
 }
-declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {
-    namespace Hooks {
-        interface HookConfig {
-            [HOOKS.PRE_APPLY_INJURY]: PreApplyInjury;
-            [HOOKS.APPLY_INJURY]: ApplyInjury;
-            [HOOKS.PRE_APPLY_DAMAGE]: PreApplyDamage;
-            [HOOKS.APPLY_DAMAGE]: ApplyDamage;
-            [HOOKS.PRE_REST]: PreRest;
-            [HOOKS.REST]: Rest;
-        }
-    }
-}
-export {};

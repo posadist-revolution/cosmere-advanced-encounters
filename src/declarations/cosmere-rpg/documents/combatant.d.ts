@@ -29,18 +29,3 @@ export declare class CosmereCombatant extends foundry.documents.Combatant {
 export declare namespace CosmereCombatant {
     type Schema = Omit<Combatant.Schema, 'initiative'>;
 }
-declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
-    interface ConfiguredCombatant<SubType extends Combatant.SubType> {
-        document: CosmereCombatant;
-    }
-    interface FlagConfig {
-        Combatant: {
-            [SYSTEM_ID]: {
-                turnSpeed: TurnSpeed;
-                bossFastActivated: boolean;
-                activated: boolean;
-            };
-            [MODULE_ID]: MODULE_COMBATANT_FLAGS;
-        };
-    }
-}
