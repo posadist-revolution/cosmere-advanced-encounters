@@ -22,12 +22,11 @@ export function activateCombatantHooks(){
         // Check the settings for what level of control the module has over using actions
         let checkActionUsability = getModuleSetting(SETTINGS.CHECK_ACTION_USABILITY);
 
-        // Get all relevant combatant actions information
-        let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens(true)[0].id!)!;
-        let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
-        let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
-
         if(checkActionUsability == CheckActionUsabilityOptions.warn || checkActionUsability == CheckActionUsabilityOptions.block){
+            // Get all relevant combatant actions information
+            let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens(true)[0].id!)!;
+            let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
+            let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
             if(combatantTurnActions && !combatantTurnActions.canUseItem(item)){
                 if((game.i18n) && (options.actor)){
                     ui.notifications?.warn(
@@ -44,9 +43,19 @@ export function activateCombatantHooks(){
                 }
             }
         }
+        return true;
+    });
+
+    Hooks.on(HOOKS.USE_ITEM, (
+        item: CosmereItem,
+        options: CosmereItem.UseOptions
+    ) => {
         if(!getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT)){
             return true;
         }
+        // Get all relevant combatant actions information
+        let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens(true)[0].id!)!;
+
         switch(item.system.activation.cost.type){
             case ActionCostType.Action:
                 handleUseAction(combatantActions, item);
@@ -64,6 +73,7 @@ export function activateCombatantHooks(){
                 break;
         }
         return true;
+
     });
 
     Hooks.on("preCreateActiveEffect", (
