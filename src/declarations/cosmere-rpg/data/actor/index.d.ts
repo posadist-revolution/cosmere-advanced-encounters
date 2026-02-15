@@ -7,12 +7,3 @@ export declare const config: {
     readonly adversary: typeof AdversaryActorDataModel;
 };
 export { CommonActorData, AttributeData }
-declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {
-    interface DataModelConfig {
-        Actor: {
-            'base': typeof CommonActorDataModel;
-            [ActorType.Character]: typeof CharacterActorDataModel;
-            [ActorType.Adversary]: typeof AdversaryActorDataModel;
-        };
-    }
-}

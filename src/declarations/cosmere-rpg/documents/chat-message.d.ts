@@ -23,22 +23,3 @@ export declare class CosmereChatMessage<out SubType extends ChatMessage.SubType 
      */
     static activateListeners(): void;
 }
-declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
-    interface ConfiguredChatMessage<SubType extends ChatMessage.SubType> {
-        document: CosmereChatMessage<SubType>;
-    }
-    interface FlagConfig {
-        ChatMessage: {
-            [SYSTEM_ID]: {
-                message: {
-                    item?: string;
-                    type: (typeof MESSAGE_TYPES)[keyof typeof MESSAGE_TYPES];
-                };
-                'message.item': string;
-                headerImg: string | undefined;
-                [key: `${typeof MESSAGE_TYPES.INJURY}.details`]: TableResult.CreateData;
-                [key: `${typeof MESSAGE_TYPES.INJURY}.roll`]: Roll.Data;
-            };
-        };
-    }
-}
