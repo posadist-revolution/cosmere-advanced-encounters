@@ -17,6 +17,9 @@ export function activateCombatantHooks(){
         item: CosmereItem,
         options: CosmereItem.UseOptions
     ) => {
+        if(!activeCombat.combat.started){
+            return true;
+        }
         // Check the settings for what level of control the module has over using actions
         let checkActionUsability = getModuleSetting(SETTINGS.CHECK_ACTION_USABILITY);
 
@@ -42,7 +45,7 @@ export function activateCombatantHooks(){
                 }
             }
         }
-        if(!getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT)){
+        if(!(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT) && activeCombat.combat.started)){
             return true;
         }
         switch(item.system.activation.cost.type){
