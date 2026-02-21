@@ -55,6 +55,15 @@
             "rea": "reaction",
             "fre": "free action",
             "spe": "special action"
+        },
+        "prompts":{
+            "bossTurnSpeedSelect":{
+                "title": "Boss speed",
+                "content": "Which boss turn is this action being taken from?",
+                "fast": "Fast turn",
+                "slow": "Slow turn",
+                "offTurn": "Off-turn"
+            }
         }
     }
 }

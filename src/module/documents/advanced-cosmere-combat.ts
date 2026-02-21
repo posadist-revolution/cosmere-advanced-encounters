@@ -13,6 +13,7 @@ export class AdvancedCosmereCombat{
     tokenIdToCombatantIdMap: Map<string, string>;
     combatantIdToCombatantActionsMap: Map<string, CombatantActions>;
     lastUsedItem: CosmereItem | undefined;
+    lastBossTurnSpeed: TurnSpeed | undefined | string;
 
     constructor(combat: CosmereCombat){
         this.combat = combat;
