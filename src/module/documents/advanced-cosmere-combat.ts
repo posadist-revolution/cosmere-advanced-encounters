@@ -45,12 +45,6 @@ export class AdvancedCosmereCombat{
         return this.getCombatantActionsByCombatantId(this.tokenIdToCombatantIdMap.get(tokenId)!);
     }
 
-    public resetAllCombatantActions(){
-        for (const combatantActions of this.combatantIdToCombatantActionsMap.values()){
-            combatantActions.resetAllCombatantTurnActions();
-        }
-    }
-
     public async setCurrentTurnFromCombatant(combatantId: string, isBossFastTurn: boolean = false){
         var turnIndex: number;
         if(isBossFastTurn){
@@ -74,10 +68,3 @@ export class AdvancedCosmereCombat{
         }
     }
 }
-
-Hooks.on("combatRound", () => {
-    if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.roundStart){
-        return;
-    }
-    activeCombat.resetAllCombatantActions();
-});

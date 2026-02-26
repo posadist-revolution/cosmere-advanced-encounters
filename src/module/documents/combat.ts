@@ -152,6 +152,12 @@ export class AdvancedCosmereCombat extends Combat {
             );
         }
     }
+
+    public resetAllCombatantActions(){
+        for (const combatant of this.combatants){
+            combatant.onTurnStart();
+        }
+    }
 }
 
 declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
