@@ -7,6 +7,8 @@ import { getModuleSetting, SETTINGS } from "@module/settings";
 
 export const TEMPLATES = {
 	COMBATANT_ACTIONS_TEMPLATE: 'modules/cosmere-advanced-encounters/templates/combat/combatant-actions.hbs',
+    COMBAT_TRACKER: 'modules/cosmere-advanced-encounters/templates/combat/advanced-combat-tracker.hbs',
+    COMBAT_TRACKER_FOOTER: 'modules/cosmere-advanced-encounters/templates/combat/combat-tracker-footer.hbs',
 } as const;
 
 /**

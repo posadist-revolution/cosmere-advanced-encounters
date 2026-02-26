@@ -4,12 +4,15 @@ import { CosmereCombatant } from '@system/documents/combatant';
 
 // Module imports
 import { MODULE_ID } from '@module/constants';
-import { AdvancedCosmereCombat } from '@module/documents/advanced-cosmere-combat';
+// import { AdvancedCosmereCombat } from '@module/documents/advanced-cosmere-combat';
 import { injectAllCombatantActions } from '@module/documents/combatant-actions.js'
 import { COSMERE_ADVANCED_ENCOUNTERS } from '@module/config';
 import { preloadHandlebarsTemplates } from '@module/helpers/templates.mjs';
 import { registerModuleSettings } from '@module/settings.js';
 import { activateCombatantHooks } from '@module/hooks/combatant.js';
+import { AdvancedCosmereCombat } from '@module/documents/combat';
+import { AdvancedCosmereCombatTracker } from '@module/applications/combat';
+import { AdvancedCosmereCombatant } from '@module/documents/combatant';
 
 declare global {
 	interface LenientGlobalVariableTypes {
@@ -30,6 +33,11 @@ export interface Dictionary<T> {
 export var advancedCombatsMap: Dictionary<AdvancedCosmereCombat> = {};
 
 Hooks.once('init', async function() {
+
+
+    CONFIG.Combat.documentClass = AdvancedCosmereCombat as any;
+    CONFIG.ui.combat = AdvancedCosmereCombatTracker;
+    CONFIG.Combatant.documentClass = AdvancedCosmereCombatant as any;
     registerModuleSettings();
 	// Preload Handlebars templates.
 	return preloadHandlebarsTemplates();
@@ -65,7 +73,7 @@ Hooks.on('renderCombatTracker', async (
 });
 
 Hooks.on("updateCombatant", async (
-    combatant : CosmereCombatant,
+    combatant : AdvancedCosmereCombatant,
     change : Combatant.UpdateData,
     options : Combatant.Database.UpdateOptions,
     userId : string
