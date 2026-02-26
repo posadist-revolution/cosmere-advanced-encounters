@@ -6,12 +6,19 @@ import { AdvancedCosmereCombatant } from '@module/documents/combatant';
 // Constants
 import { SYSTEM_ID } from '@system/constants';
 import { TEMPLATES } from '@module/helpers/templates.mjs';
+import { ActionGroup, UsedAction } from '@src/module/documents/used-action';
 
 export interface CosmereTurnContext extends CombatTracker.TurnContext {
     type?: Actor.SubType;
     turnSpeed?: TurnSpeed;
     activated?: boolean;
     isBoss?: boolean;
+    actionsAvailableGroups: ActionGroup[];
+    actionsUsed: UsedAction[];
+    reactionsAvailable: ActionGroup[];
+    reactionsUsed: UsedAction[];
+    freeActionsUsed: UsedAction[];
+    specialActionsUsed: UsedAction[];
 }
 
 interface CosmereTrackerContext extends CombatTracker.TrackerContext {
