@@ -134,33 +134,3 @@ export class CombatantActions{
 }
 
 /* --- CombatantTurnActions Hooks --- */
-
-// If a combatant is updated with a new turnSpeed, update actionsOnTurn accordingly
-Hooks.on("preUpdateCombatant", (
-    combatant : CosmereCombatant,
-    change : Combatant.UpdateData
-) => {
-    if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.turnSpeed`)){
-        activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.combatantTurnActions.onCombatantTurnSpeedChange(change.flags["cosmere-rpg"].turnSpeed!);
-    }
-    return true;
-});
-
-Hooks.on("combatTurnChange", async (
-    combat: CosmereCombat,
-    prior: Combat.HistoryData,
-    current: Combat.HistoryData
-) => {
-    if(current.round != prior.round){
-        // This is a round start turn change, we shouldn't refresh the combatant's actions because the turn order might change
-        return;
-    }
-    if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.turnStart){
-        return;
-    }
-    let turns = combat.turns;
-    let turnSpeed: TurnSpeed = turns[current.turn!].turnSpeed;
-    let combatantActions = advancedCombatsMap[combat?.id!].getCombatantActionsByCombatantId(current?.combatantId!);
-
-    await combatantActions?.getCombatantTurnActions(turnSpeed).onTurnStart();
-});

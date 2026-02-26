@@ -1,14 +1,14 @@
 // System Imports
-import { CosmereItem, CosmereActiveEffect, CosmereActor, CosmereChatMessage, MESSAGE_TYPES, AdversaryActor, CharacterActor} from "@system/documents";
+import { CosmereItem, CosmereActiveEffect, CosmereActor, AdversaryActor} from "@system/documents";
 import { ActionCostType, AdversaryRole, Status, TurnSpeed } from "@system/types/cosmere";
 import { HOOKS } from "@system/constants/hooks";
 
 // Module Imports
-import { activeCombat } from "@src/index";
-import { CombatantActions } from "@module/documents/combatant-actions.js";
 import { MODULE_ID } from "@module/constants";
-import { CheckActionUsabilityOptions, getModuleSetting, SETTINGS } from "@module/settings";
+import { CheckActionUsabilityOptions, getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "@module/settings";
 import { UsedAction } from "@module/documents/used-action";
+import { AdvancedCosmereCombatant } from "@module/documents/combatant";
+import { AdvancedCosmereCombat } from "@module/documents/combat";
 
 
 export function activateCombatantHooks(){
@@ -19,32 +19,39 @@ export function activateCombatantHooks(){
         item: CosmereItem,
         options: CosmereItem.UseOptions
     ) => {
-        if(!(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT) && activeCombat.combat.started)){
+        if(!(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT) && game.combat?.started)){
             return true;
         }
         // Check the settings for what level of control the module has over using actions
         let checkActionUsability = getModuleSetting(SETTINGS.CHECK_ACTION_USABILITY);
+
+        var combatant = game.combat.combatant;
         var turnSpeed: TurnSpeed | undefined | string;
-        // If this is an action being used by a boss actor without it being that boss's turn,
-        // we need to prompt and see which turn this action should be used from.
-        if(item.actor?.isAdversary){
-            var actor = item.actor as AdversaryActor;
-            if(actor.system.role == AdversaryRole.Boss && item.system.activation.cost.type == ActionCostType.Action && activeCombat.combat.combatant?.actorId != item.actor?.id){
-                turnSpeed = await promptBossSpeed(actor);
-                activeCombat.lastBossTurnSpeed = turnSpeed;
-                if(turnSpeed == "offTurn"){
-                    // Always allow using actions off-turn
-                    return true;
+        if(combatant?.actorId !== options.actor?.id){
+            // If this is an action being used by a boss actor without it being that boss's turn,
+            // we need to prompt and see which turn this action should be used from.
+            if(item.actor?.isAdversary){
+                var actor = item.actor as AdversaryActor;
+                if(actor.system.role == AdversaryRole.Boss && item.system.activation.cost.type == ActionCostType.Action && game.combat.combatant?.actorId != item.actor?.id){
+                    turnSpeed = await promptBossSpeed(actor);
+                    game.combat.lastBossTurnSpeed = turnSpeed;
+                    if(turnSpeed == "offTurn"){
+                        // Always allow using actions off-turn
+                        return true;
+                    }
+                    else{
+                        combatant = game.combat.getCombatantsByActor(item.actor).filter((combatant) => {return combatant.turnSpeed == turnSpeed})[0]!;
+                    }
                 }
+            }
+            else{
+                combatant = game.combat.getCombatantsByActor(item.actor!)[0]!;
             }
         }
 
         if(checkActionUsability == CheckActionUsabilityOptions.warn || checkActionUsability == CheckActionUsabilityOptions.block){
             // Get all relevant combatant actions information
-            let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens(true)[0].id!)!;
-            if(!turnSpeed) {turnSpeed = activeCombat.combat.combatant?.turnSpeed!;}
-            let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed as TurnSpeed);
-            if(combatantTurnActions && !combatantTurnActions.canUseItem(item)){
+            if(combatant?.canUseItem(item)){
                 if((game.i18n) && (options.actor)){
                     ui.notifications?.warn(
                         game.i18n?.format(`${MODULE_ID}.warning.notEnoughActionType`, {
@@ -67,30 +74,37 @@ export function activateCombatantHooks(){
         item: CosmereItem,
         options: CosmereItem.UseOptions
     ) => {
-        if(!(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT) && activeCombat.combat.started)){
+        if(!(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT) && game.combat?.started)){
             return true;
         }
         // Get all relevant combatant actions information
-        let combatantActions = activeCombat.getCombatantActionsByTokenId(options.actor?.getActiveTokens(true)[0].id!)!;
+        let combatants = game.combat?.getCombatantsByToken(options.actor?.getActiveTokens(true)[0].id!)!;
+        var combatant = combatants[0];
 
-        if(activeCombat.lastBossTurnSpeed == "offTurn"){
-            // Don't mark off-turn actions for now
-            // TODO: Find a way to track these well
-            return true;
+        if(game.combat.lastBossTurnSpeed){
+            if(game.combat.lastBossTurnSpeed == "offTurn"){
+                // Don't mark off-turn actions for now
+                // TODO: Find a way to track these well
+                game.combat.lastBossTurnSpeed = null;
+                return true;
+            }
+            else{
+                combatant = combatants.filter((combatant) => {return combatant.turnSpeed == game.combat?.lastBossTurnSpeed})[0]!;
+            }
         }
 
         switch(item.system.activation.cost.type){
             case ActionCostType.Action:
-                handleUseAction(combatantActions, item);
+                handleUseAction(combatant, item);
                 break;
             case ActionCostType.FreeAction:
-                handleFreeAction(combatantActions, item);
+                handleFreeAction(combatant, item);
                 break;
             case ActionCostType.Reaction:
-                handleReaction(combatantActions, item);
+                handleReaction(combatant, item);
                 break;
             case ActionCostType.Special:
-                handleSpecialAction(combatantActions, item);
+                handleSpecialAction(combatant, item);
                 break;
             default:
                 break;
@@ -109,13 +123,13 @@ export function activateCombatantHooks(){
             const actor = activeEffect.parent as CosmereActor;
             const tokenId = actor.getActiveTokens(true)[0].id;
 
-            // Get the associated combatant turn actions information
-            let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId)!;
-            let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
-            let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
+            // Get the associated combatant information
+            let combatants = game.combat?.getCombatantsByToken(tokenId)!;
 
             //Apply the condition effects associated with this active effect
-            combatantTurnActions.applyConditionsOffTurn(activeEffect.statuses);
+            for(const combatant of combatants){
+                combatant.applyConditionsOffTurn(activeEffect.statuses);
+            }
         }
     });
 
@@ -129,34 +143,35 @@ export function activateCombatantHooks(){
             const actor = activeEffect.parent as CosmereActor;
             const tokenId = actor.getActiveTokens(true)[0].id;
 
-            // Get the associated combatant turn actions information
-            let combatantActions = activeCombat.getCombatantActionsByTokenId(tokenId)!;
-            let turnSpeed = activeCombat.combat.combatant?.turnSpeed!;
-            let combatantTurnActions = combatantActions.getCombatantTurnActions(turnSpeed);
+            // Get the associated combatant information
+            let combatants = game.combat?.getCombatantsByToken(tokenId)!;
+
 
             //Remove the condition effects associated with this active effect
-            combatantTurnActions.removeConditionsOffTurn(activeEffect.statuses);
+            for(const combatant of combatants){
+                combatant.removeConditionsOffTurn(activeEffect.statuses);
+            }
         }
     });
 }
 
-function handleFreeAction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
+function handleFreeAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
     let usedAction = new UsedAction(1, cosmereItem.name);
-    combatantActions.getCombatantTurnActions(activeCombat.lastBossTurnSpeed as TurnSpeed).useFreeAction(usedAction);
+    combatant.useFreeAction(usedAction);
 }
 
-function handleSpecialAction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
+function handleSpecialAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
     let usedAction = new UsedAction(1, cosmereItem.name);
-    combatantActions.getCombatantTurnActions(activeCombat.lastBossTurnSpeed as TurnSpeed).useSpecialAction(usedAction);
+    combatant.useSpecialAction(usedAction);
 }
 
-function handleReaction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
-    combatantActions.combatantTurnActions.useReaction(new UsedAction(1, cosmereItem.name));
+function handleReaction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+    combatant.useReaction(new UsedAction(1, cosmereItem.name));
 }
 
-function handleUseAction(combatantActions: CombatantActions, cosmereItem: CosmereItem){
+function handleUseAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
     let usedAction = new UsedAction(cosmereItem.system.activation.cost.value!, cosmereItem.name);
-    combatantActions.getCombatantTurnActions(activeCombat.lastBossTurnSpeed as TurnSpeed).useAction(usedAction);
+    combatant.useAction(usedAction);
 }
 
 async function promptBossSpeed(actor: CosmereActor): Promise<TurnSpeed | "offTurn">{
@@ -182,3 +197,28 @@ async function promptBossSpeed(actor: CosmereActor): Promise<TurnSpeed | "offTur
     }) as TurnSpeed | "offTurn";
     return bossSpeed;
 }
+
+// If a combatant is updated with a new turnSpeed, update actionsOnTurn accordingly
+// Hooks.on("preUpdateCombatant", (
+//     combatant : AdvancedCosmereCombatant,
+//     change : Combatant.UpdateData
+// ) => {
+//     if(foundry.utils.hasProperty(change, `flags.cosmere-rpg.turnSpeed`)){
+//         combatant.onCombatantTurnSpeedChange();
+//     }
+//     return true;
+// });
+
+Hooks.on("combatTurnChange", async (
+    combat: AdvancedCosmereCombat,
+    prior: Combat.HistoryData,
+    current: Combat.HistoryData
+) => {
+    if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.turnStart || (! current.combatantId)){
+        return;
+    }
+    let turns = combat.turns;
+    let combatant = combat.combatants.get(current.combatantId)!;
+
+    await combatant.onTurnStart();
+});

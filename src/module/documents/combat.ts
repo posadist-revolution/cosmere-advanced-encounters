@@ -158,10 +158,25 @@ export class AdvancedCosmereCombat extends Combat {
             combatant.onTurnStart();
         }
     }
+
+    public get lastBossTurnSpeed(){
+        return this.getFlag(MODULE_ID, "lastBossTurnSpeed");
+    }
+
+    public set lastBossTurnSpeed(turnSpeed: TurnSpeed | string | null){
+        this.setFlag(MODULE_ID, "lastBossTurnSpeed", turnSpeed);
+    }
 }
 
 declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
     interface ConfiguredCombat<SubType extends Combat.SubType> {
         document: AdvancedCosmereCombat;
+    }
+    interface FlagConfig {
+        Combat: {
+            [MODULE_ID]: {
+                lastBossTurnSpeed: TurnSpeed | string | null,
+            };
+        };
     }
 }
