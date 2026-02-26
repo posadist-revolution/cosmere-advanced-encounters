@@ -43,6 +43,12 @@ export class AdvancedCosmereCombatTracker extends foundry.applications.sidebar.t
         actions: {
             toggleSpeed: this._onClickToggleTurnSpeed,
             activateCombatant: this._onActivateCombatant,
+            useAction: this._onUseActionButton,
+            restoreAction: this._onRestoreActionButton,
+            useReaction: this._onUseReactionButton,
+            restoreReaction: this._onRestoreReactionButton,
+            restoreFreeAction: this._onRestoreFreeActionButton,
+            restoreSpecialAction: this._onRestoreSpecialActionButton
         },
     };
     /* eslint-enable @typescript-eslint/unbound-method */
@@ -118,6 +124,12 @@ export class AdvancedCosmereCombatTracker extends foundry.applications.sidebar.t
             type: combatant.actor?.type,
             activated: combatant.activated,
             isBoss: combatant.isBoss,
+            actionsAvailableGroups: combatant.actionsAvailableGroups,
+            reactionsAvailable: combatant.reactionsAvailable,
+            actionsUsed: combatant.actionsUsed,
+            reactionsUsed: combatant.reactionsUsed,
+            freeActionsUsed: combatant.freeActionsUsed,
+            specialActionsUsed: combatant.specialActionsUsed
         };
     }
 
@@ -225,4 +237,159 @@ export class AdvancedCosmereCombatTracker extends foundry.applications.sidebar.t
         );
         return menu;
     }
+
+    //#region CombatantTurnActions_Actions
+    protected static async _onUseActionButton(
+        this: AdvancedCosmereCombatTracker,
+        event: Event
+    ){
+        // console.log("Use action button pressed");
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Get the button and the closest combatant list item
+        const btn = event.target as HTMLElement;
+        const li = btn.closest<HTMLElement>('.combatant')!;
+        const actionGroupName = btn.getAttribute("action-group-name")!;
+
+        // Get the combatant actions and turn speed of what was clicked
+        const combatant = this.viewed!.combatants.get(li.dataset.combatantId!)!;
+
+        // console.log(`UsedAction on combatant ${li.dataset.combatantId} with turn speed ${turnSpeed}`);
+        if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
+        {
+            return;
+        }
+
+        void await combatant.useAction(new UsedAction(1, game.i18n?.localize("cosmere-advanced-encounters.cost_manual"), actionGroupName));
+    }
+
+    protected static async _onRestoreActionButton(
+        this: AdvancedCosmereCombatTracker,
+        event: Event
+    ){
+        // console.log("Restore action button pressed");
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Get the button and the closest combatant list item
+        const btn = event.target as HTMLElement;
+        const li = btn.closest<HTMLElement>('.combatant')!;
+        const actionName = btn.getAttribute("action-name")!;
+        const actionCost = btn.getAttribute("action-cost")!;
+        const actionGroupName = btn.getAttribute("action-group-name")!;
+
+        // Get the combatant actions
+        const combatant = this.viewed!.combatants.get(li.dataset.combatantId!)!;
+
+        // console.log(`RestoredAction on combatant ${li.dataset.combatantId} with turn speed ${turnSpeed}`);
+        if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
+        {
+            return;
+        }
+
+        void await combatant.removeAction(new UsedAction(Number(actionCost), actionName, actionGroupName));
+    }
+
+    protected static async _onUseReactionButton(
+        this: AdvancedCosmereCombatTracker,
+        event: Event
+    ){
+        // console.log("Use reaction button pressed");
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Get the button and the closest combatant list item
+        const btn = event.target as HTMLElement;
+        const li = btn.closest<HTMLElement>('.combatant')!;
+        const actionGroupName = btn.getAttribute("action-group-name")!;
+
+        // Get the combatant actions
+        const combatant = this.viewed!.combatants.get(li.dataset.combatantId!)!;
+
+        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
+        if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
+        {
+            return;
+        }
+
+        void await combatant.useReaction(new UsedAction(1, game.i18n?.localize("cosmere-advanced-encounters.cost_manual"), actionGroupName));
+    }
+
+    protected static async _onRestoreReactionButton(
+        this: AdvancedCosmereCombatTracker,
+        event: Event
+    ){
+        // console.log("Toggle reaction button pressed");
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Get the button and the closest combatant list item
+        const btn = event.target as HTMLElement;
+        const li = btn.closest<HTMLElement>('.combatant')!;
+        const actionGroupName = btn.getAttribute("action-group-name")!;
+        const actionName = btn.getAttribute("action-name")!;
+
+        // Get the combatant actions
+        const combatant = this.viewed!.combatants.get(li.dataset.combatantId!)!;
+
+        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
+        if(combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
+        {
+            return;
+        }
+
+        void await combatant.removeReaction(new UsedAction(1, actionName, actionGroupName));
+    }
+
+    protected static async _onRestoreFreeActionButton(
+        this: AdvancedCosmereCombatTracker,
+        event: Event
+    ){
+        // console.log("Toggle reaction button pressed");
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Get the button and the closest combatant list item
+        const btn = event.target as HTMLElement;
+        const li = btn.closest<HTMLElement>('.combatant')!;
+        const actionName = btn.getAttribute("action-name")!;
+
+        // Get the combatant actions
+        const combatant = this.viewed!.combatants.get(li.dataset.combatantId!)!;
+
+        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
+        if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
+        {
+            return;
+        }
+
+        void await combatant.removeFreeAction(new UsedAction(1, actionName));
+    }
+
+    protected static async _onRestoreSpecialActionButton(
+        this: AdvancedCosmereCombatTracker,
+        event: Event
+    ){
+        // console.log("Toggle reaction button pressed");
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Get the button and the closest combatant list item
+        const btn = event.target as HTMLElement;
+        const li = btn.closest<HTMLElement>('.combatant')!;
+        const actionName = btn.getAttribute("action-name")!;
+
+        // Get the combatant actions
+        const combatant = this.viewed!.combatants.get(li.dataset.combatantId!)!;
+
+        // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
+        if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
+        {
+            return;
+        }
+
+        void await combatant.removeSpecialAction(new UsedAction(1, actionName));
+    }
+    //#endregion
 }

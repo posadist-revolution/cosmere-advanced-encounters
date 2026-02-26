@@ -1,5 +1,6 @@
 import { TurnSpeed } from '@system/types/cosmere';
 import { CosmereCombatant } from '@system/documents/combatant';
+import { ActionGroup } from '@src/module/documents/used-action';
 
 const SCHEMA = () => ({
     /**
@@ -32,6 +33,39 @@ const SCHEMA = () => ({
         new foundry.data.fields.StringField(),
         { required: false },
     ),
+
+    //TODO: Make these all strongly typed
+
+    actionsAvailableGroups: new foundry.data.fields.ArrayField(
+        new foundry.data.fields.ObjectField(),
+        {required: true}
+    ),
+
+    reactionsAvailable: new foundry.data.fields.ArrayField(
+        new foundry.data.fields.ObjectField(),
+        {required: true}
+    ),
+
+    actionsUsed: new foundry.data.fields.ArrayField(
+        new foundry.data.fields.ObjectField(),
+        {required: true}
+    ),
+
+    reactionsUsed: new foundry.data.fields.ArrayField(
+        new foundry.data.fields.ObjectField(),
+        {required: true}
+    ),
+
+    freeActionsUsed: new foundry.data.fields.ArrayField(
+        new foundry.data.fields.ObjectField(),
+        {required: true}
+    ),
+
+    specialActionsUsed: new foundry.data.fields.ArrayField(
+        new foundry.data.fields.ObjectField(),
+        {required: true}
+    ),
+
 });
 
 export type CombatantDataSchema = ReturnType<typeof SCHEMA>;
