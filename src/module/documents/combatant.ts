@@ -7,6 +7,7 @@ import { CosmereActor } from '@system/documents';
 import { SYSTEM_ID } from '@system/constants';
 
 import { AnyMutableObject } from '@league-of-foundry-developers/foundry-vtt-types/utils';
+import { MODULE_ID } from '@module/constants';
 
 let _schema:
     | foundry.data.fields.SchemaField<AdvancedCosmereCombatant.Schema>
@@ -120,7 +121,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     }
 
     public get linkedCombatantIds(): string[] | undefined {
-        return this.getFlag(SYSTEM_ID, 'linkedCombatantIds') ?? undefined;
+        return this.getFlag(MODULE_ID, 'linkedCombatantIds') ?? undefined;
     }
 
     /* --- Life cycle --- */

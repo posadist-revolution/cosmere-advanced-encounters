@@ -15,4 +15,5 @@ export type MODULE_COMBATANT_FLAGS = {
     reactionUsed: boolean;
     bossFastActionsOnTurn: number;
     actionsOnTurn: number;
+    linkedCombatantIds: string[];
 }

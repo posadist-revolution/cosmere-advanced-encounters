@@ -4,6 +4,7 @@ import { AdvancedCosmereCombatant } from './combatant';
 
 // Constants
 import { SYSTEM_ID } from '@system/constants';
+import { MODULE_ID } from '@module/constants';
 
 export class AdvancedCosmereCombat extends Combat {
     /**
@@ -122,13 +123,13 @@ export class AdvancedCosmereCombat extends Combat {
             linkedCombatantIds.push(linkedCombatant.id!);
         }
         void (await combatant.setFlag(
-            SYSTEM_ID,
+            MODULE_ID,
             'linkedCombatantIds',
             linkedCombatantIds.filter((id) => id !== combatant.id),
         ));
         for (const linkedCombatant of linkedCombatants) {
             void (await linkedCombatant.setFlag(
-                SYSTEM_ID,
+                MODULE_ID,
                 'linkedCombatantIds',
                 linkedCombatantIds.filter((id) => id !== linkedCombatant.id),
             ));

@@ -9,7 +9,6 @@ import { TriggerTestEnricher, TriggerDamageEnricher } from "@src/declarations/co
 import { PreUseItem, UseItem, PreModeActivateItem, ModeActivateItem, PreModeDeactivateItem, ModeDeactivateItem, ProgressGoal, PreProgressGoal, UpdateProgressGoal, PreUpdateProgressGoal, CompleteGoal, PreCompleteGoal } from "@src/declarations/cosmere-rpg/types/hooks/item";
 import { PreMigration, Migration, PreMigrateVersion, MigrateVersion } from "@src/declarations/cosmere-rpg/types/hooks/migration";
 import { PreInjuryTypeRoll, InjuryTypeRoll, PreInjuryDurationRoll, InjuryDurationRoll, PreShortRestRecoveryRoll, ShortRestRecoveryRoll, PreAttackRollConfiguration, AttackRollConfiguration, PreDamageRoll, DamageRoll, AttackRoll, SkillRoll, PreRoll, PreRollConfiguration, RollConfiguration } from "@src/declarations/cosmere-rpg/types/hooks/rolls";
-import { config } from "process";
 import { SYSTEM_ID, MODULE_ID } from "../constants";
 import { MODULE_COMBATANT_FLAGS } from "./combatant";
 import { ModuleSettingsConfig } from "../settings";
@@ -33,11 +32,6 @@ declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {
             [ActorType.Character]: typeof CharacterActorDataModel;
             [ActorType.Adversary]: typeof AdversaryActorDataModel;
         };
-    }
-}
-declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {
-    interface DataModelConfig {
-        Combatant: typeof config;
     }
 }
 
