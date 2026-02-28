@@ -334,7 +334,7 @@ export class AdvancedCosmereCombatTracker extends foundry.applications.sidebar.t
         const combatant = this.viewed!.combatants.get(li.dataset.combatantId!)!;
 
         // console.log(`ToggledReaction on combatant ${li.dataset.combatantId}`);
-        if(combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
+        if(!combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))
         {
             return;
         }
