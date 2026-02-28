@@ -2,11 +2,14 @@
 import { CosmereCombatant } from "@system/documents/combatant";
 
 // Module Imports
-import { activeCombat } from "@src/index";
 import { getModuleSetting, SETTINGS } from "@module/settings";
+import { AdvancedCosmereCombatant } from "../documents/combatant";
 
 export const TEMPLATES = {
 	COMBATANT_ACTIONS_TEMPLATE: 'modules/cosmere-advanced-encounters/templates/combat/combatant-actions.hbs',
+    COMBAT_TRACKER: 'modules/cosmere-advanced-encounters/templates/combat/advanced-combat-tracker.hbs',
+    COMBAT_TRACKER_FOOTER: 'modules/cosmere-advanced-encounters/templates/combat/combat-tracker-footer.hbs',
+    ADVANCED_COMBATANT: 'modules/cosmere-advanced-encounters/templates/combat/advanced-combatant.hbs',
 } as const;
 
 /**
@@ -31,7 +34,11 @@ export const preloadHandlebarsTemplates = async function () {
 Handlebars.registerHelper(
     'allowRestoreButtonAction',
     (combatantId: string) => {
-		let combatant: CosmereCombatant = activeCombat.getCombatantActionsByCombatantId(combatantId)?.combatant!;
+		let combatant: AdvancedCosmereCombatant = game.combat?.combatants.get(combatantId)!;
+        if(!combatant){
+            console.log(`CAE | ERROR: Could not find combatant ${combatantId}`);
+            return;
+        }
 		if(!(getModuleSetting(SETTINGS.PLAYERS_CAN_RESTORE_ACTIONS)) && !(game.user?.isGM)){
 			return false;
 		}

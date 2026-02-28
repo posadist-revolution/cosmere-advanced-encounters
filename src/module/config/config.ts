@@ -9,10 +9,11 @@ import { TriggerTestEnricher, TriggerDamageEnricher } from "@src/declarations/co
 import { PreUseItem, UseItem, PreModeActivateItem, ModeActivateItem, PreModeDeactivateItem, ModeDeactivateItem, ProgressGoal, PreProgressGoal, UpdateProgressGoal, PreUpdateProgressGoal, CompleteGoal, PreCompleteGoal } from "@src/declarations/cosmere-rpg/types/hooks/item";
 import { PreMigration, Migration, PreMigrateVersion, MigrateVersion } from "@src/declarations/cosmere-rpg/types/hooks/migration";
 import { PreInjuryTypeRoll, InjuryTypeRoll, PreInjuryDurationRoll, InjuryDurationRoll, PreShortRestRecoveryRoll, ShortRestRecoveryRoll, PreAttackRollConfiguration, AttackRollConfiguration, PreDamageRoll, DamageRoll, AttackRoll, SkillRoll, PreRoll, PreRollConfiguration, RollConfiguration } from "@src/declarations/cosmere-rpg/types/hooks/rolls";
-import { config } from "process";
 import { SYSTEM_ID, MODULE_ID } from "../constants";
 import { MODULE_COMBATANT_FLAGS } from "./combatant";
 import { ModuleSettingsConfig } from "../settings";
+import { AdvancedCosmereCombatant } from "../documents/combatant";
+import { AdvancedCosmereCombat } from "../documents/combat";
 
 export const COSMERE_ADVANCED_ENCOUNTERS: any = {};
 
@@ -31,11 +32,6 @@ declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {
             [ActorType.Character]: typeof CharacterActorDataModel;
             [ActorType.Adversary]: typeof AdversaryActorDataModel;
         };
-    }
-}
-declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {
-    interface DataModelConfig {
-        Combatant: typeof config;
     }
 }
 
@@ -122,20 +118,21 @@ declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
 
 declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
     interface ConfiguredCombat<SubType extends Combat.SubType> {
-        document: CosmereCombat;
+        document: AdvancedCosmereCombat;
     }
 }
 
+
 declare module '@league-of-foundry-developers/foundry-vtt-types/configuration' {
     interface ConfiguredCombatant<SubType extends Combatant.SubType> {
-        document: CosmereCombatant;
+        document: AdvancedCosmereCombatant;
     }
     interface FlagConfig {
         Combatant: {
             [SYSTEM_ID]: {
                 turnSpeed: TurnSpeed;
-                bossFastActivated: boolean;
                 activated: boolean;
+                bossFastActivated: boolean;
             };
             [MODULE_ID]: MODULE_COMBATANT_FLAGS;
         };
@@ -146,8 +143,8 @@ declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {
     interface DocumentClassConfig {
         Actor: CosmereActor;
         Item: CosmereItem;
-        Combat: CosmereCombat;
-        Combatant: CosmereCombatant;
+        Combat: AdvancedCosmereCombat;
+        Combatant: AdvancedCosmereCombatant;
         ChatMessage: CosmereChatMessage;
         // Token: CosmereTokenDocument;
         ActiveEffect: CosmereActiveEffect;

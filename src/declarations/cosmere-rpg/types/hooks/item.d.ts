@@ -27,7 +27,7 @@ export type UseItem = (
 export type PreUseItem = (
     item: CosmereItem,
     options: CosmereItem.UseOptions,
-) => boolean;
+) => boolean | Promise<boolean>;
 
 export type ModeChangeItem = (item: CosmereItem) => void;
 export type PreModeChangeItem = (item: CosmereItem) => boolean;
