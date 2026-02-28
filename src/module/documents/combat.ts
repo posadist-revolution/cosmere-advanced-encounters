@@ -65,7 +65,12 @@ export class AdvancedCosmereCombat extends Combat {
         this.turns ??= [];
         let currTurnId: string | undefined | null;
         if (this.current) {
-            currTurnId = this.current.combatantId;
+            if(this.current.combatantId){
+                currTurnId = this.current.combatantId;
+            }
+            else if (this.current.turn && this.turns[this.current.turn]){
+                currTurnId = this.turns[this.current.turn].id;
+            }
         }
 
         // One-time initialization of the previous state
@@ -83,18 +88,24 @@ export class AdvancedCosmereCombat extends Combat {
             this.turn = turns.findIndex((combatant) => {
                 return combatant.id == currTurnId;
             });
+            this.update({
+                turn: this.turn
+            }, {turnEvents: false})
+        }
+
+        if (this.turn){
+            this.turn = Math.clamp(this.turn, 0, turns.length - 1);
             const c = turns[this.turn];
             this.current = this._getCurrentState(c);
         }
-
-        if (this.turn !== null)
-            this.turn = Math.clamp(this.turn, 0, turns.length - 1);
-
         // Return the array of prepared turns
         return this.turns;
     }
 
     override async _onEnter(combatant: AdvancedCosmereCombatant) {
+        // Initialize the combatant's actions
+        combatant.onTurnStart();
+
         // If the combatant is a boss, clone it to create a fast turn beside its slow turn
         if (combatant.isBoss && combatant.turnSpeed == TurnSpeed.Slow) {
             const createData: Combatant.CreateData = {

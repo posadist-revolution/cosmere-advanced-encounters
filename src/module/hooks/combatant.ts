@@ -30,9 +30,9 @@ export function activateCombatantHooks(){
         if(combatant?.actorId !== options.actor?.id){
             // If this is an action being used by a boss actor without it being that boss's turn,
             // we need to prompt and see which turn this action should be used from.
-            if(item.actor?.isAdversary){
-                var actor = item.actor as AdversaryActor;
-                if(actor.system.role == AdversaryRole.Boss && item.system.activation.cost.type == ActionCostType.Action && game.combat.combatant?.actorId != item.actor?.id){
+            if(options.actor?.isAdversary){
+                var actor = options.actor as AdversaryActor;
+                if(actor.system.role == AdversaryRole.Boss && item.system.activation.cost.type == ActionCostType.Action && game.combat.combatant?.actorId != options.actor.id){
                     turnSpeed = await promptBossSpeed(actor);
                     game.combat.lastBossTurnSpeed = turnSpeed;
                     if(turnSpeed == "offTurn"){
@@ -40,18 +40,18 @@ export function activateCombatantHooks(){
                         return true;
                     }
                     else{
-                        combatant = game.combat.getCombatantsByActor(item.actor).filter((combatant) => {return combatant.turnSpeed == turnSpeed})[0]!;
+                        combatant = game.combat.getCombatantsByActor(options.actor).filter((combatant) => {return combatant.turnSpeed == turnSpeed})[0]!;
                     }
                 }
             }
             else{
-                combatant = game.combat.getCombatantsByActor(item.actor!)[0]!;
+                combatant = game.combat.getCombatantsByActor(options.actor!)[0]!;
             }
         }
 
         if(checkActionUsability == CheckActionUsabilityOptions.warn || checkActionUsability == CheckActionUsabilityOptions.block){
             // Get all relevant combatant actions information
-            if(combatant?.canUseItem(item)){
+            if(!combatant?.canUseItem(item)){
                 if((game.i18n) && (options.actor)){
                     ui.notifications?.warn(
                         game.i18n?.format(`${MODULE_ID}.warning.notEnoughActionType`, {

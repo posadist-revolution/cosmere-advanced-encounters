@@ -78,18 +78,18 @@ export class AdvancedCosmereCombatant extends Combatant {
                         let parentKey = key.slice(0, lastKeyPeriodIndex);
                         let parentKeyEmpty = true;
                         while(lastKeyPeriodIndex !== -1 && parentKeyEmpty) {
-                            console.log(`Checking if parent key ${parentKey} is empty`);
-                            console.log(foundry.utils.getProperty(linkedCombatantUpdate, parentKey));
+                            // console.log(`Checking if parent key ${parentKey} is empty`);
+                            // console.log(foundry.utils.getProperty(linkedCombatantUpdate, parentKey));
                             //@ts-ignore
                             if(Object.keys(foundry.utils.getProperty(linkedCombatantUpdate, parentKey)).length == 0){
-                                console.log("Empty");
+                                // console.log("Empty");
                                 foundry.utils.deleteProperty(linkedCombatantUpdate, parentKey);
                                 parentKeyEmpty = true;
                                 lastKeyPeriodIndex = parentKey.lastIndexOf('.');
                                 parentKey = parentKey.slice(0, lastKeyPeriodIndex);
                             }
                             else{
-                                console.log("Not empty");
+                                // console.log("Not empty");
                                 parentKeyEmpty = false;
                             }
                         }
@@ -171,7 +171,14 @@ export class AdvancedCosmereCombatant extends Combatant {
             this.turnSpeed === TurnSpeed.Slow ? TurnSpeed.Fast : TurnSpeed.Slow;
 
         // Update the turn speed
-        await this.setFlag(SYSTEM_ID, 'turnSpeed', newSpeed);
+        await this.update({
+            flags: {
+                [SYSTEM_ID]: {
+                    'turnSpeed': newSpeed
+                }
+            }
+        }, {turnEvents: false})
+        await this.setMaxBaseActions();
     }
 
     public async markActivated() {
