@@ -3,8 +3,7 @@ import { TurnSpeed } from '@system/types/cosmere';
 import { AdvancedCosmereCombatant } from './combatant';
 
 // Constants
-import { SYSTEM_ID } from '@system/constants';
-import { MODULE_ID } from '@module/constants';
+import { MODULE_ID, SYSTEM_ID } from '@module/constants';
 
 export class AdvancedCosmereCombat extends Combat {
     /**
@@ -16,6 +15,7 @@ export class AdvancedCosmereCombat extends Combat {
     }
 
     override async startCombat(): Promise<this> {
+        this.resetAllCombatantActions();
         this.resetActivations();
         this._playCombatSound('startEncounter');
         const updateData = { round: 1, turn: null };
