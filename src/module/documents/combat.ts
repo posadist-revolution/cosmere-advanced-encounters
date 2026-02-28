@@ -159,6 +159,12 @@ export class AdvancedCosmereCombat extends Combat {
         }
     }
 
+    public pullAllCombatantActionsFromFlags(){
+        for (const combatant of this.combatants){
+            combatant.pullActionsFromFlags();
+        }
+    }
+
     public get lastBossTurnSpeed(){
         return this.getFlag(MODULE_ID, "lastBossTurnSpeed");
     }

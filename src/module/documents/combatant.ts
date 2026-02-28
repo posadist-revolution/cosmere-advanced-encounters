@@ -4,10 +4,9 @@ import { ActionCostType, AdversaryRole, Status, TurnSpeed } from '@system/types/
 import { CosmereActor, CosmereItem } from '@system/documents';
 
 // Constants
-import { SYSTEM_ID } from '@system/constants';
 
 import { AnyMutableObject } from '@league-of-foundry-developers/foundry-vtt-types/utils';
-import { MODULE_ID } from '@module/constants';
+import { MODULE_ID, SYSTEM_ID } from '@module/constants';
 import { ActionGroup, UsedAction } from './used-action';
 import { getModuleSetting, SETTINGS } from '../settings';
 
@@ -40,7 +39,14 @@ export class AdvancedCosmereCombatant extends Combatant {
         const newChanges: Combatant.UpdateData[] = [];
 
         // These are a set of keys the system wants never to be propagated between combatant turns
-        let noPropagateKeys = [`system`, `flags.${SYSTEM_ID}`];
+        let noPropagateKeys = [
+            `system`,
+            `flags.${SYSTEM_ID}`,
+            `flags.${MODULE_ID}.actionsAvailableGroups`,
+            `flags.${MODULE_ID}.actionsUsed`,
+            `flags.${MODULE_ID}.freeActionsUsed`,
+            `flags.${MODULE_ID}.specialActionsUsed`,
+        ];
         if (operation.noPropagateKeys) {
             // If the operation had instructions to ignore any more keys of the update, add those here
             noPropagateKeys = noPropagateKeys.concat(operation.noPropagateKeys);
@@ -66,7 +72,28 @@ export class AdvancedCosmereCombatant extends Combatant {
                 ) as AnyMutableObject;
                 linkedCombatantUpdate._id = linkedCombatantId;
                 for (const key of noPropagateKeys) {
-                    foundry.utils.deleteProperty(linkedCombatantUpdate, key);
+                    if(foundry.utils.deleteProperty(linkedCombatantUpdate, key)){
+                        // We deleted the property, now let's iterate through and see if the parents are empty, and delete those
+                        let lastKeyPeriodIndex = key.lastIndexOf('.');
+                        let parentKey = key.slice(0, lastKeyPeriodIndex);
+                        let parentKeyEmpty = true;
+                        while(lastKeyPeriodIndex !== -1 && parentKeyEmpty) {
+                            console.log(`Checking if parent key ${parentKey} is empty`);
+                            console.log(foundry.utils.getProperty(linkedCombatantUpdate, parentKey));
+                            //@ts-ignore
+                            if(Object.keys(foundry.utils.getProperty(linkedCombatantUpdate, parentKey)).length == 0){
+                                console.log("Empty");
+                                foundry.utils.deleteProperty(linkedCombatantUpdate, parentKey);
+                                parentKeyEmpty = true;
+                                lastKeyPeriodIndex = parentKey.lastIndexOf('.');
+                                parentKey = parentKey.slice(0, lastKeyPeriodIndex);
+                            }
+                            else{
+                                console.log("Not empty");
+                                parentKeyEmpty = false;
+                            }
+                        }
+                    }
                 }
 
                 // Check to make sure this update contains useful information
@@ -162,119 +189,161 @@ export class AdvancedCosmereCombatant extends Combatant {
     }
     //#endregion
 
+    //#region Module
+
+    private _localActionsAvailableGroups?: ActionGroup[];
+    private _localReactionsAvailable?: ActionGroup[];
+    private _localActionsUsed?: UsedAction[];
+    private _localReactionsUsed?: UsedAction[];
+    private _localFreeActionsUsed?: UsedAction[];
+    private _localSpecialActionsUsed?: UsedAction[];
+
+    //#region GetSet
+
+    //#region Get
     public get actionsAvailableGroups(): ActionGroup[] {
-        return this.getFlag(MODULE_ID, 'actionsAvailableGroups');
+        if(!this._localActionsAvailableGroups){
+            let flagData = this.getFlag(MODULE_ID, 'actionsAvailableGroups');
+            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+                this._localActionsAvailableGroups = ActionGroup.DeserializeArray(flagData);
+            }
+            else{
+                this._localActionsAvailableGroups = []
+            }
+        }
+        return this._localActionsAvailableGroups;
     }
 
     public get reactionsAvailable(): ActionGroup[] {
-        return this.getFlag(MODULE_ID, 'reactionsAvailable');
+        if(!this._localReactionsAvailable){
+            let flagData = this.getFlag(MODULE_ID, 'reactionsAvailable')
+            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+                this._localReactionsAvailable = ActionGroup.DeserializeArray(flagData);
+            }
+            else{
+                this._localReactionsAvailable = []
+            }
+        }
+        return this._localReactionsAvailable;
     }
 
     public get actionsUsed(): UsedAction[] {
-        return this.getFlag(MODULE_ID, 'actionsUsed');
+        if(!this._localActionsUsed){
+            let flagData = this.getFlag(MODULE_ID, 'actionsUsed');
+            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+                this._localActionsUsed = UsedAction.DeserializeArray(flagData);
+            }
+            else{
+                this._localActionsUsed = []
+            }
+        }
+        return this._localActionsUsed;
     }
 
     public get reactionsUsed(): UsedAction[] {
-        return this.getFlag(MODULE_ID, 'reactionsUsed');
+        if(!this._localReactionsUsed){
+            let flagData = this.getFlag(MODULE_ID, 'reactionsUsed');
+            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+                this._localReactionsUsed = UsedAction.DeserializeArray(flagData);
+            }
+            else{
+                this._localReactionsUsed = []
+            }
+        }
+        return this._localReactionsUsed;
     }
 
     public get freeActionsUsed(): UsedAction[] {
-        return this.getFlag(MODULE_ID, 'freeActionsUsed');
+        if(!this._localFreeActionsUsed){
+            let flagData = this.getFlag(MODULE_ID, 'freeActionsUsed');
+            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+                this._localFreeActionsUsed = UsedAction.DeserializeArray(flagData);
+            }
+            else{
+                this._localFreeActionsUsed = []
+            }
+        }
+        return this._localFreeActionsUsed;
     }
 
     public get specialActionsUsed(): UsedAction[] {
-        return this.getFlag(MODULE_ID, 'specialActionsUsed');
+        if(!this._localSpecialActionsUsed){
+            let flagData = this.getFlag(MODULE_ID, 'specialActionsUsed');
+            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+                this._localSpecialActionsUsed = UsedAction.DeserializeArray(flagData);
+            }
+            else{
+                this._localSpecialActionsUsed = []
+            }
+        }
+        return this._localSpecialActionsUsed;
     }
 
+    public async pullActionsFromFlags() {
+        this._localActionsAvailableGroups = ActionGroup.DeserializeArray(await this.getFlag(MODULE_ID, 'actionsAvailableGroups'));
+        this._localReactionsAvailable = ActionGroup.DeserializeArray(await this.getFlag(MODULE_ID, 'reactionsAvailable'));
+        this._localActionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'actionsUsed'));
+        this._localReactionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'reactionsUsed'));
+        this._localFreeActionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'freeActionsUsed'));
+        this._localSpecialActionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'specialActionsUsed'));
+    }
+    //#endregion Get
+
+    //#region Set
     public set actionsAvailableGroups(actionsAvailableGroups: ActionGroup[]) {
-        const updateData: Combatant.UpdateData = {
-            flags: {
-                [MODULE_ID]: {
-                    ["actionsAvailableGroups"]: actionsAvailableGroups
-                }
-            }
-        };
-        const updateOperation: Combatant.Database.UpdateOperation = {
-            turnEvents: false,
-            broadcast: true
-        };
-        this.update(updateData, updateOperation);
+        this._localActionsAvailableGroups = actionsAvailableGroups;
     }
 
     public set reactionsAvailable(reactionsAvailable: ActionGroup[]) {
-        const updateData: Combatant.UpdateData = {
-            flags: {
-                [MODULE_ID]: {
-                    ["reactionsAvailable"]: reactionsAvailable
-                }
-            }
-        };
-        const updateOperation: Combatant.Database.UpdateOperation = {
-            turnEvents: false,
-            broadcast: true
-        };
-        this.update(updateData, updateOperation);
+        this._localReactionsAvailable = reactionsAvailable;
     }
 
     public set actionsUsed(actionsUsed: UsedAction[]) {
-        const updateData: Combatant.UpdateData = {
-            flags: {
-                [MODULE_ID]: {
-                    ["actionsUsed"]: actionsUsed
-                }
-            }
-        };
-        const updateOperation: Combatant.Database.UpdateOperation = {
-            turnEvents: false,
-            broadcast: true
-        };
-        this.update(updateData, updateOperation);
+        this._localActionsUsed = actionsUsed;
     }
 
     public set reactionsUsed(reactionsUsed: UsedAction[]) {
-        const updateData: Combatant.UpdateData = {
-            flags: {
-                [MODULE_ID]: {
-                    ["reactionsUsed"]: reactionsUsed
-                }
-            }
-        };
-        const updateOperation: Combatant.Database.UpdateOperation = {
-            turnEvents: false,
-            broadcast: true
-        };
-        this.update(updateData, updateOperation);
+        this._localReactionsUsed = reactionsUsed;
     }
 
     public set freeActionsUsed(freeActionsUsed: UsedAction[]) {
-        const updateData: Combatant.UpdateData = {
-            flags: {
-                [MODULE_ID]: {
-                    ["freeActionsUsed"]: freeActionsUsed
-                }
-            }
-        };
-        const updateOperation: Combatant.Database.UpdateOperation = {
-            turnEvents: false,
-            broadcast: true
-        };
-        this.update(updateData, updateOperation);
+        this._localFreeActionsUsed = freeActionsUsed;
     }
 
     public set specialActionsUsed(specialActionsUsed: UsedAction[]) {
-        const updateData: Combatant.UpdateData = {
+        this._localSpecialActionsUsed = specialActionsUsed;
+    }
+
+    public async sendUpdateFromActions(){
+        // Get the diffs of what /actually/ changed
+        var updateData: Combatant.UpdateData = {}
+        const allPossibleUpdates: Combatant.UpdateData = {
             flags: {
                 [MODULE_ID]: {
-                    ["specialActionsUsed"]: specialActionsUsed
+                    actionsAvailableGroups: ActionGroup.SerializeArray(this.actionsAvailableGroups),
+                    actionsUsed: UsedAction.SerializeArray(this.actionsUsed),
+                    reactionsAvailable: ActionGroup.SerializeArray(this.reactionsAvailable),
+                    reactionsUsed: UsedAction.SerializeArray(this.reactionsUsed),
+                    freeActionsUsed: UsedAction.SerializeArray(this.freeActionsUsed),
+                    specialActionsUsed: UsedAction.SerializeArray(this.specialActionsUsed),
                 }
             }
-        };
+        }
+        if(this.flags[MODULE_ID]){
+            updateData = foundry.utils.diffObject(this, allPossibleUpdates);
+        }
+        else{
+            updateData = allPossibleUpdates;
+        }
         const updateOperation: Combatant.Database.UpdateOperation = {
             turnEvents: false,
-            broadcast: true
-        };
+            broadcast: true,
+        }
         this.update(updateData, updateOperation);
     }
+    //#endregion Set
+
+    //#endregion GetSet
 
     /* --- Public action interfaces ---*/
     //#region CombatantTurnActions_PublicActionInterfaces
@@ -287,9 +356,10 @@ export class AdvancedCosmereCombatant extends Combatant {
         this.freeActionsUsed = [];
         this.specialActionsUsed = [];
         this.applyConditionsToActions();
+        this.sendUpdateFromActions();
     }
 
-    public applyConditionsToActions(){
+    protected applyConditionsToActions(){
         // Check the setting, and if we don't apply conditions to actions, return
         if(!getModuleSetting(SETTINGS.CONDITIONS_APPLY_TO_ACTIONS)){
             return;
@@ -342,7 +412,8 @@ export class AdvancedCosmereCombatant extends Combatant {
 
     public async setMaxBaseActions(){
         this.actionsAvailableGroups[0].max = this.getMaxBaseActionsOnTurn();
-        this.recalculateRemaining(this.actionsAvailableGroups[0]);
+        this.actionsAvailableGroups[0].recalculateRemaining();
+        await this.sendUpdateFromActions();
     }
 
     public async useAction(action : UsedAction, actionGroupName? : string){
@@ -354,19 +425,24 @@ export class AdvancedCosmereCombatant extends Combatant {
         else{
             actionGroupToUse = this.getBestGroupForAction(action);
         }
-        this.useActionFromGroup(actionGroupToUse, action);
-        let newActionsUsed = this.actionsUsed;
-        newActionsUsed.push(action);
-        this.actionsUsed = newActionsUsed;
+        actionGroupToUse.useAction(action);
+        if(!this._localActionsUsed){
+            this._localActionsUsed = [action];
+        }
+        else{
+            this._localActionsUsed.push(action);
+        }
+        await this.sendUpdateFromActions();
     }
 
     public async removeAction(action: UsedAction){
         let actionIndex = this.actionsUsed.findIndex((element) => (element.cost == action.cost && element.name == action.name));
         let actionGroup = this.getActionGroupByName(action.actionGroupUsedFromName!);
-        this.removeActionFromGroup(actionGroup, action);
-        let newActionsUsed = this.actionsUsed;
-        newActionsUsed.splice(actionIndex, 1);
-        this.actionsUsed = newActionsUsed;
+
+        actionGroup.removeAction(action);
+        this._localActionsUsed?.splice(actionIndex, 1);
+
+        await this.sendUpdateFromActions();
     }
 
     public async useReaction(reaction: UsedAction, reactionGroupName? : string){
@@ -377,45 +453,56 @@ export class AdvancedCosmereCombatant extends Combatant {
         else{
             reactionGroupToUse = this.getBestGroupForReaction(reaction);
         }
-        this.useActionFromGroup(reactionGroupToUse, reaction);
-        let newReactionsUsed = this.reactionsUsed;
-        newReactionsUsed.push(reaction);
-        this.reactionsUsed = newReactionsUsed;
+        reactionGroupToUse.useAction(reaction);
+        if(!this._localReactionsUsed){
+            this._localReactionsUsed = [reaction];
+        }
+        else{
+            this._localReactionsUsed.push(reaction);
+        }
+        await this.sendUpdateFromActions();
     }
 
     public async removeReaction(reaction: UsedAction){
         let reactionIndex = this.reactionsUsed.findIndex((element) => (element.cost == reaction.cost && element.name == reaction.name));
         let reactionGroup = this.getReactionGroupByName(reaction.actionGroupUsedFromName!);
-        this.removeActionFromGroup(reactionGroup, reaction);
-        let newReactionsUsed = this.reactionsUsed;
-        newReactionsUsed.splice(reactionIndex, 1);
-        this.reactionsUsed = newReactionsUsed;
+
+        reactionGroup.removeAction(reaction);
+        this._localReactionsUsed?.splice(reactionIndex, 1);
+
+        await this.sendUpdateFromActions();
     }
 
     public async useFreeAction(action: UsedAction){
-        let newFreeActionsUsed = this.freeActionsUsed;
-        newFreeActionsUsed.push(action);
-        this.freeActionsUsed = newFreeActionsUsed;
+        if(!this._localFreeActionsUsed){
+            this._localFreeActionsUsed = [action];
+        }
+        else{
+            this._localFreeActionsUsed.push(action);
+        }
+        await this.sendUpdateFromActions();
     }
 
     public async removeFreeAction(freeAction: UsedAction){
         let freeActionIndex = this.freeActionsUsed.findIndex((element) => (element.cost == freeAction.cost && element.name == freeAction.name));
-        let newFreeActionsUsed = this.freeActionsUsed;
-        newFreeActionsUsed.splice(freeActionIndex, 1);
-        this.freeActionsUsed = newFreeActionsUsed;
+        this._localFreeActionsUsed?.splice(freeActionIndex, 1);
+        await this.sendUpdateFromActions();
     }
 
     public async useSpecialAction(action: UsedAction){
-        let newSpecialActionsUsed = this.specialActionsUsed;
-        newSpecialActionsUsed.push(action);
-        this.specialActionsUsed = newSpecialActionsUsed;
+        if(!this._localSpecialActionsUsed){
+            this._localSpecialActionsUsed = [action];
+        }
+        else{
+            this._localSpecialActionsUsed.push(action);
+        }
+        await this.sendUpdateFromActions();
     }
 
     public async removeSpecialAction(specialAction: UsedAction){
         let specialActionIndex = this.specialActionsUsed.findIndex((element) => (element.cost == specialAction.cost && element.name == specialAction.name));
-        let newSpecialActionsUsed = this.specialActionsUsed;
-        newSpecialActionsUsed.splice(specialActionIndex, 1);
-        this.specialActionsUsed = newSpecialActionsUsed;
+        this._localSpecialActionsUsed?.splice(specialActionIndex, 1);
+        await this.sendUpdateFromActions();
     }
 
     public async onCombatantTurnSpeedChange(){
@@ -528,25 +615,6 @@ export class AdvancedCosmereCombatant extends Combatant {
         else{
             return matchingActionGroups[0];
         }
-    }
-
-    protected useActionFromGroup(actionGroup: ActionGroup, usedAction: UsedAction){
-        let tempUsed = actionGroup.used += usedAction.cost;
-        actionGroup.used = (tempUsed < 0) ? 0 : (tempUsed > 3) ? 3 : tempUsed;
-        this.recalculateRemaining(actionGroup);
-        usedAction.actionGroupUsedFromName = actionGroup.name;
-    }
-
-    protected recalculateRemaining(actionGroup: ActionGroup){
-        let tempRemaining = actionGroup.max - actionGroup.used;
-        actionGroup.remaining = (tempRemaining < 0) ? 0 : (tempRemaining > 3) ? 3 : tempRemaining;
-    }
-
-    protected removeActionFromGroup(actionGroup: ActionGroup, usedAction: UsedAction){
-        let tempUsed = actionGroup.used - usedAction.cost;
-        actionGroup.used = (tempUsed < 0) ? 0 : (tempUsed > 3) ? 3 : tempUsed;
-        this.recalculateRemaining(actionGroup);
-        usedAction.actionGroupUsedFromName = actionGroup.name;
     }
 }
 

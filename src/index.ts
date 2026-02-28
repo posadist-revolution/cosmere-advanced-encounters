@@ -29,6 +29,11 @@ Hooks.once('init', async function() {
 });
 
 Hooks.once('ready', async function() {
+    if(game.combats){
+        for(const combat of game.combats){
+            combat.pullAllCombatantActionsFromFlags();
+        }
+    }
     activateCombatantHooks();
 });
 
@@ -42,5 +47,6 @@ Hooks.on("updateCombatant", async (
     if(change.flags?.[MODULE_ID] == null){
         return;
     }
+    combatant.pullActionsFromFlags();
     // activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.pullFlagInformation();
 });
