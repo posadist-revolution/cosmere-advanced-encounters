@@ -4,6 +4,7 @@ import { AdvancedCosmereCombatant } from './combatant';
 
 // Constants
 import { MODULE_ID, SYSTEM_ID } from '@module/constants';
+import { getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from '../settings';
 
 export class AdvancedCosmereCombat extends Combat {
     /**
@@ -28,6 +29,9 @@ export class AdvancedCosmereCombat extends Combat {
 
     override async nextRound(): Promise<this> {
         this.resetActivations();
+        if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) == RefreshCombatantActionsWhenOptions.roundStart){
+            this.resetAllCombatantActions();
+        }
 
         // Ensure that at the start of the round, it's no combatant's turn
         await this.update({ round: this.round, turn: null });
