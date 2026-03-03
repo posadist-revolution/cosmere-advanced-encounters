@@ -2,7 +2,7 @@
   "id": "cosmere-advanced-encounters",
   "title": "Cosmere Advanced Encounters",
   "description": "",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "library": "false",
   "compatibility": {
     "minimum": 13,
@@ -40,7 +40,7 @@
   ],
   "url": "https://github.com/posadist-revolution/cosmere-advanced-encounters",
   "manifest": "https://raw.githubusercontent.com/posadist-revolution/cosmere-advanced-encounters/refs/heads/main/src/module.json",
-  "download": "https://github.com/posadist-revolution/cosmere-advanced-encounters/releases/download/release-1.2.0/cosmere-advanced-encounters-release-1.2.0.zip",
+  "download": "https://github.com/posadist-revolution/cosmere-advanced-encounters/releases/download/release-1.2.1/cosmere-advanced-encounters-release-1.2.1.zip",
   "license": "LICENSE",
   "readme": "README.md"
 }
