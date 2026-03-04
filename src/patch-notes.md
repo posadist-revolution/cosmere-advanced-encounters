@@ -1,9 +1,7 @@
-### Patch 1.1.1
-<sup>2026-02-02</sup>
+### Patch 1.2.1
+<sup>2026-03-03</sup>
 
-- Fixed module.json having an incorrect manifest link
-- Made version incrementing easier
-- Removed manifestPlusVersion
+- Fixed combatant actions not resetting on round start when the setting indicated "Refresh actions on round start"
 
 <br>
 
