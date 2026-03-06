@@ -29,9 +29,6 @@ export class AdvancedCosmereCombat extends Combat {
 
     override async nextRound(): Promise<this> {
         this.resetActivations();
-        if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) == RefreshCombatantActionsWhenOptions.roundStart){
-            this.resetAllCombatantActions();
-        }
 
         // Ensure that at the start of the round, it's no combatant's turn
         await this.update({ round: this.round, turn: null });
@@ -168,9 +165,9 @@ export class AdvancedCosmereCombat extends Combat {
         }
     }
 
-    public resetAllCombatantActions(){
+    public async resetAllCombatantActions(){
         for (const combatant of this.combatants){
-            combatant.onTurnStart();
+            await combatant.onTurnStart();
         }
     }
 
