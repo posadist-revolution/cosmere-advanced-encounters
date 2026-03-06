@@ -1,6 +1,7 @@
 import { MODULE_ID } from "./constants";
 
 export const SETTINGS = {
+    INTERNAL_LATEST_VERSION: 'latestVersion',
 	REFRESH_COMBATANT_ACTIONS_WHEN: 'refreshCombatantActionsWhen',
     PULL_ACTIONS_FROM_CHAT: 'pullActionsFromChat',
     PLAYERS_CAN_RESTORE_ACTIONS: 'playersCanRestoreActions',
@@ -9,6 +10,8 @@ export const SETTINGS = {
 } as const;
 
 export type ModuleSettingsConfig = {
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.INTERNAL_LATEST_VERSION}`]: string;
+} & {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN}`]: string;
 } & {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.PULL_ACTIONS_FROM_CHAT}`]: boolean;
