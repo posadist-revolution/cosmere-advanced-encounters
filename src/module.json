@@ -1,46 +1,46 @@
 {
-  "id": "cosmere-advanced-encounters",
-  "title": "Cosmere Advanced Encounters",
-  "description": "",
-  "version": "1.2.2",
-  "library": "false",
-  "compatibility": {
-    "minimum": 13,
-    "verified": 13,
-    "maximum": 13
-  },
-  "authors": [
-    {
-      "name": "posadist-revolution",
-      "url": "https://github.com/posadist-revolution"
-    }
-  ],
-  "relationships": {
-    "systems": [
-      {
-        "id": "cosmere-rpg",
-        "type": "system",
-        "manifest": "https://raw.githubusercontent.com/the-metalworks/cosmere-rpg/main/src/system.json",
-        "compatibility": {
-          "minimum": "2.0.5",
-          "verified": "2.0.5"
+    "id": "cosmere-advanced-encounters",
+    "title": "Cosmere Advanced Encounters",
+    "description": "",
+    "version": "1.2.3",
+    "library": "false",
+    "compatibility": {
+        "minimum": 13,
+        "verified": 13,
+        "maximum": 13
+    },
+    "authors": [
+        {
+            "name": "posadist-revolution",
+            "url": "https://github.com/posadist-revolution"
         }
-      }
-    ]
-  },
-  "esmodules": [
-    "index.js"
-  ],
-  "languages": [
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "lang/en.json"
-    }
-  ],
-  "url": "https://github.com/posadist-revolution/cosmere-advanced-encounters",
-  "manifest": "https://raw.githubusercontent.com/posadist-revolution/cosmere-advanced-encounters/refs/heads/main/src/module.json",
-  "download": "https://github.com/posadist-revolution/cosmere-advanced-encounters/releases/download/release-1.2.2/cosmere-advanced-encounters-release-1.2.2.zip",
-  "license": "LICENSE",
-  "readme": "README.md"
+    ],
+    "relationships": {
+        "systems": [
+            {
+                "id": "cosmere-rpg",
+                "type": "system",
+                "manifest": "https://raw.githubusercontent.com/the-metalworks/cosmere-rpg/main/src/system.json",
+                "compatibility": {
+                    "minimum": "2.0.5",
+                    "verified": "2.0.5"
+                }
+            }
+        ]
+    },
+    "esmodules": [
+        "index.js"
+    ],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "lang/en.json"
+        }
+    ],
+    "url": "https://github.com/posadist-revolution/cosmere-advanced-encounters",
+    "manifest": "https://raw.githubusercontent.com/posadist-revolution/cosmere-advanced-encounters/refs/heads/main/src/module.json",
+    "download": "https://github.com/posadist-revolution/cosmere-advanced-encounters/releases/download/release-1.2.3/cosmere-advanced-encounters-release-1.2.3.zip",
+    "license": "LICENSE",
+    "readme": "README.md"
 }
