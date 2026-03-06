@@ -346,7 +346,7 @@ export class AdvancedCosmereCombatant extends Combatant {
             turnEvents: false,
             broadcast: true,
         }
-        this.update(updateData, updateOperation);
+        await this.update(updateData, updateOperation);
     }
     //#endregion Set
 
@@ -363,7 +363,7 @@ export class AdvancedCosmereCombatant extends Combatant {
         this.freeActionsUsed = [];
         this.specialActionsUsed = [];
         this.applyConditionsToActions();
-        this.sendUpdateFromActions();
+        await this.sendUpdateFromActions();
     }
 
     protected applyConditionsToActions(){
