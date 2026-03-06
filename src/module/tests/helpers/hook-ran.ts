@@ -1,14 +1,18 @@
 export async function hookRan(hookName: Hooks.HookName){
     console.log(`Test waiting on hook: ${hookName}`);
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<boolean>((resolve, reject) => {
         let hookId = Hooks.on(hookName, (
             ...hookArgs: any[]
         ) => {
             console.log("Hook resolved with args:");
             console.log(hookArgs);
-            resolve();
+            resolve(true);
             Hooks.off(hookName, hookId);
         });
+        setTimeout(function() {
+            Hooks.off(hookName, hookId);
+            resolve(false);
+        }, 10);
     });
 }
 
@@ -31,7 +35,7 @@ export interface ParamWithProperty {
 export async function hookRanWithParamWithProperty(hookName: Hooks.HookName, params: ParamWithProperty[]){
     console.log(`Test waiting on hook: ${hookName} with params:`);
     console.log(params);
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<boolean>((resolve, reject) => {
         let hookId = Hooks.on(hookName, (
             ...hookArgs: any[]
         ) => {
@@ -51,8 +55,12 @@ export async function hookRanWithParamWithProperty(hookName: Hooks.HookName, par
             }
             console.log("Hook resolved with args:");
             console.log(hookArgs);
-            resolve();
+            resolve(true);
             Hooks.off(hookName, hookId);
         });
+        setTimeout(function() {
+            Hooks.off(hookName, hookId);
+            resolve(false);
+        }, 10);
     });
 }
