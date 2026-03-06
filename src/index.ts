@@ -5,9 +5,11 @@ import { COSMERE_ADVANCED_ENCOUNTERS } from '@module/config';
 import { preloadHandlebarsTemplates } from '@module/helpers/templates.mjs';
 import { registerModuleSettings } from '@module/settings.js';
 import { activateCombatantHooks } from '@module/hooks/combatant.js';
+import { activateCombatHooks } from '@module/hooks/combat.js';
 import { AdvancedCosmereCombat } from '@module/documents/combat';
 import { AdvancedCosmereCombatTracker } from '@module/applications/combat';
 import { AdvancedCosmereCombatant } from '@module/documents/combatant';
+import { initializeTestHooks } from '@module/tests';
 
 declare global {
 	interface LenientGlobalVariableTypes {
@@ -24,6 +26,7 @@ Hooks.once('init', async function() {
     CONFIG.ui.combat = AdvancedCosmereCombatTracker;
     CONFIG.Combatant.documentClass = AdvancedCosmereCombatant as any;
     registerModuleSettings();
+    initializeTestHooks();
 	// Preload Handlebars templates.
 	return preloadHandlebarsTemplates();
 });
@@ -35,6 +38,7 @@ Hooks.once('ready', async function() {
         }
     }
     activateCombatantHooks();
+    activateCombatHooks();
 });
 
 Hooks.on("updateCombatant", async (

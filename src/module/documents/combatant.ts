@@ -346,7 +346,7 @@ export class AdvancedCosmereCombatant extends Combatant {
             turnEvents: false,
             broadcast: true,
         }
-        this.update(updateData, updateOperation);
+        await this.update(updateData, updateOperation);
     }
     //#endregion Set
 
@@ -363,7 +363,7 @@ export class AdvancedCosmereCombatant extends Combatant {
         this.freeActionsUsed = [];
         this.specialActionsUsed = [];
         this.applyConditionsToActions();
-        this.sendUpdateFromActions();
+        await this.sendUpdateFromActions();
     }
 
     protected applyConditionsToActions(){
@@ -432,6 +432,10 @@ export class AdvancedCosmereCombatant extends Combatant {
         else{
             actionGroupToUse = this.getBestGroupForAction(action);
         }
+
+        if(!actionGroupToUse){
+            return false;
+        }
         actionGroupToUse.useAction(action);
         if(!this._localActionsUsed){
             this._localActionsUsed = [action];
@@ -440,16 +444,22 @@ export class AdvancedCosmereCombatant extends Combatant {
             this._localActionsUsed.push(action);
         }
         await this.sendUpdateFromActions();
+        return true;
     }
 
     public async removeAction(action: UsedAction){
         let actionIndex = this.actionsUsed.findIndex((element) => (element.cost == action.cost && element.name == action.name));
         let actionGroup = this.getActionGroupByName(action.actionGroupUsedFromName!);
 
+
+        if(!actionGroup){
+            return false;
+        }
         actionGroup.removeAction(action);
         this._localActionsUsed?.splice(actionIndex, 1);
 
         await this.sendUpdateFromActions();
+        return true;
     }
 
     public async useReaction(reaction: UsedAction, reactionGroupName? : string){
@@ -460,6 +470,10 @@ export class AdvancedCosmereCombatant extends Combatant {
         else{
             reactionGroupToUse = this.getBestGroupForReaction(reaction);
         }
+
+        if(!reactionGroupToUse){
+            return false;
+        }
         reactionGroupToUse.useAction(reaction);
         if(!this._localReactionsUsed){
             this._localReactionsUsed = [reaction];
@@ -468,16 +482,21 @@ export class AdvancedCosmereCombatant extends Combatant {
             this._localReactionsUsed.push(reaction);
         }
         await this.sendUpdateFromActions();
+        return true;
     }
 
     public async removeReaction(reaction: UsedAction){
         let reactionIndex = this.reactionsUsed.findIndex((element) => (element.cost == reaction.cost && element.name == reaction.name));
         let reactionGroup = this.getReactionGroupByName(reaction.actionGroupUsedFromName!);
 
+        if(!reactionGroup){
+            return false;
+        }
         reactionGroup.removeAction(reaction);
         this._localReactionsUsed?.splice(reactionIndex, 1);
 
         await this.sendUpdateFromActions();
+        return true;
     }
 
     public async useFreeAction(action: UsedAction){
