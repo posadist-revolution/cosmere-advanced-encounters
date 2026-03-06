@@ -1,6 +1,6 @@
 {
     "name": "cosmere-advanced-encounters",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "private": true,
     "type": "module",
     "scripts": {
@@ -17,6 +17,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.9.0",
+        "@ethaks/fvtt-quench": "^0.10.0",
         "@foundryvtt/foundryvtt-cli": "^1.0.3",
         "@league-of-foundry-developers/foundry-vtt-types": "github:League-of-Foundry-Developers/foundry-vtt-types#main",
         "@rollup/plugin-commonjs": "^26.0.1",

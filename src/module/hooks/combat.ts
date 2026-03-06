@@ -2,11 +2,13 @@ import { getModuleSetting, SETTINGS, RefreshCombatantActionsWhenOptions } from "
 import { AdvancedCosmereCombat } from "../documents/combat";
 
 
-Hooks.on("combatRound", (
-    combat: AdvancedCosmereCombat,
-) => {
-    if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.roundStart){
-        return;
-    }
-    combat.resetAllCombatantActions();
-});
+export function activateCombatHooks(){
+    Hooks.on("combatRound", async (
+        combat: AdvancedCosmereCombat,
+    ) => {
+        if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.roundStart){
+            return;
+        }
+        await combat.resetAllCombatantActions();
+    });
+}
