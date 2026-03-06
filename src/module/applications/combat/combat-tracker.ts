@@ -13,6 +13,7 @@ export interface CosmereTurnContext extends CombatTracker.TurnContext {
     turnSpeed?: TurnSpeed;
     activated?: boolean;
     isBoss?: boolean;
+    isObserver?: boolean;
     actionsAvailableGroups: ActionGroup[];
     actionsUsed: UsedAction[];
     reactionsAvailable: ActionGroup[];
@@ -124,6 +125,7 @@ export class AdvancedCosmereCombatTracker extends foundry.applications.sidebar.t
             type: combatant.actor?.type,
             activated: combatant.activated,
             isBoss: combatant.isBoss,
+            isObserver: combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER),
             actionsAvailableGroups: combatant.actionsAvailableGroups,
             reactionsAvailable: combatant.reactionsAvailable,
             actionsUsed: combatant.actionsUsed,
