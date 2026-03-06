@@ -411,5 +411,9 @@ async function nextRound(){
 }
 
 async function helperCombatantActionsUpdateDone(){
-    return hookRanWithParamWithProperty("updateCombatant",[{paramExpectedIndex: 1, properties:[{key: `flags.${MODULE_ID}`}, {key: "_id", value: helperCombatant.id}]}]);
+    let done = await hookRanWithParamWithProperty("updateCombatant",[{paramExpectedIndex: 1, properties:[{key: `flags.${MODULE_ID}`}, {key: "_id", value: helperCombatant.id}]}]);
+    if(!done){
+        "Update combatant actions didn't run!";
+    }
+    return;
 }
