@@ -65,6 +65,15 @@ export const enum CheckActionUsabilityOptions {
 }
 
 export function registerModuleSettings() {
+
+    game.settings?.register(MODULE_ID, SETTINGS.INTERNAL_LATEST_VERSION, {
+        name: 'Latest Version',
+        scope: 'world',
+        config: false,
+        default: '0.0.0',
+        type: String,
+    });
+
     // TOGGLE REGISTRATION
     const toggleOptions = [
         {

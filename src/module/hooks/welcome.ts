@@ -20,7 +20,7 @@ export function registerWelcomeMessage(){
         if (!game.user?.isGM) return;
 
         // The current installed version of the system
-        const currentVersion = game.modules?.get(MODULE_ID)?.version ?? "0.0.0";
+        const currentVersion = game.modules?.get(MODULE_ID)?.version!;
 
         // The last used version of the system
         const latestVersion = getModuleSetting<string>(
