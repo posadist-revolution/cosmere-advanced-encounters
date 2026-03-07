@@ -1,3 +1,11 @@
+### Patch 1.2.3
+<sup>2026-03-06</sup>
+
+- Added release notes display
+
+<br>
+
+----
 ### Patch 1.2.2
 <sup>2026-03-05</sup>
 
