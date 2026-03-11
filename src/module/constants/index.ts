@@ -20,6 +20,17 @@ export const STORMLIGHT_HANDBOOK = 'cosmere-rpg-stormlight-handbook';
 export const STORMLIGHT_WORLDGUIDE = 'cosmere-rpg-stormlight-world-guide';
 
 /**
+ * URL for the discord server.
+ */
+export const METALWORKS_DISCORD_INVITE = 'https://discord.gg/GwGTMknXhp';
+
+/**
+ * URL for the GitHub repository's issue page.
+ */
+export const GITHUB_ISSUES_URL =
+    'https://github.com/posadist-revolution/cosmere-advanced-encounters/issues';
+
+/**
  * Author name of the module.
  */
 export const AUTHOR_NAME = 'posadist-revolution';

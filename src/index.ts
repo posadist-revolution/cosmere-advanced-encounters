@@ -6,6 +6,7 @@ import { preloadHandlebarsTemplates } from '@module/helpers/templates.mjs';
 import { registerModuleSettings } from '@module/settings.js';
 import { activateCombatantHooks } from '@module/hooks/combatant.js';
 import { activateCombatHooks } from '@module/hooks/combat.js';
+import { registerWelcomeMessage } from '@module/hooks/welcome';
 import { AdvancedCosmereCombat } from '@module/documents/combat';
 import { AdvancedCosmereCombatTracker } from '@module/applications/combat';
 import { AdvancedCosmereCombatant } from '@module/documents/combatant';
@@ -26,6 +27,7 @@ Hooks.once('init', async function() {
     CONFIG.ui.combat = AdvancedCosmereCombatTracker;
     CONFIG.Combatant.documentClass = AdvancedCosmereCombatant as any;
     registerModuleSettings();
+    registerWelcomeMessage();
     initializeTestHooks();
 	// Preload Handlebars templates.
 	return preloadHandlebarsTemplates();

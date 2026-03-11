@@ -24,10 +24,10 @@ fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, undefined, "    ")
 let packageLockJson = JSON.parse(fs.readFileSync(packageLockJsonPath, "utf8"));
 packageLockJson.version = version;
 packageLockJson.packages[""].version = version;
-fs.writeFileSync(packageLockJsonPath, JSON.stringify(packageLockJson, undefined, "\t"));
+fs.writeFileSync(packageLockJsonPath, JSON.stringify(packageLockJson, undefined, "    "));
 
 let moduleJson = JSON.parse(fs.readFileSync(moduleJsonPath, "utf8"));
 moduleJson.version = version;
 let moduleDownloadLink = `https://github.com/posadist-revolution/cosmere-advanced-encounters/releases/download/release-${version}/cosmere-advanced-encounters-release-${version}.zip`
 moduleJson.download = moduleDownloadLink;
-fs.writeFileSync(moduleJsonPath, JSON.stringify(moduleJson, undefined, "  "));
+fs.writeFileSync(moduleJsonPath, JSON.stringify(moduleJson, undefined, "    "));
