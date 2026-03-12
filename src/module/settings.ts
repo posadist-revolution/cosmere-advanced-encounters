@@ -6,7 +6,9 @@ export const SETTINGS = {
     PULL_ACTIONS_FROM_CHAT: 'pullActionsFromChat',
     PLAYERS_CAN_RESTORE_ACTIONS: 'playersCanRestoreActions',
     CHECK_ACTION_USABILITY: 'checkActionUsability',
-    CONDITIONS_APPLY_TO_ACTIONS: 'conditionsApplyToActions'
+    CONDITIONS_APPLY_TO_ACTIONS: 'conditionsApplyToActions',
+    BLOCK_MOVE_WITHOUT_ACTION: 'blockMoveWithoutAction',
+    PROMPT_BEFORE_USING_BASIC_MOVE_ACTION: 'promptBeforeUsingBasicMoveAction',
 } as const;
 
 export type ModuleSettingsConfig = {
@@ -20,7 +22,11 @@ export type ModuleSettingsConfig = {
 } & {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.CHECK_ACTION_USABILITY}`]: string;
 } & {
-    [key in `${typeof MODULE_ID}.${typeof SETTINGS.CONDITIONS_APPLY_TO_ACTIONS}`]: boolean;};
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.CONDITIONS_APPLY_TO_ACTIONS}`]: boolean;
+} & {
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.BLOCK_MOVE_WITHOUT_ACTION}`]: boolean;
+} & {
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.PROMPT_BEFORE_USING_BASIC_MOVE_ACTION}`]: boolean;};
 
 type ModuleSettingsKey = (typeof SETTINGS)[keyof typeof SETTINGS];
 export function getModuleSetting<
@@ -90,7 +96,17 @@ export function registerModuleSettings() {
             name: SETTINGS.CONDITIONS_APPLY_TO_ACTIONS,
             default: true,
             scope: 'world',
-        }
+        },
+        {
+            name: SETTINGS.BLOCK_MOVE_WITHOUT_ACTION,
+            default: false,
+            scope: 'world',
+        },
+        {
+            name: SETTINGS.PROMPT_BEFORE_USING_BASIC_MOVE_ACTION,
+            default: false,
+            scope: 'client',
+        },
     ];
 
     toggleOptions.forEach(option => {
