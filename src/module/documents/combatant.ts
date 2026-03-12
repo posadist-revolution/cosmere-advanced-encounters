@@ -10,6 +10,7 @@ import { MODULE_ID, SYSTEM_ID } from '@module/constants';
 import { ActionGroup, UsedAction } from './used-action';
 import { getModuleSetting, SETTINGS } from '../settings';
 import { TEST_HOOKS } from '../tests/helpers/test-hooks';
+import { resetRemainingMovement } from '../helpers/movement';
 
 let _schema:
     | foundry.data.fields.SchemaField<AdvancedCosmereCombatant.Schema>
@@ -367,6 +368,7 @@ export class AdvancedCosmereCombatant extends Combatant {
         this.freeActionsUsed = [];
         this.specialActionsUsed = [];
         this.applyConditionsToActions();
+        await resetRemainingMovement(this);
         await this.sendUpdateFromActions();
     }
 

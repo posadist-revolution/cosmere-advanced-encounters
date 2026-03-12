@@ -1,6 +1,6 @@
 // System Imports
 import { CosmereItem, CosmereActiveEffect, CosmereActor, AdversaryActor} from "@system/documents";
-import { ActionCostType, AdversaryRole, Status, TurnSpeed } from "@system/types/cosmere";
+import { ActionCostType, AdversaryRole, MovementType, Status, TurnSpeed } from "@system/types/cosmere";
 import { HOOKS } from "@system/constants/hooks";
 
 // Module Imports
@@ -9,6 +9,7 @@ import { CheckActionUsabilityOptions, getModuleSetting, RefreshCombatantActionsW
 import { UsedAction } from "@module/documents/used-action";
 import { AdvancedCosmereCombatant } from "@module/documents/combatant";
 import { AdvancedCosmereCombat } from "@module/documents/combat";
+import { applyMovementFromItem, getDefaultMovementItemForType, resetRemainingMovement } from "../helpers/movement";
 
 
 export function activateCombatantHooks(){
@@ -75,7 +76,7 @@ export function activateCombatantHooks(){
         options: CosmereItem.UseOptions
     ) => {
         if(!(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT) && game.combat?.started)){
-            return true;
+            return;
         }
         // Get all relevant combatant actions information
         let combatants = game.combat?.getCombatantsByToken(options.actor?.getActiveTokens(true)[0].id!)!;
@@ -86,7 +87,7 @@ export function activateCombatantHooks(){
                 // Don't mark off-turn actions for now
                 // TODO: Find a way to track these well
                 game.combat.lastBossTurnSpeed = null;
-                return true;
+                return;
             }
             else{
                 combatant = combatants.filter((combatant) => {return combatant.turnSpeed == game.combat?.lastBossTurnSpeed})[0]!;
@@ -109,7 +110,7 @@ export function activateCombatantHooks(){
             default:
                 break;
         }
-        return true;
+        return;
 
     });
 
@@ -153,25 +154,93 @@ export function activateCombatantHooks(){
             }
         }
     });
+
+    Hooks.on("preMoveToken", async (token: TokenDocument, movementData: TokenDocument.MovementData) => {
+        console.log("Running preMoveToken");
+        console.log("Token:");
+        console.log(token);
+        console.log("movementData:");
+        console.log(movementData);
+        if(!game.combat || !game.combat.active){
+            return true;
+        }
+        let tokenCombatants = game.combat.getCombatantsByToken(token);
+        console.log("tokenCombatants:");
+        console.log(tokenCombatants);
+        if(!tokenCombatants){
+            return true;
+        }
+        let tokenCombatant: AdvancedCosmereCombatant;
+        if(tokenCombatants.length > 1){
+            //TODO: Determine which combatant to take the action with
+            tokenCombatant = tokenCombatants[0];
+        }
+        else{
+            tokenCombatant = tokenCombatants[0];
+        }
+        console.log("tokenCombatant");
+        console.log(tokenCombatant);
+
+        let moveCost = movementData.passed.cost
+        let moveType = token.movementAction as MovementType | "blink";
+        console.log("moveCost");
+        console.log(moveCost);
+        console.log("moveType");
+        console.log(moveType);
+        let initialremainingMovementFromLastAction = (tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction"));
+        if(!initialremainingMovementFromLastAction){
+            resetRemainingMovement(tokenCombatant);
+        }
+
+        if(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType] < moveCost){
+            //TODO: Get movement item from actor sheet or from compendium
+            console.log("Not enough remaining movement:");
+            console.log((tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType]));
+            let moveActionItem = await getDefaultMovementItemForType(tokenCombatant.actor, moveType);
+            console.log("attempting to use move action:");
+            console.log(moveActionItem);
+            let moveActionUsed = await tokenCombatant.actor.useItem(moveActionItem);
+            if(!moveActionUsed){
+                console.log("Move action was not used: ");
+                console.log(moveActionItem);
+                console.log(moveActionUsed);
+                return true;
+            }
+            if(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType] <= moveCost){
+                console.log("Still not enough remaining movement");
+                console.log(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType]);
+                return true;
+            }
+        }
+
+        let remainingMovementFromLastAction = (await tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction"));
+        remainingMovementFromLastAction[moveType] -= moveCost;
+        await tokenCombatant.setFlag(MODULE_ID, "remainingMovementFromLastAction", remainingMovementFromLastAction);
+        return true;
+    });
 }
 
-function handleFreeAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+async function handleFreeAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+    await applyMovementFromItem(combatant, cosmereItem);
     let usedAction = new UsedAction(1, cosmereItem.name);
-    combatant.useFreeAction(usedAction);
+    await combatant.useFreeAction(usedAction);
 }
 
-function handleSpecialAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+async function handleSpecialAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+    await applyMovementFromItem(combatant, cosmereItem);
     let usedAction = new UsedAction(1, cosmereItem.name);
-    combatant.useSpecialAction(usedAction);
+    await combatant.useSpecialAction(usedAction);
 }
 
-function handleReaction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
-    combatant.useReaction(new UsedAction(1, cosmereItem.name));
+async function handleReaction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+    await applyMovementFromItem(combatant, cosmereItem);
+    await combatant.useReaction(new UsedAction(1, cosmereItem.name));
 }
 
-function handleUseAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+async function handleUseAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+    await applyMovementFromItem(combatant, cosmereItem);
     let usedAction = new UsedAction(cosmereItem.system.activation.cost.value!, cosmereItem.name);
-    combatant.useAction(usedAction);
+    await combatant.useAction(usedAction);
 }
 
 async function promptBossSpeed(actor: CosmereActor): Promise<TurnSpeed | "offTurn">{
