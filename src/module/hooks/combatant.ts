@@ -199,13 +199,7 @@ export function activateCombatantHooks(){
             let moveActionItem = await getDefaultMovementItemForType(tokenCombatant.actor, moveType);
             console.log("attempting to use move action:");
             console.log(moveActionItem);
-            let moveActionUsed = await tokenCombatant.actor.useItem(moveActionItem);
-            if(!moveActionUsed){
-                console.log("Move action was not used: ");
-                console.log(moveActionItem);
-                console.log(moveActionUsed);
-                return true;
-            }
+            await tokenCombatant.actor.useItem(moveActionItem);
             if(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType] <= moveCost){
                 console.log("Still not enough remaining movement");
                 console.log(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType]);
