@@ -48,13 +48,20 @@
         },
         "warning":
         {
-            "notEnoughActionType": "{actor} does not have enough {actionCostType}s to use {actionName}!"
+            "notEnoughActionType": "{actor} does not have enough {actionCostType}s to use {actionName}!",
+            "notEnoughMovementType": "{actor} does not have enough {moveType} movement to move that distance!"
         },
         "actionCostType":{
             "act": "action",
             "rea": "reaction",
             "fre": "free action",
             "spe": "special action"
+        },
+        "movementType": {
+            "walk": "walking",
+            "swim": "swimming",
+            "fly": "flying",
+            "blink": "teleportation"
         },
         "prompts":{
             "bossTurnSpeedSelect":{

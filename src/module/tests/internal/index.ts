@@ -5,9 +5,17 @@ import { ActorType, AdversaryRole, TurnSpeed } from "@src/declarations/cosmere-r
 import { AdversaryActor } from "@src/declarations/cosmere-rpg/documents";
 import { UsedAction } from "@src/module/documents/used-action";
 import { AdvancedCosmereCombatant } from "@src/module/documents/combatant";
-import { getAllModuleSettings, getModuleSetting, ModuleSettingsConfig, RefreshCombatantActionsWhenOptions, setAllModuleSettings, setModuleSetting, SETTINGS } from "@src/module/settings";
+import { getAllModuleSettings, getModuleSetting, RefreshCombatantActionsWhenOptions, setAllModuleSettings, setModuleSetting, SETTINGS } from "@src/module/settings";
 import { AdvancedCosmereCombat } from "@src/module/documents/combat";
 
+
+/* TODO: Add tests for:
+ *
+ * Use an action from a boss's fast turn, validate that action has been used from the correct turn
+ * Use an action from a boss's slow turn, validate that action has been used from the correct turn
+ * Use an action off of a boss's turn for fast, slow, offturn, validate actions used correctly
+ *
+ */
 export function registerInternalTestBatch(quench: Quench){
     quench.registerBatch(
         `${MODULE_ID}.internal`,
