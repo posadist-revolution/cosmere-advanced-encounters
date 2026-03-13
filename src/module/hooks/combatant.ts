@@ -28,11 +28,12 @@ export function activateCombatantHooks(){
 
         var combatant = game.combat.combatant;
         var turnSpeed: TurnSpeed | undefined | string;
-        if(combatant?.actorId !== options.actor?.id){
+        if(options.actor?.isAdversary){
+            var actor = options.actor as AdversaryActor;
+            game.combat.lastBossTurnSpeed = combatant?.turnSpeed!;
             // If this is an action being used by a boss actor without it being that boss's turn,
             // we need to prompt and see which turn this action should be used from.
-            if(options.actor?.isAdversary){
-                var actor = options.actor as AdversaryActor;
+            if(combatant?.actorId !== options.actor?.id){
                 if(actor.system.role == AdversaryRole.Boss && item.system.activation.cost.type == ActionCostType.Action && game.combat.combatant?.actorId != options.actor.id){
                     turnSpeed = await promptBossSpeed(actor);
                     game.combat.lastBossTurnSpeed = turnSpeed;
@@ -45,9 +46,9 @@ export function activateCombatantHooks(){
                     }
                 }
             }
-            else{
-                combatant = game.combat.getCombatantsByActor(options.actor!)[0]!;
-            }
+        }
+        else{
+            combatant = game.combat.getCombatantsByActor(options.actor!)[0]!;
         }
 
         if(checkActionUsability == CheckActionUsabilityOptions.warn || checkActionUsability == CheckActionUsabilityOptions.block){
@@ -196,14 +197,17 @@ export function activateCombatantHooks(){
             //TODO: Get movement item from actor sheet or from compendium
             console.log("Not enough remaining movement:");
             console.log((tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType]));
-            let moveActionItem = await getDefaultMovementItemForType(tokenCombatant.actor, moveType);
-            console.log("attempting to use move action:");
-            console.log(moveActionItem);
-            await tokenCombatant.actor.useItem(moveActionItem);
+            if(getModuleSetting(SETTINGS.PROMPT_BEFORE_USING_BASIC_MOVE_ACTION)){
+                //TODO: Create "Use basic movement action" prompt
+                await useDefaultMoveAction(tokenCombatant, moveType);
+            }
+            else{
+                await useDefaultMoveAction(tokenCombatant, moveType);
+            }
             if(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType] <= moveCost){
                 console.log("Still not enough remaining movement");
                 console.log(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType]);
-                return true;
+                return combatantNotEnoughMovement(tokenCombatant, moveType);
             }
         }
 
@@ -212,6 +216,28 @@ export function activateCombatantHooks(){
         await tokenCombatant.setFlag(MODULE_ID, "remainingMovementFromLastAction", remainingMovementFromLastAction);
         return true;
     });
+}
+
+function combatantNotEnoughMovement(combatant: AdvancedCosmereCombatant, moveType: MovementType | "blink"){
+    if(game.i18n){
+        ui.notifications?.warn(
+            game.i18n.format(`${MODULE_ID}.warning.notEnoughMovementType`, {
+                actor: combatant.actor.name,
+                moveType: game.i18n.localize(`${MODULE_ID}.movementType.${moveType}`)
+            })
+        );
+    }
+    if(getModuleSetting(SETTINGS.BLOCK_MOVE_WITHOUT_ACTION)){
+        return false;
+    }
+    return true;
+}
+
+async function useDefaultMoveAction(combatant: AdvancedCosmereCombatant, moveType: MovementType | "blink"){
+    let moveActionItem = await getDefaultMovementItemForType(combatant.actor, moveType);
+    console.log("attempting to use move action:");
+    console.log(moveActionItem);
+    await combatant.actor.useItem(moveActionItem);
 }
 
 async function handleFreeAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){

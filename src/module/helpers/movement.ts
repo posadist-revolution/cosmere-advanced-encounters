@@ -69,7 +69,7 @@ export async function applyMovementFromItem(combatant: AdvancedCosmereCombatant,
     //TODO: Reset movement if this item isn't a move item, unless the actor has the mobile feature or equivalent
     let actionMovement = getMovementOfItem(combatant, item);
     if(!actionMovement) return;
-    let remainingMovement = await combatant.getFlag(MODULE_ID, "remainingMovementFromLastAction");
+    let remainingMovement = combatant.getFlag(MODULE_ID, "remainingMovementFromLastAction");
     let distanceToMove = 0;
     if(actionMovement.distance.feet){
         distanceToMove = actionMovement.distance.feet;
@@ -100,11 +100,11 @@ export async function getDefaultMovementItemForType(actor: CosmereActor, movemen
 }
 
 export async function resetRemainingMovement(combatant: AdvancedCosmereCombatant){
-    const defaultremainingMovementFromLastAction = {
+    const defaultRemainingMovementFromLastAction = {
         [MovementType.Walk]: 0,
         [MovementType.Swim]: 0,
         [MovementType.Fly]: 0,
         ['blink']: 0,
     }
-    await combatant.setFlag(MODULE_ID, "remainingMovementFromLastAction", defaultremainingMovementFromLastAction);
+    await combatant.setFlag(MODULE_ID, "remainingMovementFromLastAction", defaultRemainingMovementFromLastAction);
 }
