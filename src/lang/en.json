@@ -44,6 +44,19 @@
             {
                 "name": "Use activate button to set turn",
                 "hint": "Changes the 'Mark as Acted' button to an 'activate' button, which sets the combat turn to be that actor's turn."
+            },
+            "blockMoveWithoutAction": {
+                "name": "Block movement without action usage",
+                "hint": "Should token movement be cancelled when the associated combatants haven't used an appropriate movement action"
+            },
+            "basicMoveActionWhen": {
+                "name": "Basic movement action options",
+                "hint": "Determines when the basic 'Move' action should be taken. Can be taken automatically whenever a token needs more movement speed, prompt the user to confirm move action usage, or never use it automatically."
+            },
+            "basicMoveActionWhenOptions": {
+                "never": "Never",
+                "prompt": "Prompt before using",
+                "auto": "Use the 'Move' action automatically"
             }
         },
         "warning":

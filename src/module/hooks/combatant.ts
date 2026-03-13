@@ -5,7 +5,7 @@ import { HOOKS } from "@system/constants/hooks";
 
 // Module Imports
 import { MODULE_ID } from "@module/constants";
-import { CheckActionUsabilityOptions, getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "@module/settings";
+import { BasicMoveActionWhenOptions, CheckActionUsabilityOptions, getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "@module/settings";
 import { UsedAction } from "@module/documents/used-action";
 import { AdvancedCosmereCombatant } from "@module/documents/combatant";
 import { AdvancedCosmereCombat } from "@module/documents/combat";
@@ -197,12 +197,18 @@ export function activateCombatantHooks(){
             //TODO: Get movement item from actor sheet or from compendium
             console.log("Not enough remaining movement:");
             console.log((tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType]));
-            if(getModuleSetting(SETTINGS.PROMPT_BEFORE_USING_BASIC_MOVE_ACTION)){
-                //TODO: Create "Use basic movement action" prompt
-                await useDefaultMoveAction(tokenCombatant, moveType);
-            }
-            else{
-                await useDefaultMoveAction(tokenCombatant, moveType);
+            switch(getModuleSetting(SETTINGS.BASIC_MOVE_ACTION_WHEN)){
+                case BasicMoveActionWhenOptions.never:
+                    return combatantNotEnoughMovement(tokenCombatant, moveType);
+
+                case BasicMoveActionWhenOptions.prompt:
+                    //TODO: Create "Use basic movement action" prompt
+                    await useDefaultMoveAction(tokenCombatant, moveType);
+                    break;
+
+                case BasicMoveActionWhenOptions.auto:
+                    await useDefaultMoveAction(tokenCombatant, moveType);
+                    break;
             }
             if(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType] <= moveCost){
                 console.log("Still not enough remaining movement");

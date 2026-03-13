@@ -8,7 +8,7 @@ export const SETTINGS = {
     CHECK_ACTION_USABILITY: 'checkActionUsability',
     CONDITIONS_APPLY_TO_ACTIONS: 'conditionsApplyToActions',
     BLOCK_MOVE_WITHOUT_ACTION: 'blockMoveWithoutAction',
-    PROMPT_BEFORE_USING_BASIC_MOVE_ACTION: 'promptBeforeUsingBasicMoveAction',
+    BASIC_MOVE_ACTION_WHEN: 'basicMoveActionWhen',
 } as const;
 
 export type ModuleSettingsConfig = {
@@ -26,7 +26,7 @@ export type ModuleSettingsConfig = {
 } & {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.BLOCK_MOVE_WITHOUT_ACTION}`]: boolean;
 } & {
-    [key in `${typeof MODULE_ID}.${typeof SETTINGS.PROMPT_BEFORE_USING_BASIC_MOVE_ACTION}`]: boolean;};
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.BASIC_MOVE_ACTION_WHEN}`]: string;};
 
 type ModuleSettingsKey = (typeof SETTINGS)[keyof typeof SETTINGS];
 export function getModuleSetting<
@@ -70,6 +70,12 @@ export const enum CheckActionUsabilityOptions {
     block = `block`,
 }
 
+export const enum BasicMoveActionWhenOptions {
+    never = `never`,
+    prompt = `prompt`,
+    auto = `auto`,
+}
+
 export function registerModuleSettings() {
 
     game.settings?.register(MODULE_ID, SETTINGS.INTERNAL_LATEST_VERSION, {
@@ -101,11 +107,6 @@ export function registerModuleSettings() {
             name: SETTINGS.BLOCK_MOVE_WITHOUT_ACTION,
             default: false,
             scope: 'world',
-        },
-        {
-            name: SETTINGS.PROMPT_BEFORE_USING_BASIC_MOVE_ACTION,
-            default: false,
-            scope: 'client',
         },
     ];
 
@@ -153,7 +154,23 @@ export function registerModuleSettings() {
                     `cosmere-advanced-encounters.settings.check_action_usability_options.${CheckActionUsabilityOptions.block}`,
                 )
             },
-        }
+        },
+        {
+            name: SETTINGS.BASIC_MOVE_ACTION_WHEN,
+            default: BasicMoveActionWhenOptions.auto,
+            scope: 'client',
+            choices: {
+                [BasicMoveActionWhenOptions.never]: game.i18n?.localize(
+                    `${MODULE_ID}.settings.basicMoveActionWhenOptions.${BasicMoveActionWhenOptions.never}`,
+                ),
+                [BasicMoveActionWhenOptions.prompt]: game.i18n?.localize(
+                    `${MODULE_ID}.settings.basicMoveActionWhenOptions.${BasicMoveActionWhenOptions.prompt}`,
+                ),
+                [BasicMoveActionWhenOptions.auto]: game.i18n?.localize(
+                    `${MODULE_ID}.settings.basicMoveActionWhenOptions.${BasicMoveActionWhenOptions.auto}`,
+                ),
+            },
+        },
 	];
 
 	configOptions.forEach(option => {
