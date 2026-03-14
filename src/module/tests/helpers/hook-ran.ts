@@ -1,20 +1,25 @@
 import { TEST_HOOKS } from "./test-hooks";
 
+const HOOK_TIMEOUT = 50;
+
 export async function hookRan(hookName: Hooks.HookName){
     console.log(`Test waiting on hook: ${hookName}`);
+    let done = false;
     return new Promise<boolean>((resolve, reject) => {
         let hookId = Hooks.on(hookName, (
             ...hookArgs: any[]
         ) => {
             console.log("Hook resolved with args:");
             console.log(hookArgs);
+            done = true;
             resolve(true);
             Hooks.off(hookName, hookId);
         });
         setTimeout(function() {
+            if(done) return;
             Hooks.off(hookName, hookId);
             resolve(false);
-        }, 100);
+        }, HOOK_TIMEOUT);
     });
 }
 
@@ -53,7 +58,7 @@ export async function pullActionsHookRanForCombatant(combatantId: string){
             console.log(`Hook ${hookId} not resolved`);
             Hooks.off(TEST_HOOKS.PULL_ACTIONS, hookId);
             resolve(false);
-        }, 100);
+        }, HOOK_TIMEOUT);
         console.log(`Setup hook: ${hookId}`);
     });
 }
@@ -97,6 +102,6 @@ export async function hookRanWithParamWithProperty(hookName: Hooks.HookName, par
         setTimeout(function() {
             Hooks.off(hookName, hookId);
             resolve(false);
-        }, 50);
+        }, HOOK_TIMEOUT);
     });
 }

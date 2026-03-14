@@ -122,7 +122,7 @@ export async function createTestCombat(
     await new Promise<void>((resolve, reject) => {
         setTimeout(function() {
             resolve();
-        }, 500);
+        }, 50);
     });
 
     return { combat, actors, tokenDocuments, combatants };
