@@ -1,13 +1,50 @@
 import { Quench } from "@ethaks/fvtt-quench";
 import { MODULE_ID, MODULE_NAME } from "@src/module/constants";
-import { createTestCombat, getNumMatching, hookRan, hookRanAfterCall, hookRanWithParamWithProperty, teardownTestCombat, TestCombat, TestCombatantOptions } from "../helpers";
+import { createTestCombat, getNumMatching, hookRan, hookRanAfterCall, hookRanWithParamWithProperty, pullActionsHookRanForCombatantsAfterCall, teardownTestCombat, TestCombat, TestCombatantOptions } from "../helpers";
 import { ActorType, AdversaryRole, TurnSpeed } from "@src/declarations/cosmere-rpg/types/cosmere";
 import { AdversaryActor } from "@src/declarations/cosmere-rpg/documents";
 import { UsedAction } from "@src/module/documents/used-action";
 import { AdvancedCosmereCombatant } from "@src/module/documents/combatant";
 import { getAllModuleSettings, getModuleSetting, ModuleSettingsConfig, RefreshCombatantActionsWhenOptions, setAllModuleSettings, setModuleSetting, SETTINGS } from "@src/module/settings";
 import { AdvancedCosmereCombat } from "@src/module/documents/combat";
+import { TEST_HOOKS } from "../helpers/test-hooks";
 
+
+/* TODO: Add tests for:
+ *
+ *
+ * Actions from chat:
+ * Setting enabled
+ * Setting disabled
+ * One action
+ * Two action
+ * Three action
+ * Reaction
+ * Free action
+ * Special action
+ *
+ * Condtions:
+ * Surprised
+ * Stunned
+ * Disoriented
+ *
+ *
+ *
+ *
+ * Boss Turns:
+ * Use an action from a boss's fast turn, validate that action has been used from the correct turn
+ * Use an action from a boss's slow turn, validate that action has been used from the correct turn
+ * Use an action off of a boss's turn for fast, slow, offturn, validate actions used correctly
+ *
+ *
+ *
+ *
+ *
+ * Movement:
+ *
+ *
+ *
+ */
 export function registerInternalTestBatch(quench: Quench){
     quench.registerBatch(
         `${MODULE_ID}.internal`,
@@ -288,7 +325,43 @@ export function registerInternalTestBatch(quench: Quench){
 
                 it("Turn Start (setting false)", async function() {
                     await setModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN, RefreshCombatantActionsWhenOptions.onlyManual);
+                    expect(testCombat.combat?.current.turn).to.be.null;
+                    const slowCombatants = testCombat.combat?.combatants?.filter((combatant) => (combatant.turnSpeed == TurnSpeed.Slow))!;
+                    helperCombatant = slowCombatants[0];
+                    console.log("Testing slow combatant turn start with helperCombatant:");
+                    console.log(helperCombatant);
 
+                    expect(useOneAction).to.decrease(getRemainingBaseActions).by(1);
+                    await helperCombatantActionsUpdateDone();
+                    await hookRanAfterCall("combatTurnChange", startTurn);
+                    await helperCombatantActionsUpdateDone();
+                    expect(getRemainingBaseActions()).to.equal(2);
+                    expect(getRemainingBaseReactions()).to.equal(1);
+
+                    expect(useTwoActions).to.decrease(getRemainingBaseActions).by(2);
+                    await helperCombatantActionsUpdateDone();
+                    await hookRanAfterCall("combatTurnChange", endTurn);
+                    await hookRanAfterCall("combatTurnChange", startTurn);
+                    await helperCombatantActionsUpdateDone();
+                    expect(getRemainingBaseActions()).to.equal(0);
+                    expect(getRemainingBaseReactions()).to.equal(1);
+
+                    expect(useThreeActions).to.not.change(getRemainingBaseActions);
+                    await helperCombatantActionsUpdateDone();
+                    await hookRanAfterCall("combatTurnChange", endTurn);
+                    await hookRanAfterCall("combatTurnChange", startTurn);
+                    await helperCombatantActionsUpdateDone();
+                    expect(getRemainingBaseActions()).to.equal(0);
+                    expect(getRemainingBaseReactions()).to.equal(1);
+
+                    expect(useReaction).to.decrease(getRemainingBaseReactions).by(1);
+                    expect(useTwoActions).to.not.change(getRemainingBaseActions);
+                    await helperCombatantActionsUpdateDone();
+                    await hookRanAfterCall("combatTurnChange", endTurn);
+                    await hookRanAfterCall("combatTurnChange", startTurn);
+                    await helperCombatantActionsUpdateDone();
+                    expect(getRemainingBaseActions()).to.equal(0);
+                    expect(getRemainingBaseReactions()).to.equal(0);
                 });
 
                 it("Round Start (setting true)", async function() {
@@ -365,20 +438,136 @@ export function registerInternalTestBatch(quench: Quench){
                     await setAllModuleSettings(currentSettings);
                 });
             });
+
+            describe("Boss turns suite", async function() {
+                console.log("Registering boss turns suite");
+                let testCombat: TestCombat = {};
+                let testCombatantOptions: TestCombatantOptions[] = [
+                    {
+                        actorType: ActorType.Character,
+                        turnSpeed: TurnSpeed.Fast,
+                    },
+                    {
+                        actorType: ActorType.Character,
+                        turnSpeed: TurnSpeed.Slow,
+                    },
+                    {
+                        actorType: ActorType.Adversary,
+                        turnSpeed: TurnSpeed.Fast,
+                    },
+                    {
+                        actorType: ActorType.Adversary,
+                        turnSpeed: TurnSpeed.Slow,
+                    },
+                    {
+                        actorType: ActorType.Adversary,
+                        adversaryRole: AdversaryRole.Boss
+                    }
+                ];
+                let currentSettings = getAllModuleSettings();
+
+                beforeEach(async function() {
+                    // CONFIG.debug.hooks = true;
+                    testCombat = await createTestCombat(testCombatantOptions);
+                    helperCombat = testCombat.combat!;
+                });
+
+                it("Check number of bossFast update hooks", async function() {
+                    CONFIG.debug.hooks = true;
+                    await setModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN, RefreshCombatantActionsWhenOptions.turnStart);
+                    expect(testCombat.combat?.current.turn).to.be.null;
+                    helperCombatant = testCombat.combat?.combatants?.find((combatant) => (combatant.turnSpeed == TurnSpeed.Fast && combatant.isBoss))!;
+                    console.log("HelperCombatant:");
+                    console.log(helperCombatant);
+                    findOtherBossCombatant();
+                    console.log("HelperCombatant2:");
+                    console.log(helperCombatant2);
+
+
+                    expect(await pullActionsDoneAfterFunc(useOneAction)).to.deep.equal([true, false], "Unexpected hook calls");
+
+                    expect(await pullActionsDoneAfterFunc(useReaction)).to.deep.equal([true, true], "Unexpected hook calls");
+
+                });
+
+                it("Use actions from bossFast", async function() {
+                    await setModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN, RefreshCombatantActionsWhenOptions.turnStart);
+                    expect(testCombat.combat?.current.turn).to.be.null;
+                    helperCombatant = testCombat.combat?.combatants?.find((combatant) => (combatant.turnSpeed == TurnSpeed.Fast && combatant.isBoss))!;
+                    console.log("HelperCombatant:");
+                    console.log(helperCombatant);
+                    findOtherBossCombatant();
+                    console.log("HelperCombatant2:");
+                    console.log(helperCombatant2);
+
+
+                    // Use 1 action
+                    expect(actValsBoth()).to.deep.equal([2, 1, 3, 1]);
+                    expect(await pullActionsDoneAfterFunc(useOneAction)).to.deep.equal([true, false], "Unexpected hook calls");
+                    expect(actValsBoth()).to.deep.equal([1, 1, 3, 1]);
+
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([true, false], "Unexpected hook calls");
+
+                    // Use 2 actions
+                    expect(actValsBoth()).to.deep.equal([2, 1, 3, 1]);
+                    expect(await pullActionsDoneAfterFunc(useTwoActions)).to.deep.equal([true, false], "Unexpected hook calls");
+                    expect(actValsBoth()).to.deep.equal([0, 1, 3, 1]);
+
+                    expect(await pullActionsDoneAfterFunc(endTurn)).to.deep.equal([false, false], "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([true, false], "Unexpected hook calls");
+
+                    // Use 3 actions
+                    expect(actValsBoth()).to.deep.equal([2, 1, 3, 1]);
+                    expect(await pullActionsDoneAfterFunc(useThreeActions)).to.deep.equal([false, false], "Unexpected hook calls");
+                    expect(actValsBoth()).to.deep.equal([2, 1, 3, 1]);
+
+                    expect(await pullActionsDoneAfterFunc(endTurn)).to.deep.equal([false, false], "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([false, false], "Unexpected hook calls");
+
+                    CONFIG.debug.hooks = true;
+                    // Use reaction
+                    expect(actValsBoth()).to.deep.equal([2, 1, 3, 1]);
+                    expect(await pullActionsDoneAfterFunc(useReaction)).to.deep.equal([true, true], "Unexpected hook calls");
+                    expect(actValsBoth()).to.deep.equal([2, 0, 3, 0]);
+
+                    await hookRanAfterCall("combatTurnChange", endTurn);
+                    expect(await pullActionsDoneAfterFunc(endTurn)).to.deep.equal([false, false], "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([true, true], "Unexpected hook calls");
+
+                    expect(actValsBoth()).to.deep.equal([2, 1, 3, 1]);
+
+                });
+
+                afterEach(async function() {
+                    CONFIG.debug.hooks = false;
+                    await teardownTestCombat(testCombat as TestCombat);
+                    await setAllModuleSettings(currentSettings);
+                });
+            });
         },
         { displayName: `${MODULE_NAME}: Internal Tests` }
     );
 }
 
 var helperCombatant: AdvancedCosmereCombatant;
+var helperCombatant2: AdvancedCosmereCombatant;
 var helperCombat: AdvancedCosmereCombat;
 
 function getRemainingBaseActions(){
     return helperCombatant.actionsAvailableGroups[0].remaining
 }
 
+function getRemainingBaseActions2(){
+    return helperCombatant2.actionsAvailableGroups[0].remaining
+}
+
 function getRemainingBaseReactions(){
     return helperCombatant.reactionsAvailable[0].remaining
+}
+
+function getRemainingBaseReactions2(){
+    return helperCombatant2.reactionsAvailable[0].remaining
+
 }
 
 
@@ -413,7 +602,56 @@ async function nextRound(){
 async function helperCombatantActionsUpdateDone(){
     let done = await hookRanWithParamWithProperty("updateCombatant",[{paramExpectedIndex: 1, properties:[{key: `flags.${MODULE_ID}`}, {key: "_id", value: helperCombatant.id}]}]);
     if(!done){
-        "Update combatant actions didn't run!";
+        console.log("Update combatant actions didn't run!");
     }
     return;
+}
+
+async function helperCombatant2ActionsUpdateDone(){
+    let done = await hookRanWithParamWithProperty("updateCombatant",[{paramExpectedIndex: 1, properties:[{key: `flags.${MODULE_ID}`}, {key: "_id", value: helperCombatant2.id}]}]);
+    if(!done){
+        console.log("Update combatant 2 actions didn't run!");
+    }
+    return;
+}
+
+async function helperCombatantActionsUpdateAfterCall(fn: Function, ...args: any){
+    let promise = hookRanWithParamWithProperty("updateCombatant",[{paramExpectedIndex: 1, properties:[{key: `flags.${MODULE_ID}`}, {key: "_id", value: helperCombatant.id}]}]);
+    fn(args);
+    let done = await promise;
+    if(!done){
+        console.log("Update combatant actions didn't run!");
+    }
+    return;
+}
+
+async function helperCombatant2ActionsUpdateAfterCall(fn: Function, ...args: any){
+    let promise = hookRanWithParamWithProperty("updateCombatant",[{paramExpectedIndex: 1, properties:[{key: `flags.${MODULE_ID}`}, {key: "_id", value: helperCombatant2.id}]}]);
+    fn(args);
+    let done = await promise;
+    if(!done){
+        console.log("Update combatant 2 actions didn't run!");
+    }
+    return;
+}
+
+function actVals() {
+    return [getRemainingBaseActions(), getRemainingBaseReactions()]
+}
+
+function actValsBoth() {
+    return [getRemainingBaseActions(), getRemainingBaseReactions(), getRemainingBaseActions2(), getRemainingBaseReactions2()]
+}
+
+async function pullActionsDoneAfterFunc(fn: Function){
+
+    let promise = pullActionsHookRanForCombatantsAfterCall([helperCombatant.id!, helperCombatant2.id!], fn);
+    let valArray = (await promise).map((result) => {return (result as PromiseFulfilledResult<boolean>).value});
+    return valArray;
+}
+
+function findOtherBossCombatant(){
+    helperCombatant2 = helperCombat.combatants?.find((combatant) => {
+        return combatant.turnSpeed !== helperCombatant.turnSpeed && combatant.isBoss && combatant.actorId === helperCombatant.actorId
+    })!;
 }

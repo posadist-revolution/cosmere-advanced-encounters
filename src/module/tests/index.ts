@@ -6,6 +6,7 @@ export function initializeTestHooks(){
     Hooks.on('quenchReady', (
         quench: Quench
     ) => {
+        useTestHooks = true;
         registerAllTestBatches(quench);
     });
 }

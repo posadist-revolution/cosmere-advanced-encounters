@@ -20,12 +20,14 @@ declare global {
         COSMERE: any;
         COSMERE_ADVANCED_ENCOUNTERS: typeof COSMERE_ADVANCED_ENCOUNTERS;
     }
+    var useTestHooks: boolean;
 }
 
 Hooks.once('init', async function() {
     CONFIG.Combat.documentClass = AdvancedCosmereCombat as any;
     CONFIG.ui.combat = AdvancedCosmereCombatTracker;
     CONFIG.Combatant.documentClass = AdvancedCosmereCombatant as any;
+    globalThis.useTestHooks = false;
     registerModuleSettings();
     registerWelcomeMessage();
     initializeTestHooks();
@@ -53,6 +55,6 @@ Hooks.on("updateCombatant", async (
     if(change.flags?.[MODULE_ID] == null){
         return;
     }
-    combatant.pullActionsFromFlags();
+    await combatant.pullActionsFromFlags();
     // activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.pullFlagInformation();
 });

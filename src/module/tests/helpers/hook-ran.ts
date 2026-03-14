@@ -1,3 +1,5 @@
+import { TEST_HOOKS } from "./test-hooks";
+
 export async function hookRan(hookName: Hooks.HookName){
     console.log(`Test waiting on hook: ${hookName}`);
     return new Promise<boolean>((resolve, reject) => {
@@ -20,6 +22,34 @@ export async function hookRanAfterCall(hookName: Hooks.HookName, fn: Function, .
     let hookRanPromise = hookRan(hookName);
     fn(args);
     return hookRanPromise;
+}
+
+export async function pullActionsHookRanForCombatantsAfterCall(combatantIds: string[], fn: Function, ...args: any){
+    let promiseArray: Promise<boolean>[] = [];
+    for(const combatantId of combatantIds){
+        promiseArray.push(pullActionsHookRanForCombatant(combatantId));
+    }
+    let hookRanPromise = Promise.allSettled(promiseArray);
+    fn(args);
+    return hookRanPromise;
+}
+
+export async function pullActionsHookRanForCombatant(combatantId: string){
+    console.log(`Test waiting on hook: ${TEST_HOOKS.PULL_ACTIONS}`);
+    return new Promise<boolean>((resolve, reject) => {
+        let hookId = Hooks.on(TEST_HOOKS.PULL_ACTIONS, (
+            hookCombatantId: string
+        ) => {
+            if(hookCombatantId !== combatantId) return;
+            console.log(`Hook resolved with: ${hookCombatantId}`);
+            resolve(true);
+            Hooks.off(TEST_HOOKS.PULL_ACTIONS, hookId);
+        });
+        setTimeout(function() {
+            Hooks.off(TEST_HOOKS.PULL_ACTIONS, hookId);
+            resolve(false);
+        }, 100);
+    });
 }
 
 export interface ParamWithProperty {
@@ -61,6 +91,6 @@ export async function hookRanWithParamWithProperty(hookName: Hooks.HookName, par
         setTimeout(function() {
             Hooks.off(hookName, hookId);
             resolve(false);
-        }, 10);
+        }, 50);
     });
 }
