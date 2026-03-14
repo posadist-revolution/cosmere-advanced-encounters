@@ -14,7 +14,7 @@ export async function hookRan(hookName: Hooks.HookName){
         setTimeout(function() {
             Hooks.off(hookName, hookId);
             resolve(false);
-        }, 10);
+        }, 100);
     });
 }
 
@@ -26,6 +26,7 @@ export async function hookRanAfterCall(hookName: Hooks.HookName, fn: Function, .
 
 export async function pullActionsHookRanForCombatantsAfterCall(combatantIds: string[], fn: Function, ...args: any){
     let promiseArray: Promise<boolean>[] = [];
+    console.log(`Creating hook listeners for ${fn.name}`);
     for(const combatantId of combatantIds){
         promiseArray.push(pullActionsHookRanForCombatant(combatantId));
     }
@@ -36,19 +37,24 @@ export async function pullActionsHookRanForCombatantsAfterCall(combatantIds: str
 
 export async function pullActionsHookRanForCombatant(combatantId: string){
     console.log(`Test waiting on hook: ${TEST_HOOKS.PULL_ACTIONS}`);
+    let done = false;
     return new Promise<boolean>((resolve, reject) => {
         let hookId = Hooks.on(TEST_HOOKS.PULL_ACTIONS, (
             hookCombatantId: string
         ) => {
             if(hookCombatantId !== combatantId) return;
-            console.log(`Hook resolved with: ${hookCombatantId}`);
+            console.log(`Hook ${hookId} resolved with: ${hookCombatantId}`);
+            done = true;
             resolve(true);
             Hooks.off(TEST_HOOKS.PULL_ACTIONS, hookId);
         });
         setTimeout(function() {
+            if(done) return;
+            console.log(`Hook ${hookId} not resolved`);
             Hooks.off(TEST_HOOKS.PULL_ACTIONS, hookId);
             resolve(false);
         }, 100);
+        console.log(`Setup hook: ${hookId}`);
     });
 }
 

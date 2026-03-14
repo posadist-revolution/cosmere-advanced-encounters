@@ -282,86 +282,90 @@ export function registerInternalTestBatch(quench: Quench){
                     helperCombat = testCombat.combat!;
                 });
 
-                it("Turn Start (setting true)", async function() {
+                it("Turn Start (setting true, slow turn)", async function() {
                     await setModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN, RefreshCombatantActionsWhenOptions.turnStart);
                     expect(testCombat.combat?.current.turn).to.be.null;
                     const slowCombatants = testCombat.combat?.combatants?.filter((combatant) => (combatant.turnSpeed == TurnSpeed.Slow))!;
                     helperCombatant = slowCombatants[0];
                     console.log("Testing slow combatant turn start with helperCombatant:");
                     console.log(helperCombatant);
+                    hookWatchedIds = [helperCombatant.id!];
 
-                    expect(useOneAction).to.decrease(getRemainingBaseActions).by(1);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatTurnChange", startTurn);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(3);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    expect(actVals()).to.deep.equal([3, 1]);
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([false], "Unexpected hook calls");
 
-                    expect(useTwoActions).to.decrease(getRemainingBaseActions).by(2);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatTurnChange", endTurn);
-                    await hookRanAfterCall("combatTurnChange", startTurn);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(3);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    // Use 1 action, start turn
+                    expect(await pullActionsDoneAfterFunc(useOneAction)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([2, 1]);
+                    expect(await hookRanAfterCall("combatTurnChange", endTurn)).to.be.equal(true, "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([3, 1]);
 
-                    expect(useThreeActions).to.decrease(getRemainingBaseActions).by(3);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatTurnChange", endTurn);
-                    await hookRanAfterCall("combatTurnChange", startTurn);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(3);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    // Use 2 actions, start turn
+                    expect(await pullActionsDoneAfterFunc(useTwoActions)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([1, 1]);
+                    expect(await hookRanAfterCall("combatTurnChange", endTurn)).to.be.equal(true, "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([3, 1]);
 
-                    expect(useReaction).to.decrease(getRemainingBaseReactions).by(1);
-                    expect(useTwoActions).to.decrease(getRemainingBaseActions).by(2);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatTurnChange", endTurn);
-                    await hookRanAfterCall("combatTurnChange", startTurn);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(3);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    // Use 3 actions, start turn
+                    expect(await pullActionsDoneAfterFunc(useThreeActions)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 1]);
+                    expect(await hookRanAfterCall("combatTurnChange", endTurn)).to.be.equal(true, "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([3, 1]);
+
+                    // Use 3 actions and reaction, start turn
+                    expect(await pullActionsDoneAfterFunc(useReaction)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([3, 0]);
+                    expect(await pullActionsDoneAfterFunc(useThreeActions)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 0]);
+                    expect(await hookRanAfterCall("combatTurnChange", endTurn)).to.be.equal(true, "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([3, 1]);
                 });
 
-                it("Turn Start (setting false)", async function() {
+                it("Turn Start (setting false, slow turn)", async function() {
                     await setModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN, RefreshCombatantActionsWhenOptions.onlyManual);
                     expect(testCombat.combat?.current.turn).to.be.null;
                     const slowCombatants = testCombat.combat?.combatants?.filter((combatant) => (combatant.turnSpeed == TurnSpeed.Slow))!;
                     helperCombatant = slowCombatants[0];
                     console.log("Testing slow combatant turn start with helperCombatant:");
                     console.log(helperCombatant);
+                    hookWatchedIds = [helperCombatant.id!];
 
-                    expect(useOneAction).to.decrease(getRemainingBaseActions).by(1);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatTurnChange", startTurn);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(2);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    expect(actVals()).to.deep.equal([3, 1]);
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([false], "Unexpected hook calls");
 
-                    expect(useTwoActions).to.decrease(getRemainingBaseActions).by(2);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatTurnChange", endTurn);
-                    await hookRanAfterCall("combatTurnChange", startTurn);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(0);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    // Use 1 action, start turn
+                    expect(await pullActionsDoneAfterFunc(useOneAction)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([2, 1]);
+                    expect(await hookRanAfterCall("combatTurnChange", endTurn)).to.be.equal(true, "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([2, 1]);
 
-                    expect(useThreeActions).to.not.change(getRemainingBaseActions);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatTurnChange", endTurn);
-                    await hookRanAfterCall("combatTurnChange", startTurn);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(0);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    // Use 2 actions, start turn
+                    expect(await pullActionsDoneAfterFunc(useTwoActions)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 1]);
+                    expect(await hookRanAfterCall("combatTurnChange", endTurn)).to.be.equal(true, "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 1]);
 
-                    expect(useReaction).to.decrease(getRemainingBaseReactions).by(1);
-                    expect(useTwoActions).to.not.change(getRemainingBaseActions);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatTurnChange", endTurn);
-                    await hookRanAfterCall("combatTurnChange", startTurn);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(0);
-                    expect(getRemainingBaseReactions()).to.equal(0);
+                    // Use 3 actions, start turn
+                    expect(await pullActionsDoneAfterFunc(useThreeActions)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 1]);
+                    expect(await hookRanAfterCall("combatTurnChange", endTurn)).to.be.equal(true, "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 1]);
+
+                    // Use 3 actions and reaction, start turn
+                    expect(await pullActionsDoneAfterFunc(useReaction)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 0]);
+                    expect(await pullActionsDoneAfterFunc(useThreeActions)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 0]);
+                    expect(await hookRanAfterCall("combatTurnChange", endTurn)).to.be.equal(true, "Unexpected hook calls");
+                    expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 0]);
                 });
 
                 it("Round Start (setting true)", async function() {
@@ -370,35 +374,36 @@ export function registerInternalTestBatch(quench: Quench){
                     expect(testCombat.combat?.current.turn).to.be.null;
                     const slowCombatants = testCombat.combat?.combatants?.filter((combatant) => (combatant.turnSpeed == TurnSpeed.Slow))!;
                     helperCombatant = slowCombatants[0];
-                    expect(useOneAction).to.decrease(getRemainingBaseActions).by(1);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatRound", nextRound);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(3);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    hookWatchedIds = [helperCombatant.id!];
 
-                    expect(useTwoActions).to.decrease(getRemainingBaseActions).by(2);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatRound", nextRound);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(3);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    expect(actVals()).to.deep.equal([3, 1]);
+                    expect(await pullActionsDoneAfterFunc(nextRound)).to.deep.equal([false], "Unexpected hook calls");
 
-                    expect(useThreeActions).to.decrease(getRemainingBaseActions).by(3);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatRound", nextRound);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(3);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    // Use 1 action, start turn
+                    expect(await pullActionsDoneAfterFunc(useOneAction)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([2, 1]);
+                    expect(await pullActionsDoneAfterFunc(nextRound)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([3, 1]);
 
-                    expect(useReaction).to.decrease(getRemainingBaseReactions).by(1);
-                    await helperCombatantActionsUpdateDone();
-                    expect(useTwoActions).to.decrease(getRemainingBaseActions).by(2);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatRound", nextRound);
-                    await helperCombatantActionsUpdateDone();
-                    expect(getRemainingBaseActions()).to.equal(3);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    // Use 2 actions, start turn
+                    expect(await pullActionsDoneAfterFunc(useTwoActions)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([1, 1]);
+                    expect(await pullActionsDoneAfterFunc(nextRound)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([3, 1]);
+
+                    // Use 3 actions, start turn
+                    expect(await pullActionsDoneAfterFunc(useThreeActions)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 1]);
+                    expect(await pullActionsDoneAfterFunc(nextRound)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([3, 1]);
+
+                    // Use 3 actions and reaction, start turn
+                    expect(await pullActionsDoneAfterFunc(useReaction)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([3, 0]);
+                    expect(await pullActionsDoneAfterFunc(useThreeActions)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 0]);
+                    expect(await pullActionsDoneAfterFunc(nextRound)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([3, 1]);
                 });
 
                 it("Round Start (setting false)", async function() {
@@ -406,30 +411,36 @@ export function registerInternalTestBatch(quench: Quench){
                     expect(testCombat.combat?.current.turn).to.be.null;
                     const slowCombatants = testCombat.combat?.combatants?.filter((combatant) => (combatant.turnSpeed == TurnSpeed.Slow))!;
                     helperCombatant = slowCombatants[0];
+                    hookWatchedIds = [helperCombatant.id!];
 
-                    expect(useOneAction).to.decrease(getRemainingBaseActions).by(1);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatRound", nextRound);
-                    expect(getRemainingBaseActions()).to.equal(2);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    expect(actVals()).to.deep.equal([3, 1]);
+                    expect(await pullActionsDoneAfterFunc(nextRound)).to.deep.equal([false], "Unexpected hook calls");
 
-                    expect(useTwoActions).to.decrease(getRemainingBaseActions).by(2);
-                    await helperCombatantActionsUpdateDone();
-                    await hookRanAfterCall("combatRound", nextRound);
-                    expect(getRemainingBaseActions()).to.equal(0);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    // Use 1 action, start turn
+                    expect(await pullActionsDoneAfterFunc(useOneAction)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([2, 1]);
+                    expect(await pullActionsDoneAfterFunc(nextRound)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([2, 1]);
 
-                    expect(useThreeActions).to.not.change(getRemainingBaseActions);
-                    await hookRanAfterCall("combatRound", nextRound);
-                    expect(getRemainingBaseActions()).to.equal(0);
-                    expect(getRemainingBaseReactions()).to.equal(1);
+                    // Use 2 actions, start turn
+                    expect(await pullActionsDoneAfterFunc(useTwoActions)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 1]);
+                    expect(await pullActionsDoneAfterFunc(nextRound)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 1]);
 
-                    expect(useReaction).to.decrease(getRemainingBaseReactions).by(1);
-                    await helperCombatantActionsUpdateDone();
-                    expect(useTwoActions).to.not.change(getRemainingBaseActions);
-                    await hookRanAfterCall("combatRound", nextRound);
-                    expect(getRemainingBaseActions()).to.equal(0);
-                    expect(getRemainingBaseReactions()).to.equal(0);
+                    // Use 3 actions, start turn
+                    expect(await pullActionsDoneAfterFunc(useThreeActions)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 1]);
+                    expect(await pullActionsDoneAfterFunc(nextRound)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 1]);
+
+                    // Use 3 actions and reaction, start turn
+                    expect(await pullActionsDoneAfterFunc(useReaction)).to.deep.equal([true], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 0]);
+                    expect(await pullActionsDoneAfterFunc(useThreeActions)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 0]);
+                    expect(await pullActionsDoneAfterFunc(nextRound)).to.deep.equal([false], "Unexpected hook calls");
+                    expect(actVals()).to.deep.equal([0, 0]);
                 });
 
                 afterEach(async function() {
@@ -473,7 +484,6 @@ export function registerInternalTestBatch(quench: Quench){
                 });
 
                 it("Check number of bossFast update hooks", async function() {
-                    CONFIG.debug.hooks = true;
                     await setModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN, RefreshCombatantActionsWhenOptions.turnStart);
                     expect(testCombat.combat?.current.turn).to.be.null;
                     helperCombatant = testCombat.combat?.combatants?.find((combatant) => (combatant.turnSpeed == TurnSpeed.Fast && combatant.isBoss))!;
@@ -482,6 +492,7 @@ export function registerInternalTestBatch(quench: Quench){
                     findOtherBossCombatant();
                     console.log("HelperCombatant2:");
                     console.log(helperCombatant2);
+                    hookWatchedIds = [helperCombatant.id!, helperCombatant2.id!];
 
 
                     expect(await pullActionsDoneAfterFunc(useOneAction)).to.deep.equal([true, false], "Unexpected hook calls");
@@ -499,6 +510,8 @@ export function registerInternalTestBatch(quench: Quench){
                     findOtherBossCombatant();
                     console.log("HelperCombatant2:");
                     console.log(helperCombatant2);
+                    hookWatchedIds = [helperCombatant.id!, helperCombatant2.id!];
+
 
 
                     // Use 1 action
@@ -524,7 +537,6 @@ export function registerInternalTestBatch(quench: Quench){
                     expect(await pullActionsDoneAfterFunc(endTurn)).to.deep.equal([false, false], "Unexpected hook calls");
                     expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([false, false], "Unexpected hook calls");
 
-                    CONFIG.debug.hooks = true;
                     // Use reaction
                     expect(actValsBoth()).to.deep.equal([2, 1, 3, 1]);
                     expect(await pullActionsDoneAfterFunc(useReaction)).to.deep.equal([true, true], "Unexpected hook calls");
@@ -552,6 +564,7 @@ export function registerInternalTestBatch(quench: Quench){
 var helperCombatant: AdvancedCosmereCombatant;
 var helperCombatant2: AdvancedCosmereCombatant;
 var helperCombat: AdvancedCosmereCombat;
+var hookWatchedIds: string[];
 
 function getRemainingBaseActions(){
     return helperCombatant.actionsAvailableGroups[0].remaining
@@ -607,34 +620,6 @@ async function helperCombatantActionsUpdateDone(){
     return;
 }
 
-async function helperCombatant2ActionsUpdateDone(){
-    let done = await hookRanWithParamWithProperty("updateCombatant",[{paramExpectedIndex: 1, properties:[{key: `flags.${MODULE_ID}`}, {key: "_id", value: helperCombatant2.id}]}]);
-    if(!done){
-        console.log("Update combatant 2 actions didn't run!");
-    }
-    return;
-}
-
-async function helperCombatantActionsUpdateAfterCall(fn: Function, ...args: any){
-    let promise = hookRanWithParamWithProperty("updateCombatant",[{paramExpectedIndex: 1, properties:[{key: `flags.${MODULE_ID}`}, {key: "_id", value: helperCombatant.id}]}]);
-    fn(args);
-    let done = await promise;
-    if(!done){
-        console.log("Update combatant actions didn't run!");
-    }
-    return;
-}
-
-async function helperCombatant2ActionsUpdateAfterCall(fn: Function, ...args: any){
-    let promise = hookRanWithParamWithProperty("updateCombatant",[{paramExpectedIndex: 1, properties:[{key: `flags.${MODULE_ID}`}, {key: "_id", value: helperCombatant2.id}]}]);
-    fn(args);
-    let done = await promise;
-    if(!done){
-        console.log("Update combatant 2 actions didn't run!");
-    }
-    return;
-}
-
 function actVals() {
     return [getRemainingBaseActions(), getRemainingBaseReactions()]
 }
@@ -645,7 +630,7 @@ function actValsBoth() {
 
 async function pullActionsDoneAfterFunc(fn: Function){
 
-    let promise = pullActionsHookRanForCombatantsAfterCall([helperCombatant.id!, helperCombatant2.id!], fn);
+    let promise = pullActionsHookRanForCombatantsAfterCall(hookWatchedIds, fn);
     let valArray = (await promise).map((result) => {return (result as PromiseFulfilledResult<boolean>).value});
     return valArray;
 }
