@@ -1,4 +1,4 @@
-import { ActionCostType, AdversaryRole, Status, TurnSpeed } from '@system/types/cosmere';
+import { ActionCostType, AdversaryRole, MovementType, Status, TurnSpeed } from '@system/types/cosmere';
 
 // Documents
 import { CosmereActor, CosmereItem } from '@system/documents';
@@ -9,7 +9,6 @@ import { AnyMutableObject } from '@league-of-foundry-developers/foundry-vtt-type
 import { MODULE_ID, SYSTEM_ID } from '@module/constants';
 import { ActionGroup, UsedAction } from './used-action';
 import { getModuleSetting, SETTINGS } from '../settings';
-import { resetRemainingMovement } from '../helpers/movement';
 
 let _schema:
     | foundry.data.fields.SchemaField<AdvancedCosmereCombatant.Schema>
@@ -47,6 +46,7 @@ export class AdvancedCosmereCombatant extends Combatant {
             `flags.${MODULE_ID}.actionsUsed`,
             `flags.${MODULE_ID}.freeActionsUsed`,
             `flags.${MODULE_ID}.specialActionsUsed`,
+            `flags.${MODULE_ID}.remainingMovementFromLastAction`
         ];
         if (operation.noPropagateKeys) {
             // If the operation had instructions to ignore any more keys of the update, add those here
@@ -205,6 +205,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     private _localReactionsUsed?: UsedAction[];
     private _localFreeActionsUsed?: UsedAction[];
     private _localSpecialActionsUsed?: UsedAction[];
+    private _localRemainingMovementFromLastAction?: Record<MovementType | "blink", number>;
 
     //#region GetSet
 
@@ -212,7 +213,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get actionsAvailableGroups(): ActionGroup[] {
         if(!this._localActionsAvailableGroups){
             let flagData = this.getFlag(MODULE_ID, 'actionsAvailableGroups');
-            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+            if(Symbol.iterator in flagData){
                 this._localActionsAvailableGroups = ActionGroup.DeserializeArray(flagData);
             }
             else{
@@ -225,7 +226,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get reactionsAvailable(): ActionGroup[] {
         if(!this._localReactionsAvailable){
             let flagData = this.getFlag(MODULE_ID, 'reactionsAvailable')
-            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+            if(Symbol.iterator in flagData){
                 this._localReactionsAvailable = ActionGroup.DeserializeArray(flagData);
             }
             else{
@@ -238,7 +239,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get actionsUsed(): UsedAction[] {
         if(!this._localActionsUsed){
             let flagData = this.getFlag(MODULE_ID, 'actionsUsed');
-            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+            if(Symbol.iterator in flagData){
                 this._localActionsUsed = UsedAction.DeserializeArray(flagData);
             }
             else{
@@ -251,7 +252,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get reactionsUsed(): UsedAction[] {
         if(!this._localReactionsUsed){
             let flagData = this.getFlag(MODULE_ID, 'reactionsUsed');
-            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+            if(Symbol.iterator in flagData){
                 this._localReactionsUsed = UsedAction.DeserializeArray(flagData);
             }
             else{
@@ -264,7 +265,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get freeActionsUsed(): UsedAction[] {
         if(!this._localFreeActionsUsed){
             let flagData = this.getFlag(MODULE_ID, 'freeActionsUsed');
-            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+            if(Symbol.iterator in flagData){
                 this._localFreeActionsUsed = UsedAction.DeserializeArray(flagData);
             }
             else{
@@ -277,7 +278,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get specialActionsUsed(): UsedAction[] {
         if(!this._localSpecialActionsUsed){
             let flagData = this.getFlag(MODULE_ID, 'specialActionsUsed');
-            if(foundry.utils.hasProperty(flagData, "Symbol.iterator")){
+            if(Symbol.iterator in flagData){
                 this._localSpecialActionsUsed = UsedAction.DeserializeArray(flagData);
             }
             else{
@@ -288,16 +289,19 @@ export class AdvancedCosmereCombatant extends Combatant {
     }
 
     public async pullActionsFromFlags() {
-        this._localActionsAvailableGroups = ActionGroup.DeserializeArray(await this.getFlag(MODULE_ID, 'actionsAvailableGroups'));
-        this._localReactionsAvailable = ActionGroup.DeserializeArray(await this.getFlag(MODULE_ID, 'reactionsAvailable'));
-        this._localActionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'actionsUsed'));
-        this._localReactionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'reactionsUsed'));
-        this._localFreeActionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'freeActionsUsed'));
-        this._localSpecialActionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'specialActionsUsed'));
+        this._localActionsAvailableGroups = ActionGroup.DeserializeArray(this.getFlag(MODULE_ID, 'actionsAvailableGroups'));
+        this._localReactionsAvailable = ActionGroup.DeserializeArray(this.getFlag(MODULE_ID, 'reactionsAvailable'));
+        this._localActionsUsed = UsedAction.DeserializeArray(this.getFlag(MODULE_ID, 'actionsUsed'));
+        this._localReactionsUsed = UsedAction.DeserializeArray(this.getFlag(MODULE_ID, 'reactionsUsed'));
+        this._localFreeActionsUsed = UsedAction.DeserializeArray(this.getFlag(MODULE_ID, 'freeActionsUsed'));
+        this._localSpecialActionsUsed = UsedAction.DeserializeArray(this.getFlag(MODULE_ID, 'specialActionsUsed'));
+        this._localRemainingMovementFromLastAction = this.getFlag(MODULE_ID, "remainingMovementFromLastAction");
     }
     //#endregion Get
 
     //#region Set
+
+    //TODO: These should *absolutely* not just be public setters with all the nonsense I'm doing here
     public set actionsAvailableGroups(actionsAvailableGroups: ActionGroup[]) {
         this._localActionsAvailableGroups = actionsAvailableGroups;
     }
@@ -334,6 +338,7 @@ export class AdvancedCosmereCombatant extends Combatant {
                     reactionsUsed: UsedAction.SerializeArray(this.reactionsUsed),
                     freeActionsUsed: UsedAction.SerializeArray(this.freeActionsUsed),
                     specialActionsUsed: UsedAction.SerializeArray(this.specialActionsUsed),
+                    remainingMovementFromLastAction: this._localRemainingMovementFromLastAction
                 }
             }
         }
@@ -364,7 +369,7 @@ export class AdvancedCosmereCombatant extends Combatant {
         this.freeActionsUsed = [];
         this.specialActionsUsed = [];
         this.applyConditionsToActions();
-        await resetRemainingMovement(this);
+        this._localRemainingMovementFromLastAction = this.getDefaultRemainingMovementFromLastAction();
         await this.sendUpdateFromActions();
     }
 
@@ -386,6 +391,15 @@ export class AdvancedCosmereCombatant extends Combatant {
         if(this.actor.statuses.has(Status.Disoriented)) {
             this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Disoriented")), "base");
             return;
+        }
+    }
+
+    protected getDefaultRemainingMovementFromLastAction() {
+        return {
+            [MovementType.Walk]: 0,
+            [MovementType.Swim]: 0,
+            [MovementType.Fly]: 0,
+            ['blink']: 0,
         }
     }
 
