@@ -1,5 +1,5 @@
 import { Quench } from "@ethaks/fvtt-quench";
-import { registerInternalTestBatch } from "./internal";
+import { registerInternalTestBatches } from "./internal";
 
 
 export function initializeTestHooks(){
@@ -12,7 +12,7 @@ export function initializeTestHooks(){
 }
 
 function registerAllTestBatches(quench: Quench){
-    registerInternalTestBatch(quench);
+    registerInternalTestBatches(quench);
 }
 
 declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {

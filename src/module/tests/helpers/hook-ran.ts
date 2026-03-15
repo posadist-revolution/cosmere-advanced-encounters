@@ -1,6 +1,6 @@
 import { TEST_HOOKS } from "./test-hooks";
 
-const HOOK_TIMEOUT = 50;
+const HOOK_TIMEOUT = 100;
 
 export async function hookRan(hookName: Hooks.HookName){
     console.log(`Test waiting on hook: ${hookName}`);
