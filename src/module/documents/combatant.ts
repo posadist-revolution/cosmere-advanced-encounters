@@ -9,6 +9,7 @@ import { AnyMutableObject } from '@league-of-foundry-developers/foundry-vtt-type
 import { MODULE_ID, SYSTEM_ID } from '@module/constants';
 import { ActionGroup, UsedAction } from './used-action';
 import { getModuleSetting, SETTINGS } from '../settings';
+import { TEST_HOOKS } from '../tests/helpers/test-hooks';
 
 let _schema:
     | foundry.data.fields.SchemaField<AdvancedCosmereCombatant.Schema>
@@ -287,12 +288,15 @@ export class AdvancedCosmereCombatant extends Combatant {
     }
 
     public async pullActionsFromFlags() {
-        this._localActionsAvailableGroups = ActionGroup.DeserializeArray(await this.getFlag(MODULE_ID, 'actionsAvailableGroups'));
-        this._localReactionsAvailable = ActionGroup.DeserializeArray(await this.getFlag(MODULE_ID, 'reactionsAvailable'));
-        this._localActionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'actionsUsed'));
-        this._localReactionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'reactionsUsed'));
-        this._localFreeActionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'freeActionsUsed'));
-        this._localSpecialActionsUsed = UsedAction.DeserializeArray(await this.getFlag(MODULE_ID, 'specialActionsUsed'));
+        this._localActionsAvailableGroups = ActionGroup.DeserializeArray(this.getFlag(MODULE_ID, 'actionsAvailableGroups'));
+        this._localReactionsAvailable = ActionGroup.DeserializeArray(this.getFlag(MODULE_ID, 'reactionsAvailable'));
+        this._localActionsUsed = UsedAction.DeserializeArray(this.getFlag(MODULE_ID, 'actionsUsed'));
+        this._localReactionsUsed = UsedAction.DeserializeArray(this.getFlag(MODULE_ID, 'reactionsUsed'));
+        this._localFreeActionsUsed = UsedAction.DeserializeArray(this.getFlag(MODULE_ID, 'freeActionsUsed'));
+        this._localSpecialActionsUsed = UsedAction.DeserializeArray(this.getFlag(MODULE_ID, 'specialActionsUsed'));
+        if(useTestHooks){
+            Hooks.callAll(TEST_HOOKS.PULL_ACTIONS, this.id!);
+        }
     }
     //#endregion Get
 
