@@ -158,7 +158,7 @@ export function activateCombatantHooks(){
         }
     });
 
-    Hooks.on("preMoveToken", async (token: TokenDocument, movementData: TokenDocument.MovementData) => {
+    Hooks.on("preMoveToken", (token: TokenDocument, movementData: TokenDocument.MovementData) => {
         console.log("Running preMoveToken");
         console.log("Token:");
         console.log(token);
@@ -169,8 +169,14 @@ export function activateCombatantHooks(){
         }
 
         if(!token.actor) return true;
-        let tokenCombatant = await getCombatantForAction(token.actor!);
-        if(!tokenCombatant) return true;
+        var tokenCombatant: AdvancedCosmereCombatant | undefined;
+        if(game.combat.combatant && (game.combat.combatant?.actorId === token.actor.id)){
+            tokenCombatant = game.combat.combatant;
+        }
+        else{
+            // If it's not this combatant's turn, for now, just let the combatant move freely
+            return true;
+        }
         console.log("tokenCombatant");
         console.log(tokenCombatant);
 
@@ -180,9 +186,9 @@ export function activateCombatantHooks(){
         console.log(moveCost);
         console.log("moveType");
         console.log(moveType);
-        let initialremainingMovementFromLastAction = (tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction"));
-        if(!initialremainingMovementFromLastAction){
-            resetRemainingMovement(tokenCombatant);
+        let initialRemainingMovementFromLastAction = (tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction"));
+        if(!initialRemainingMovementFromLastAction){
+            requeueMoveAfter(token, movementData, resetRemainingMovement, tokenCombatant);
         }
 
         if(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType] < moveCost){
@@ -195,23 +201,21 @@ export function activateCombatantHooks(){
 
                 case BasicMoveActionWhenOptions.prompt:
                     //TODO: Create "Use basic movement action" prompt
-                    await useDefaultMoveAction(tokenCombatant, moveType);
-                    break;
+                    requeueMoveAfter(token, movementData, useDefaultMoveAction, tokenCombatant, moveType);
+                    return false;
 
                 case BasicMoveActionWhenOptions.auto:
-                    await useDefaultMoveAction(tokenCombatant, moveType);
-                    break;
-            }
-            if(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType] <= moveCost){
-                console.log("Still not enough remaining movement");
-                console.log(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType]);
-                return combatantNotEnoughMovement(tokenCombatant, moveType);
+                    requeueMoveAfter(token, movementData, useDefaultMoveAction, tokenCombatant, moveType);
+                    return false;
+
+                default:
+                    return combatantNotEnoughMovement(tokenCombatant, moveType);
             }
         }
 
-        let remainingMovementFromLastAction = (await tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction"));
+        let remainingMovementFromLastAction = (tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction"));
         remainingMovementFromLastAction[moveType] -= moveCost;
-        await tokenCombatant.setFlag(MODULE_ID, "remainingMovementFromLastAction", remainingMovementFromLastAction);
+        tokenCombatant.setFlag(MODULE_ID, "remainingMovementFromLastAction", remainingMovementFromLastAction);
         return true;
     });
 }
@@ -232,10 +236,30 @@ function combatantNotEnoughMovement(combatant: AdvancedCosmereCombatant, moveTyp
 }
 
 async function useDefaultMoveAction(combatant: AdvancedCosmereCombatant, moveType: MovementType | "blink"){
+    console.log("Attempting using default move action");
     let moveActionItem = await getDefaultMovementItemForType(combatant.actor, moveType);
-    console.log("attempting to use move action:");
+    console.log("Found move action item: ");
     console.log(moveActionItem);
-    await combatant.actor.useItem(moveActionItem);
+    if(moveActionItem && combatant.canUseItem(moveActionItem)){
+        console.log("attempting to use move action:");
+        console.log(moveActionItem);
+        await combatant.actor.useItem(moveActionItem);
+        return true;
+    }
+    return false;
+}
+
+async function requeueMoveAfter(token: TokenDocument, movementData: TokenDocument.MovementData, fn: Function, ...args: any[]){
+    console.log("Checking if move should be requeued");
+    if((await fn(...args)) !== false){
+        console.log("Requeueing move");
+        await token.move(movementData.passed.waypoints);
+    }
+    else if(token.combatant){
+        console.log("Canceling move");
+        let moveType = token.movementAction as MovementType | "blink";
+        combatantNotEnoughMovement(token.combatant, moveType);
+    }
 }
 
 async function handleFreeAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
