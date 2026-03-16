@@ -158,6 +158,7 @@ export function activateCombatantHooks(){
         }
     });
 
+    //TODO: This should probably be done by overriding the token document, not by a hook.
     Hooks.on("preMoveToken", (token: TokenDocument, movementData: TokenDocument.MovementData) => {
         console.log("Running preMoveToken");
         console.log("Token:");
@@ -165,6 +166,10 @@ export function activateCombatantHooks(){
         console.log("movementData:");
         console.log(movementData);
         if(!game.combat || !game.combat.active){
+            return true;
+        }
+
+        if(movementData.constrainOptions.ignoreCost){
             return true;
         }
 
@@ -256,9 +261,11 @@ async function requeueMoveAfter(token: TokenDocument, movementData: TokenDocumen
         await token.move(movementData.passed.waypoints);
     }
     else if(token.combatant){
-        console.log("Canceling move");
+        console.log("Cancelling move");
         let moveType = token.movementAction as MovementType | "blink";
-        combatantNotEnoughMovement(token.combatant, moveType);
+        if(combatantNotEnoughMovement(token.combatant, moveType)){
+            await token.move(movementData.passed.waypoints, {constrainOptions: {ignoreCost: true, ignoreWalls: false}});
+        }
     }
 }
 
