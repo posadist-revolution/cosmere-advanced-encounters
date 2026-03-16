@@ -27,15 +27,42 @@ export function activateCombatantHooks(){
         // Check the settings for what level of control the module has over using actions
         let checkActionUsability = getModuleSetting(SETTINGS.CHECK_ACTION_USABILITY);
 
-        var combatant = await getCombatantForAction(options.actor, item);
-        if(!combatant){
-            // Always allow using actions off-turn
-            return true;
+
+        if(game.combat.combatant && (game.combat.combatant?.actorId === options.actor.id)){
+            let combatant = game.combat.combatant;
+            if(!combatant?.canUseItem(item)){
+                if((game.i18n) && (options.actor)){
+                    ui.notifications?.warn(
+                        game.i18n?.format(`${MODULE_ID}.warning.notEnoughActionType`, {
+                            actor: options.actor.name,
+                            actionCostType: game.i18n.localize(`${MODULE_ID}.actionCostType.${item.system.activation.cost.type}`),
+                            actionName: item.name
+                        }),
+                    );
+                }
+
+                if(checkActionUsability == CheckActionUsabilityOptions.block){
+                    return false;
+                }
+            }
+            else{
+                return true;
+            }
         }
+
+        let combatants = game.combat.getCombatantsByActor(options.actor);
 
         if(checkActionUsability == CheckActionUsabilityOptions.warn || checkActionUsability == CheckActionUsabilityOptions.block){
             // Get all relevant combatant actions information
-            if(!combatant?.canUseItem(item)){
+            // If any of the combatants for this actor have enough actions, return true
+            if(combatants.some((combatant) => {return combatant.canUseItem(item)})){
+                return true;
+            }
+            else if(options.actor.isBoss && options.actor?.system.resources.foc.value > 0){
+                //If this is a boss actor, and we have some focus left, we should return true
+                return true;
+            }
+            else{
                 if((game.i18n) && (options.actor)){
                     ui.notifications?.warn(
                         game.i18n?.format(`${MODULE_ID}.warning.notEnoughActionType`, {
@@ -54,7 +81,7 @@ export function activateCombatantHooks(){
         return true;
     });
 
-    Hooks.on(HOOKS.USE_ITEM, (
+    Hooks.on(HOOKS.USE_ITEM, async (
         item: CosmereItem,
         options: CosmereItem.UseOptions
     ) => {
@@ -63,18 +90,10 @@ export function activateCombatantHooks(){
         }
         // Get all relevant combatant actions information
         let combatants = game.combat?.getCombatantsByActor(options.actor)!;
-        var combatant = combatants[0];
 
-        if(game.combat.lastBossTurnSpeed){
-            if(game.combat.lastBossTurnSpeed == "offTurn"){
-                // Don't mark off-turn actions for now
-                // TODO: Find a way to track these well
-                game.combat.lastBossTurnSpeed = null;
-                return;
-            }
-            else{
-                combatant = combatants.find((combatant) => {return combatant.turnSpeed == game.combat?.lastBossTurnSpeed})!;
-            }
+        var combatant = await getCombatantForAction(options.actor, item);
+        if(!combatant){
+            return;
         }
 
         switch(item.system.activation.cost.type){
