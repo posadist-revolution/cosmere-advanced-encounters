@@ -93,6 +93,7 @@ export function activateCombatantHooks(){
 
         var combatant = await getCombatantForAction(options.actor, item);
         if(!combatant){
+            //TODO: Track off-turn action usages by bosses and such better
             return;
         }
 
