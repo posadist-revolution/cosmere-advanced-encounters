@@ -17,7 +17,7 @@ export function activateCombatantHooks(){
     console.log(`${MODULE_ID}: Registering combatant hooks`);
 
     // Before an actor uses an item, register that usage in the combatant actions tracker
-    Hooks.on(HOOKS.PRE_USE_ITEM, async (
+    Hooks.on(HOOKS.PRE_USE_ITEM, (
         item: CosmereItem,
         options: CosmereItem.UseOptions
     ) => {
