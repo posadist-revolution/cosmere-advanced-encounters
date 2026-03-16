@@ -3,6 +3,7 @@ import { registerSetupTestBatch } from "./setup";
 import { registerCombatantActionsTestBatch } from "./combatant-actions";
 import { registerTurnsAndOrderTestBatch } from "./turns-and-order";
 import { registerBossTurnsTestBatch } from "./boss-turns";
+import { registerUseItemTestBatch } from "./items-from-chat";
 
 
 /* TODO: Add tests for:
@@ -43,5 +44,6 @@ export function registerInternalTestBatches(quench: Quench){
     registerCombatantActionsTestBatch(quench);
     registerTurnsAndOrderTestBatch(quench);
     registerBossTurnsTestBatch(quench);
+    registerUseItemTestBatch(quench);
 
 }
