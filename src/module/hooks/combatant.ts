@@ -159,7 +159,7 @@ export function activateCombatantHooks(){
     });
 
     //TODO: This should probably be done by overriding the token document, not by a hook.
-    Hooks.on("preMoveToken", (token: TokenDocument, movementData: TokenDocument.MovementData) => {
+    Hooks.on("preMoveToken", (token: TokenDocument, movementData: TokenDocument.MovementOperation, options: TokenDocument.Database.UpdateOptions) => {
         console.log("Running preMoveToken");
         console.log("Token:");
         console.log(token);
@@ -192,8 +192,12 @@ export function activateCombatantHooks(){
         console.log("moveType");
         console.log(moveType);
         let initialRemainingMovementFromLastAction = (tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction"));
+        let requeueMoveData: Omit<TokenDocument.MovementData, "user" | "state"> = {
+            updateOptions: options,
+            ...movementData
+        }
         if(!initialRemainingMovementFromLastAction){
-            requeueMoveAfter(token, movementData, resetRemainingMovement, tokenCombatant);
+            requeueMoveAfter(token, requeueMoveData, resetRemainingMovement, tokenCombatant);
         }
 
         if(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType] < moveCost){
@@ -206,11 +210,11 @@ export function activateCombatantHooks(){
 
                 case BasicMoveActionWhenOptions.prompt:
                     //TODO: Create "Use basic movement action" prompt
-                    requeueMoveAfter(token, movementData, useDefaultMoveAction, tokenCombatant, moveType);
+                    requeueMoveAfter(token, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);
                     return false;
 
                 case BasicMoveActionWhenOptions.auto:
-                    requeueMoveAfter(token, movementData, useDefaultMoveAction, tokenCombatant, moveType);
+                    requeueMoveAfter(token, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);
                     return false;
 
                 default:
@@ -254,17 +258,32 @@ async function useDefaultMoveAction(combatant: AdvancedCosmereCombatant, moveTyp
     return false;
 }
 
-async function requeueMoveAfter(token: TokenDocument, movementData: TokenDocument.MovementData, fn: Function, ...args: any[]){
+async function requeueMoveAfter(token: TokenDocument, movementData: Omit<TokenDocument.MovementData, "user" | "state">, fn: Function, ...args: any[]){
     console.log("Checking if move should be requeued");
     if((await fn(...args)) !== false){
         console.log("Requeueing move");
-        await token.move(movementData.passed.waypoints);
+        let moveOptions: TokenDocument.MoveOptions = {
+                method: movementData.method,
+                autoRotate: movementData.autoRotate,
+                showRuler: movementData.showRuler,
+                constrainOptions: movementData.constrainOptions,
+                ...movementData.updateOptions
+        }
+        await token.move(movementData.passed.waypoints, moveOptions);
     }
     else if(token.combatant){
-        console.log("Cancelling move");
+        console.log("Cancelling or finalizing move");
         let moveType = token.movementAction as MovementType | "blink";
         if(combatantNotEnoughMovement(token.combatant, moveType)){
-            await token.move(movementData.passed.waypoints, {constrainOptions: {ignoreCost: true, ignoreWalls: false}});
+            let moveOptions: TokenDocument.MoveOptions = {
+                    method: movementData.method,
+                    autoRotate: movementData.autoRotate,
+                    showRuler: movementData.showRuler,
+                    constrainOptions: movementData.constrainOptions,
+                    ...movementData.updateOptions
+            }
+            moveOptions.constrainOptions.ignoreCost = true;
+            await token.move(movementData.passed.waypoints, moveOptions);
         }
     }
 }
