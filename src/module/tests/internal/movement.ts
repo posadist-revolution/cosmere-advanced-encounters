@@ -1,6 +1,6 @@
 import { Quench } from "@ethaks/fvtt-quench";
 import { MODULE_ID, MODULE_NAME } from "@src/module/constants";
-import { actVals, createTestCombat, helperCombatant, hookRanWithParamWithProperty, pullActionsDoneAfterFunc, pullActionsHookRanForCombatant, setHelperCombat, setHelperCombatant, setHookWatchedIds, startTurn, teardownTestCombat, TestCombat, TestCombatantOptions } from "../helpers";
+import { actVals, baseActionsUsedHookRanForCombatant, createTestCombat, helperCombatant, hookRanWithParamWithProperty, movementUpdateHookRanForCombatant, pullActionsDoneAfterFunc, pullActionsHookRanForCombatant, setHelperCombat, setHelperCombatant, setHookWatchedIds, startTurn, teardownTestCombat, TestCombat, TestCombatantOptions } from "../helpers";
 import { ActorType, AdversaryRole, MovementType, TurnSpeed } from "@src/declarations/cosmere-rpg/types/cosmere";
 import { BasicMoveActionWhenOptions, CheckActionUsabilityOptions, getAllModuleSettings, RefreshCombatantActionsWhenOptions, setAllModuleSettings, setModuleSetting, SETTINGS } from "@src/module/settings";
 import { InexactPartial } from "@league-of-foundry-developers/foundry-vtt-types/utils";
@@ -39,14 +39,17 @@ function currPos(){
     }
 }
 
-async function moveDone(waypoints: InexactPartial<TokenDocument.MovementWaypoint> | InexactPartial<TokenDocument.MovementWaypoint>[], options?: InexactPartial<TokenDocument.MoveOptions>){
+async function moveDone(waypoints: InexactPartial<TokenDocument.MovementWaypoint> | InexactPartial<TokenDocument.MovementWaypoint>[], options?: InexactPartial<TokenDocument.MoveOptions>, expectAction?: boolean){
     let promiseArray: Promise<boolean>[] = [];
+    if(expectAction){
+        promiseArray.push(baseActionsUsedHookRanForCombatant(helperCombatant.id!))
+    }
     // Await movementLeft update
-    promiseArray.push(pullActionsHookRanForCombatant(helperCombatant.id!));
+    promiseArray.push(movementUpdateHookRanForCombatant(helperCombatant.id!));
     // Await refreshToken at the end of the movement
     promiseArray.push(hookRanWithParamWithProperty("refreshToken", [{paramExpectedIndex: 1, properties:[{key: `refreshPosition`, value: true}]}]));
     // Await move call itself being done
-    promiseArray.push(helperCombatant.token?.move(waypoints, {animate: false})!);
+    promiseArray.push(helperCombatant.token?.move(waypoints, options)!);
     let hookRanPromise = Promise.allSettled(promiseArray);
     return hookRanPromise;
 }
@@ -151,12 +154,12 @@ export function registerMovementTestBatch(quench: Quench){
                         expect(moveRemaining()).to.equal(0);
 
                         let nextWaypoint = moveSouthWaypoint();
-                        await moveDone(nextWaypoint, {animate: false});
+                        await moveDone(nextWaypoint, {animate: false}, true);
 
                         expect(currPos().x).to.equal(0);
                         expect(currPos().y).to.equal(1);
                         expect(actVals()).to.deep.equal([1, 1]);
-                        expect(moveRemaining()).to.equal(0);
+                        expect(moveRemaining()).to.equal(15);
 
                         nextWaypoint = moveSouthWaypoint();
                         await moveDone(nextWaypoint, {animate: false});
@@ -164,7 +167,7 @@ export function registerMovementTestBatch(quench: Quench){
                         expect(currPos().x).to.equal(0);
                         expect(currPos().y).to.equal(2);
                         expect(actVals()).to.deep.equal([1, 1]);
-                        expect(moveRemaining()).to.equal(0);
+                        expect(moveRemaining()).to.equal(10);
 
                         nextWaypoint = moveSouthWaypoint();
                         await moveDone(nextWaypoint, {animate: false});
@@ -172,7 +175,7 @@ export function registerMovementTestBatch(quench: Quench){
                         expect(currPos().x).to.equal(0);
                         expect(currPos().y).to.equal(3);
                         expect(actVals()).to.deep.equal([1, 1]);
-                        expect(moveRemaining()).to.equal(0);
+                        expect(moveRemaining()).to.equal(5);
 
                         nextWaypoint = moveSouthWaypoint();
                         await moveDone(nextWaypoint, {animate: false});
@@ -183,7 +186,7 @@ export function registerMovementTestBatch(quench: Quench){
                         expect(moveRemaining()).to.equal(0);
                     });
 
-                    it("Move 20 ft", async function() {
+                    it("Move 25 ft", async function() {
                         await setModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN, RefreshCombatantActionsWhenOptions.turnStart);
                         await setModuleSetting(SETTINGS.BASIC_MOVE_ACTION_WHEN, BasicMoveActionWhenOptions.auto);
                         await setModuleSetting(SETTINGS.BLOCK_MOVE_WITHOUT_ACTION, true);
@@ -207,7 +210,7 @@ export function registerMovementTestBatch(quench: Quench){
                         expect(moveRemaining()).to.equal(0);
 
                         let nextWaypoint = moveSouthWaypoint(4);
-                        await moveDone(nextWaypoint, {animate: false});
+                        await moveDone(nextWaypoint, {animate: false}, true);
 
                         expect(currPos().x).to.equal(0);
                         expect(currPos().y).to.equal(4);
@@ -215,12 +218,12 @@ export function registerMovementTestBatch(quench: Quench){
                         expect(moveRemaining()).to.equal(0);
 
                         nextWaypoint = moveSouthWaypoint(1);
-                        await moveDone(nextWaypoint, {animate: false});
+                        await moveDone(nextWaypoint, {animate: false}, true);
 
                         expect(currPos().x).to.equal(0);
                         expect(currPos().y).to.equal(5);
                         expect(actVals()).to.deep.equal([0, 1]);
-                        expect(moveRemaining()).to.equal(0);
+                        expect(moveRemaining()).to.equal(15);
                     });
 
                 });

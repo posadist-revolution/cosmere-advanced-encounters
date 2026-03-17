@@ -1,3 +1,4 @@
+import { AdvancedCosmereCombatant } from "@src/module/documents/combatant";
 import { TEST_HOOKS } from "./test-hooks";
 
 const HOOK_TIMEOUT = 100;
@@ -57,6 +58,70 @@ export async function pullActionsHookRanForCombatant(combatantId: string){
             if(done) return;
             console.log(`Hook ${hookId} not resolved`);
             Hooks.off(TEST_HOOKS.PULL_ACTIONS, hookId);
+            resolve(false);
+        }, HOOK_TIMEOUT);
+        console.log(`Setup hook: ${hookId}`);
+    });
+}
+
+export async function baseActionsUsedHookRanForCombatant(combatantId: string){
+    console.log(`Test waiting on hook: updateCombatant with base actions used update`);
+    let done = false;
+    return new Promise<boolean>((resolve, reject) => {
+        let hookId = Hooks.on('updateCombatant', (
+            combatant : AdvancedCosmereCombatant,
+            change : Combatant.UpdateData,
+            options : Combatant.Database.UpdateOptions,
+            userId : string
+        ) => {
+            if(combatant.id !== combatantId){
+                return;
+            }
+            if(!(change.system && change.system.actionsAvailableGroups))
+            {
+                return;
+            }
+            console.log(`Hook ${hookId} resolved with: ${combatant.id}`);
+            done = true;
+            resolve(true);
+            Hooks.off('updateCombatant', hookId);
+        });
+        setTimeout(function() {
+            if(done) return;
+            console.log(`Hook ${hookId} not resolved`);
+            Hooks.off('updateCombatant', hookId);
+            resolve(false);
+        }, HOOK_TIMEOUT);
+        console.log(`Setup hook: ${hookId}`);
+    });
+}
+
+export async function movementUpdateHookRanForCombatant(combatantId: string){
+    console.log(`Test waiting on hook: updateCombatant with movement data update`);
+    let done = false;
+    return new Promise<boolean>((resolve, reject) => {
+        let hookId = Hooks.on('updateCombatant', (
+            combatant : AdvancedCosmereCombatant,
+            change : Combatant.UpdateData,
+            options : Combatant.Database.UpdateOptions,
+            userId : string
+        ) => {
+            if(combatant.id !== combatantId){
+                return;
+            }
+            if(!(change.flags && change.flags["cosmere-advanced-encounters"] && change.flags["cosmere-advanced-encounters"].remainingMovementFromLastAction))
+            {
+                return;
+            }
+            console.log(`Hook ${hookId} resolved with: ${combatant.id}`);
+            done = true;
+            resolve(true);
+            Hooks.off('updateCombatant', hookId);
+        });
+        setTimeout(function() {
+            if(done) return;
+            console.log(`Hook ${hookId} not resolved`);
+            Hooks.off('updateCombatant', hookId);
             resolve(false);
         }, HOOK_TIMEOUT);
         console.log(`Setup hook: ${hookId}`);
