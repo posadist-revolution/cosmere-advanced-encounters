@@ -22,10 +22,9 @@ function moveRemaining(){
 }
 
 function moveSouthWaypoint(gridDist: number = 1){
-    let dist = gridDist * game.scenes?.active?.grid.size!;
     let nextWaypoint: InexactPartial<TokenDocument.MovementWaypoint> = {
-        x: currPos()?.x!,
-        y: currPos()?.y! + dist,
+        x: currPos()?.x! * game.scenes?.active?.grid.size!,
+        y: (currPos()?.y! + gridDist) * game.scenes?.active?.grid.size!,
         action: (helperCombatant.token?.movementAction! as MovementType | "blink"),
     }
     return nextWaypoint
@@ -130,7 +129,6 @@ export function registerMovementTestBatch(quench: Quench){
                     });
 
                     it("Move 20 ft", async function() {
-                        CONFIG.debug.hooks = true;
                         await setModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN, RefreshCombatantActionsWhenOptions.turnStart);
                         await setModuleSetting(SETTINGS.BASIC_MOVE_ACTION_WHEN, BasicMoveActionWhenOptions.auto);
                         await setModuleSetting(SETTINGS.BLOCK_MOVE_WITHOUT_ACTION, true);
