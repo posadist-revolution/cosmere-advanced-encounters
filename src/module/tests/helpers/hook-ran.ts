@@ -1,5 +1,6 @@
 import { AdvancedCosmereCombatant } from "@src/module/documents/combatant";
 import { TEST_HOOKS } from "./test-hooks";
+import { MODULE_ID } from "@src/module/constants";
 
 const HOOK_TIMEOUT = 100;
 
@@ -64,8 +65,9 @@ export async function pullActionsHookRanForCombatant(combatantId: string){
     });
 }
 
-export async function baseActionsUsedHookRanForCombatant(combatantId: string){
+export async function baseActionsUsedHookRanForCombatant(combatantId: string, numExpected: number = 1){
     console.log(`Test waiting on hook: updateCombatant with base actions used update`);
+    let numTimesFired = 0;
     let done = false;
     return new Promise<boolean>((resolve, reject) => {
         let hookId = Hooks.on('updateCombatant', (
@@ -77,8 +79,13 @@ export async function baseActionsUsedHookRanForCombatant(combatantId: string){
             if(combatant.id !== combatantId){
                 return;
             }
-            if(!(change.system && change.system.actionsAvailableGroups))
+            if(!(change.flags && change.flags[MODULE_ID] && change.flags[MODULE_ID].actionsAvailableGroups))
             {
+                return;
+            }
+            numTimesFired++;
+            console.log(`Hook ${hookId} incremented to ${numTimesFired}`);
+            if(numTimesFired < numExpected){
                 return;
             }
             console.log(`Hook ${hookId} resolved with: ${combatant.id}`);
@@ -96,8 +103,9 @@ export async function baseActionsUsedHookRanForCombatant(combatantId: string){
     });
 }
 
-export async function movementUpdateHookRanForCombatant(combatantId: string){
+export async function movementUpdateHookRanForCombatant(combatantId: string, numExpected: number = 1){
     console.log(`Test waiting on hook: updateCombatant with movement data update`);
+    let numTimesFired = 0;
     let done = false;
     return new Promise<boolean>((resolve, reject) => {
         let hookId = Hooks.on('updateCombatant', (
@@ -109,8 +117,13 @@ export async function movementUpdateHookRanForCombatant(combatantId: string){
             if(combatant.id !== combatantId){
                 return;
             }
-            if(!(change.flags && change.flags["cosmere-advanced-encounters"] && change.flags["cosmere-advanced-encounters"].remainingMovementFromLastAction))
+            if(!(change.flags && change.flags[MODULE_ID] && change.flags[MODULE_ID].remainingMovementFromLastAction))
             {
+                return;
+            }
+            numTimesFired++;
+            console.log(`Hook ${hookId} incremented to ${numTimesFired}`);
+            if(numTimesFired < numExpected){
                 return;
             }
             console.log(`Hook ${hookId} resolved with: ${combatant.id}`);
