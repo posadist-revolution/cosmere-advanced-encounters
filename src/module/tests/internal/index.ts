@@ -6,6 +6,8 @@ import { registerBossTurnsTestBatch } from "./boss-turns";
 import { registerUseItemTestBatch } from "./items-from-chat";
 import { registerMovementTestBatch } from "./movement";
 import { registerConditionsTestBatch } from "./conditions";
+import { registerTestQueries } from "../helpers/test-queries";
+import { registerPlayerTestBatch } from "./player";
 
 
 /* TODO: Add tests for:
@@ -42,12 +44,18 @@ import { registerConditionsTestBatch } from "./conditions";
  *
  */
 export function registerInternalTestBatches(quench: Quench){
-    registerSetupTestBatch(quench);
-    registerMovementTestBatch(quench);
-    registerCombatantActionsTestBatch(quench);
-    registerConditionsTestBatch(quench);
-    registerTurnsAndOrderTestBatch(quench);
-    registerBossTurnsTestBatch(quench);
-    registerUseItemTestBatch(quench);
+    registerTestQueries();
+    if(game.user?.isActiveGM){
+        registerSetupTestBatch(quench);
+        registerMovementTestBatch(quench);
+        registerCombatantActionsTestBatch(quench);
+        registerConditionsTestBatch(quench);
+        registerTurnsAndOrderTestBatch(quench);
+        registerBossTurnsTestBatch(quench);
+        registerUseItemTestBatch(quench);
+    }
+    else{
+        registerPlayerTestBatch(quench);
+    }
 
 }
