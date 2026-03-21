@@ -595,8 +595,116 @@ export function registerMovementTestBatch(quench: Quench){
 
                 });
 
-                describe("", async function(){
+                describe("Auto-use Move action never", async function(){
 
+                    beforeEach(async function() {
+                        await setModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN, RefreshCombatantActionsWhenOptions.turnStart);
+                        await setModuleSetting(SETTINGS.BASIC_MOVE_ACTION_WHEN, BasicMoveActionWhenOptions.never);
+                        await setModuleSetting(SETTINGS.BLOCK_MOVE_WITHOUT_ACTION, true);
+                        await setModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT, true);
+                        await setModuleSetting(SETTINGS.CHECK_ACTION_USABILITY, CheckActionUsabilityOptions.block);
+                        expect(testCombat.combat?.current.turn).to.be.null;
+                        setHelperCombatant(testCombat.combat?.combatants?.find((combatant) => (combatant.turnSpeed == TurnSpeed.Fast))!);
+                        console.log("HelperCombatant:");
+                        console.log(helperCombatant);
+                        setHookWatchedIds([helperCombatant.id!]);
+                    });
+
+                    it("Move off-turn", async function() {
+                        let helperToken = helperCombatant.token!;
+
+                        console.log("Starting location:");
+                        let startPos = currPos();
+                        console.log(startPos);
+                        expect(currPos().x).to.equal(0);
+                        expect(currPos().y).to.equal(0);
+
+                        expect(actVals()).to.deep.equal([2, 1]);
+                        expect(moveRemaining()).to.equal(0);
+                        let nextWaypoint = moveSouthWaypoint();
+                        let refreshDone = hookRanWithParamWithProperty("refreshToken", [{paramExpectedIndex: 1, properties:[{key: `refreshPosition`, value: true}]}]);
+                        expect(helperToken?.move(nextWaypoint, {animate: false})).to.eventually.equal(true);
+                        await refreshDone;
+
+                        console.log("Current pos: ");
+                        console.log(currPos());
+
+                        expect(currPos().x).to.equal(0);
+                        expect(currPos().y).to.equal(1);
+                        expect(actVals()).to.deep.equal([2, 1]);
+                        expect(moveRemaining()).to.equal(0);
+                    });
+
+                    it("Move 20 ft", async function() {
+                        let helperToken = helperCombatant.token!;
+
+                        console.log("Starting location:");
+                        let startPos = currPos();
+                        console.log(startPos);
+                        expect(currPos().x).to.equal(0);
+                        expect(currPos().y).to.equal(0);
+
+                        expect(await pullActionsDoneAfterFunc(startTurn)).to.deep.equal([false], "Unexpected hook calls");
+                        expect(actVals()).to.deep.equal([2, 1]);
+                        expect(moveRemaining()).to.equal(0);
+
+                        // Move 1 square down (5 feet), expect to use no action and fail
+                        let nextWaypoint = moveSouthWaypoint();
+                        let expectedResults: MoveDoneHookResults = {
+                            moveUpdatesHook: false,
+                            refreshTokenHook: false,
+                            firstMoveSuccess: false
+                        }
+                        expect(await moveDone(nextWaypoint, {animate: false})).to.deep.equal(expectedResults, "Unexpected hook calls");
+
+                        expect(currPos().x).to.equal(0);
+                        expect(currPos().y).to.equal(0);
+                        expect(actVals()).to.deep.equal([2, 1]);
+                        expect(moveRemaining()).to.equal(0);
+
+                        // Move 1 square down (5 feet), expect to use no action and fail
+                        nextWaypoint = moveSouthWaypoint();
+                        expectedResults = {
+                            moveUpdatesHook: false,
+                            refreshTokenHook: false,
+                            firstMoveSuccess: false
+                        }
+                        expect(await moveDone(nextWaypoint, {animate: false})).to.deep.equal(expectedResults, "Unexpected hook calls");
+
+                        expect(currPos().x).to.equal(0);
+                        expect(currPos().y).to.equal(0);
+                        expect(actVals()).to.deep.equal([2, 1]);
+                        expect(moveRemaining()).to.equal(0);
+
+                        // Move 1 square down (5 feet), expect to use no action and fail
+                        nextWaypoint = moveSouthWaypoint();
+                        expectedResults = {
+                            moveUpdatesHook: false,
+                            refreshTokenHook: false,
+                            firstMoveSuccess: false
+                        }
+                        expect(await moveDone(nextWaypoint, {animate: false})).to.deep.equal(expectedResults, "Unexpected hook calls");
+
+                        expect(currPos().x).to.equal(0);
+                        expect(currPos().y).to.equal(0);
+                        expect(actVals()).to.deep.equal([2, 1]);
+                        expect(moveRemaining()).to.equal(0);
+
+                        // Move 1 square down (5 feet), expect to use no action and fail
+                        nextWaypoint = moveSouthWaypoint();
+                        expectedResults = {
+                            moveUpdatesHook: false,
+                            refreshTokenHook: false,
+                            firstMoveSuccess: false
+                        }
+                        expect(await moveDone(nextWaypoint, {animate: false})).to.deep.equal(expectedResults, "Unexpected hook calls");
+
+                        expect(currPos().x).to.equal(0);
+                        expect(currPos().y).to.equal(0);
+                        expect(actVals()).to.deep.equal([2, 1]);
+                        expect(moveRemaining()).to.equal(0);
+
+                    });
                 });
 
                 afterEach(async function() {
