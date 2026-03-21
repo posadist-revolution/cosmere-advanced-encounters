@@ -214,7 +214,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get actionsAvailableGroups(): ActionGroup[] {
         if(!this._localActionsAvailableGroups){
             let flagData = this.getFlag(MODULE_ID, 'actionsAvailableGroups');
-            if(Symbol.iterator in flagData){
+            if(flagData && Symbol.iterator in flagData){
                 this._localActionsAvailableGroups = ActionGroup.DeserializeArray(flagData);
             }
             else{
@@ -227,7 +227,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get reactionsAvailable(): ActionGroup[] {
         if(!this._localReactionsAvailable){
             let flagData = this.getFlag(MODULE_ID, 'reactionsAvailable')
-            if(Symbol.iterator in flagData){
+            if(flagData && Symbol.iterator in flagData){
                 this._localReactionsAvailable = ActionGroup.DeserializeArray(flagData);
             }
             else{
@@ -240,7 +240,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get actionsUsed(): UsedAction[] {
         if(!this._localActionsUsed){
             let flagData = this.getFlag(MODULE_ID, 'actionsUsed');
-            if(Symbol.iterator in flagData){
+            if(flagData && Symbol.iterator in flagData){
                 this._localActionsUsed = UsedAction.DeserializeArray(flagData);
             }
             else{
@@ -253,7 +253,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get reactionsUsed(): UsedAction[] {
         if(!this._localReactionsUsed){
             let flagData = this.getFlag(MODULE_ID, 'reactionsUsed');
-            if(Symbol.iterator in flagData){
+            if(flagData && Symbol.iterator in flagData){
                 this._localReactionsUsed = UsedAction.DeserializeArray(flagData);
             }
             else{
@@ -266,7 +266,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get freeActionsUsed(): UsedAction[] {
         if(!this._localFreeActionsUsed){
             let flagData = this.getFlag(MODULE_ID, 'freeActionsUsed');
-            if(Symbol.iterator in flagData){
+            if(flagData && Symbol.iterator in flagData){
                 this._localFreeActionsUsed = UsedAction.DeserializeArray(flagData);
             }
             else{
@@ -279,7 +279,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     public get specialActionsUsed(): UsedAction[] {
         if(!this._localSpecialActionsUsed){
             let flagData = this.getFlag(MODULE_ID, 'specialActionsUsed');
-            if(Symbol.iterator in flagData){
+            if(flagData && Symbol.iterator in flagData){
                 this._localSpecialActionsUsed = UsedAction.DeserializeArray(flagData);
             }
             else{
