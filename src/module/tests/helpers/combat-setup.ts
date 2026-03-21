@@ -21,11 +21,15 @@ export interface TestCombat {
 export async function createTestCombat(
     combatantOptions?: TestCombatantOptions[],
 ): Promise<TestCombat> {
-    // console.log("Setting up test combat");
+    console.log("Setting up test combat");
     const options = combatantOptions ?? [
         { },
         { },
     ];
+
+    if(game.combat!){
+        game.combat.delete();
+    }
 
     // Create actors and tokens
     const actors: Actor.Implementation[] = [];
@@ -115,6 +119,11 @@ export async function createTestCombat(
 
     console.log("Test combat setup complete");
     console.log({combat, actors, tokenDocuments, combatants});
+    await new Promise<void>((resolve, reject) => {
+        setTimeout(function() {
+            resolve();
+        }, 50);
+    });
 
     return { combat, actors, tokenDocuments, combatants };
 }
@@ -122,8 +131,13 @@ export async function createTestCombat(
 export async function teardownTestCombat(
     testCombat: TestCombat,
 ): Promise<void> {
-    // console.log("Tearing down test combat");
+    console.log("Tearing down test combat");
     // console.log(testCombat);
+
+    if (testCombat.combat?.id) {
+        // console.log("Deleting combat");
+        await testCombat.combat.delete();
+    }
 
     if(testCombat.tokenDocuments){
         // console.log("Deleting token documents");
@@ -131,11 +145,6 @@ export async function teardownTestCombat(
             // console.log(tokenDoc);
             await tokenDoc.delete();
         }
-    }
-
-    if (testCombat.combat?.id) {
-        // console.log("Deleting combat");
-        await testCombat.combat.delete();
     }
 
     if(testCombat.actors){

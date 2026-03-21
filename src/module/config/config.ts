@@ -17,6 +17,16 @@ import { AdvancedCosmereCombat } from "../documents/combat";
 
 export const COSMERE_ADVANCED_ENCOUNTERS: any = {};
 
+export type PreMoveToken = (document: TokenDocument, movement: TokenDocument.MovementOperation, options: TokenDocument.Database.UpdateOptions) => boolean | void;
+
+declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {
+    namespace Hooks {
+        interface HookConfig {
+            ['preMoveToken']: PreMoveToken
+        }
+    }
+}
+
 declare module "@league-of-foundry-developers/foundry-vtt-types/configuration" {
     interface DataModelConfig {
         ActiveEffect: {

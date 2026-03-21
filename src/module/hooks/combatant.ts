@@ -1,21 +1,23 @@
 // System Imports
-import { CosmereItem, CosmereActiveEffect, CosmereActor, AdversaryActor} from "@system/documents";
-import { ActionCostType, AdversaryRole, Status, TurnSpeed } from "@system/types/cosmere";
+import { CosmereItem, CosmereActiveEffect, CosmereActor} from "@system/documents";
+import { ActionCostType, AdversaryRole, MovementType, Status, TurnSpeed } from "@system/types/cosmere";
 import { HOOKS } from "@system/constants/hooks";
 
 // Module Imports
 import { MODULE_ID } from "@module/constants";
-import { CheckActionUsabilityOptions, getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "@module/settings";
+import { BasicMoveActionWhenOptions, CheckActionUsabilityOptions, getModuleSetting, RefreshCombatantActionsWhenOptions, SETTINGS } from "@module/settings";
 import { UsedAction } from "@module/documents/used-action";
 import { AdvancedCosmereCombatant } from "@module/documents/combatant";
 import { AdvancedCosmereCombat } from "@module/documents/combat";
+import { applyMovementFromItem, getDefaultMovementItemForType, QueuedMoveData, resetRemainingMovement } from "../helpers/movement";
+import { getCombatantForAction } from "../helpers/combatant";
 
 
 export function activateCombatantHooks(){
     console.log(`${MODULE_ID}: Registering combatant hooks`);
 
     // Before an actor uses an item, register that usage in the combatant actions tracker
-    Hooks.on(HOOKS.PRE_USE_ITEM, async (
+    Hooks.on(HOOKS.PRE_USE_ITEM, (
         item: CosmereItem,
         options: CosmereItem.UseOptions
     ) => {
@@ -25,33 +27,42 @@ export function activateCombatantHooks(){
         // Check the settings for what level of control the module has over using actions
         let checkActionUsability = getModuleSetting(SETTINGS.CHECK_ACTION_USABILITY);
 
-        var combatant = game.combat.combatant;
-        var turnSpeed: TurnSpeed | undefined | string;
-        if(combatant?.actorId !== options.actor?.id){
-            // If this is an action being used by a boss actor without it being that boss's turn,
-            // we need to prompt and see which turn this action should be used from.
-            if(options.actor?.isAdversary){
-                var actor = options.actor as AdversaryActor;
-                if(actor.system.role == AdversaryRole.Boss && item.system.activation.cost.type == ActionCostType.Action && game.combat.combatant?.actorId != options.actor.id){
-                    turnSpeed = await promptBossSpeed(actor);
-                    game.combat.lastBossTurnSpeed = turnSpeed;
-                    if(turnSpeed == "offTurn"){
-                        // Always allow using actions off-turn
-                        return true;
-                    }
-                    else{
-                        combatant = game.combat.getCombatantsByActor(options.actor).filter((combatant) => {return combatant.turnSpeed == turnSpeed})[0]!;
-                    }
+
+        if(game.combat.combatant && (game.combat.combatant?.actorId === options.actor.id)){
+            let combatant = game.combat.combatant;
+            if(!combatant?.canUseItem(item)){
+                if((game.i18n) && (options.actor)){
+                    ui.notifications?.warn(
+                        game.i18n?.format(`${MODULE_ID}.warning.notEnoughActionType`, {
+                            actor: options.actor.name,
+                            actionCostType: game.i18n.localize(`${MODULE_ID}.actionCostType.${item.system.activation.cost.type}`),
+                            actionName: item.name
+                        }),
+                    );
+                }
+
+                if(checkActionUsability == CheckActionUsabilityOptions.block){
+                    return false;
                 }
             }
             else{
-                combatant = game.combat.getCombatantsByActor(options.actor!)[0]!;
+                return true;
             }
         }
 
+        let combatants = game.combat.getCombatantsByActor(options.actor);
+
         if(checkActionUsability == CheckActionUsabilityOptions.warn || checkActionUsability == CheckActionUsabilityOptions.block){
             // Get all relevant combatant actions information
-            if(!combatant?.canUseItem(item)){
+            // If any of the combatants for this actor have enough actions, return true
+            if(combatants.some((combatant) => {return combatant.canUseItem(item)})){
+                return true;
+            }
+            else if(options.actor.isBoss && options.actor?.system.resources.foc.value > 0){
+                //If this is a boss actor, and we have some focus left, we should return true
+                return true;
+            }
+            else{
                 if((game.i18n) && (options.actor)){
                     ui.notifications?.warn(
                         game.i18n?.format(`${MODULE_ID}.warning.notEnoughActionType`, {
@@ -70,27 +81,20 @@ export function activateCombatantHooks(){
         return true;
     });
 
-    Hooks.on(HOOKS.USE_ITEM, (
+    Hooks.on(HOOKS.USE_ITEM, async (
         item: CosmereItem,
         options: CosmereItem.UseOptions
     ) => {
         if(!(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT) && game.combat?.started)){
-            return true;
+            return;
         }
         // Get all relevant combatant actions information
-        let combatants = game.combat?.getCombatantsByToken(options.actor?.getActiveTokens(true)[0].id!)!;
-        var combatant = combatants[0];
+        let combatants = game.combat?.getCombatantsByActor(options.actor)!;
 
-        if(game.combat.lastBossTurnSpeed){
-            if(game.combat.lastBossTurnSpeed == "offTurn"){
-                // Don't mark off-turn actions for now
-                // TODO: Find a way to track these well
-                game.combat.lastBossTurnSpeed = null;
-                return true;
-            }
-            else{
-                combatant = combatants.filter((combatant) => {return combatant.turnSpeed == game.combat?.lastBossTurnSpeed})[0]!;
-            }
+        var combatant = await getCombatantForAction(options.actor, item);
+        if(!combatant){
+            //TODO: Track off-turn action usages by bosses and such better
+            return;
         }
 
         switch(item.system.activation.cost.type){
@@ -109,7 +113,7 @@ export function activateCombatantHooks(){
             default:
                 break;
         }
-        return true;
+        return;
 
     });
 
@@ -153,49 +157,158 @@ export function activateCombatantHooks(){
             }
         }
     });
+
+    //TODO: This should probably be done by overriding the token document, not by a hook.
+    Hooks.on("preMoveToken", (token: TokenDocument, movementData: TokenDocument.MovementOperation, options: TokenDocument.Database.UpdateOptions) => {
+        console.log("Running preMoveToken");
+        console.log("Token:");
+        console.log(token);
+        console.log("movementData:");
+        console.log(movementData);
+        if(!game.combat || !game.combat.active){
+            return true;
+        }
+
+        if(movementData.constrainOptions.ignoreCost){
+            return true;
+        }
+
+        if(!token.actor) return true;
+        var tokenCombatant: AdvancedCosmereCombatant | undefined;
+        if(game.combat.combatant && (game.combat.combatant?.actorId === token.actor.id)){
+            tokenCombatant = game.combat.combatant;
+        }
+        else{
+            // If it's not this combatant's turn, for now, just let the combatant move freely
+            return true;
+        }
+        console.log("tokenCombatant");
+        console.log(tokenCombatant);
+
+        let moveCost = movementData.passed.cost
+        let moveType = token.movementAction as MovementType | "blink";
+        console.log("moveCost");
+        console.log(moveCost);
+        console.log("moveType");
+        console.log(moveType);
+        let initialRemainingMovementFromLastAction = (tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction"));
+        let requeueMoveData: Omit<TokenDocument.MovementData, "user" | "state"> = {
+            updateOptions: options,
+            ...movementData
+        }
+        if(!initialRemainingMovementFromLastAction){
+            requeueMoveAfter(tokenCombatant, requeueMoveData, resetRemainingMovement, tokenCombatant);
+        }
+
+        if(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType] < moveCost){
+            //TODO: Get movement item from actor sheet or from compendium
+            console.log("Not enough remaining movement:");
+            console.log((tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType]));
+            switch(getModuleSetting(SETTINGS.BASIC_MOVE_ACTION_WHEN)){
+                case BasicMoveActionWhenOptions.never:
+                    return combatantNotEnoughMovement(tokenCombatant, moveType);
+
+                // case BasicMoveActionWhenOptions.prompt:
+                //     //TODO: Create "Use basic movement action" prompt
+                //     requeueMoveAfter(tokenCombatant, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);
+                //     return false;
+
+                case BasicMoveActionWhenOptions.auto:
+                    requeueMoveAfter(tokenCombatant, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);
+                    return false;
+
+                default:
+                    return combatantNotEnoughMovement(tokenCombatant, moveType);
+            }
+        }
+
+        let remainingMovementFromLastAction = (tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction"));
+        remainingMovementFromLastAction[moveType] -= moveCost;
+        tokenCombatant.setFlag(MODULE_ID, "remainingMovementFromLastAction", remainingMovementFromLastAction);
+        return true;
+    });
 }
 
-function handleFreeAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+function combatantNotEnoughMovement(combatant: AdvancedCosmereCombatant, moveType: MovementType | "blink"){
+    if(game.i18n){
+        ui.notifications?.warn(
+            game.i18n.format(`${MODULE_ID}.warning.notEnoughMovementType`, {
+                actor: combatant.actor.name,
+                moveType: game.i18n.localize(`${MODULE_ID}.movementType.${moveType}`)
+            })
+        );
+    }
+    if(getModuleSetting(SETTINGS.BLOCK_MOVE_WITHOUT_ACTION)){
+        return false;
+    }
+    return true;
+}
+
+async function useDefaultMoveAction(combatant: AdvancedCosmereCombatant, moveType: MovementType | "blink"){
+    console.log("Attempting using default move action");
+    let moveActionItem = await getDefaultMovementItemForType(combatant.actor, moveType);
+    console.log("Found move action item: ");
+    console.log(moveActionItem);
+    if(moveActionItem && combatant.canUseItem(moveActionItem)){
+        console.log("attempting to use move action:");
+        console.log(moveActionItem);
+        await combatant.actor.useItem(moveActionItem);
+        return true;
+    }
+    return false;
+}
+
+async function requeueMoveAfter(combatant: AdvancedCosmereCombatant, movementData: Omit<TokenDocument.MovementData, "user" | "state">, fn: Function, ...args: any[]){
+    console.log("Checking if move should be requeued");
+    if((await fn(...args)) !== false){
+        console.log("Requeueing move");
+        let newQueuedMoveData: QueuedMoveData = {
+            moveData: movementData,
+            combatantId: combatant.id!
+        }
+        globalThis.queuedMoveData = newQueuedMoveData;
+    }
+    else{
+        console.log("Cancelling or finalizing move");
+        let moveType = combatant.token?.movementAction as MovementType | "blink";
+        if(combatantNotEnoughMovement(combatant, moveType)){
+            // If this returns true, we should reattempt the move with ignore cost on
+            let moveOptions: TokenDocument.MoveOptions = {
+                    method: movementData.method,
+                    autoRotate: movementData.autoRotate,
+                    showRuler: movementData.showRuler,
+                    constrainOptions: {
+                        ignoreWalls: movementData.constrainOptions.ignoreWalls,
+                        ignoreCost: true,
+                    },
+                    ...movementData.updateOptions
+            }
+            await combatant.token?.move(movementData.passed.waypoints, moveOptions);
+        }
+    }
+}
+
+async function handleFreeAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+    await applyMovementFromItem(combatant, cosmereItem);
     let usedAction = new UsedAction(1, cosmereItem.name);
-    combatant.useFreeAction(usedAction);
+    await combatant.useFreeAction(usedAction);
 }
 
-function handleSpecialAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+async function handleSpecialAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+    await applyMovementFromItem(combatant, cosmereItem);
     let usedAction = new UsedAction(1, cosmereItem.name);
-    combatant.useSpecialAction(usedAction);
+    await combatant.useSpecialAction(usedAction);
 }
 
-function handleReaction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
-    combatant.useReaction(new UsedAction(1, cosmereItem.name));
+async function handleReaction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+    await applyMovementFromItem(combatant, cosmereItem);
+    await combatant.useReaction(new UsedAction(1, cosmereItem.name));
 }
 
-function handleUseAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+async function handleUseAction(combatant: AdvancedCosmereCombatant, cosmereItem: CosmereItem){
+    await applyMovementFromItem(combatant, cosmereItem);
     let usedAction = new UsedAction(cosmereItem.system.activation.cost.value!, cosmereItem.name);
-    combatant.useAction(usedAction);
-}
-
-async function promptBossSpeed(actor: CosmereActor): Promise<TurnSpeed | "offTurn">{
-    let bossSpeed = await foundry.applications.api.DialogV2.wait({
-        window: { title: game.i18n?.format(`${MODULE_ID}.prompts.bossTurnSpeedSelect.content`) },
-        content: `<p>${game.i18n?.format(`${MODULE_ID}.prompts.bossTurnSpeedSelect.content`)}</p>`,
-        // This example does not use i18n strings for the button labels,
-        // but they are automatically localized.
-        buttons: [
-            {
-                label: `${MODULE_ID}.prompts.bossTurnSpeedSelect.fast`,
-                action: TurnSpeed.Fast,
-            },
-            {
-                label: `${MODULE_ID}.prompts.bossTurnSpeedSelect.slow`,
-                action: TurnSpeed.Slow,
-            },
-            {
-                label: `${MODULE_ID}.prompts.bossTurnSpeedSelect.offTurn`,
-                action: "offTurn",
-            },
-        ]
-    }) as TurnSpeed | "offTurn";
-    return bossSpeed;
+    await combatant.useAction(usedAction);
 }
 
 // If a combatant is updated with a new turnSpeed, update actionsOnTurn accordingly
@@ -214,7 +327,9 @@ Hooks.on("combatTurnChange", async (
     prior: Combat.HistoryData,
     current: Combat.HistoryData
 ) => {
-    if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.turnStart || (! current.combatantId)){
+    if(getModuleSetting(SETTINGS.REFRESH_COMBATANT_ACTIONS_WHEN) != RefreshCombatantActionsWhenOptions.turnStart ||
+        (!current.combatantId) ||
+        (!game.user?.isActiveGM)){
         return;
     }
     let turns = combat.turns;
