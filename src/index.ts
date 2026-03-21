@@ -11,6 +11,7 @@ import { AdvancedCosmereCombat } from '@module/documents/combat';
 import { AdvancedCosmereCombatTracker } from '@module/applications/combat';
 import { AdvancedCosmereCombatant } from '@module/documents/combatant';
 import { initializeTestHooks } from '@module/tests';
+import { QueuedMoveData } from './module/helpers/movement';
 
 declare global {
 	interface LenientGlobalVariableTypes {
@@ -21,6 +22,7 @@ declare global {
         COSMERE_ADVANCED_ENCOUNTERS: typeof COSMERE_ADVANCED_ENCOUNTERS;
     }
     var useTestHooks: boolean;
+    var queuedMoveData: QueuedMoveData | undefined;
 }
 
 Hooks.once('init', async function() {
@@ -28,6 +30,7 @@ Hooks.once('init', async function() {
     CONFIG.ui.combat = AdvancedCosmereCombatTracker;
     CONFIG.Combatant.documentClass = AdvancedCosmereCombatant as any;
     globalThis.useTestHooks = false;
+    globalThis.queuedMoveData = undefined;
     registerModuleSettings();
     registerWelcomeMessage();
     initializeTestHooks();
@@ -52,9 +55,24 @@ Hooks.on("updateCombatant", async (
     userId : string
 ) => {
     //If this update doesn't have flags pertaining to a combatant's action flags, don't do anything
-    if(change.flags?.[MODULE_ID] == null){
+    if((!change.flags) || change.flags[MODULE_ID] == null){
         return;
     }
     await combatant.pullActionsFromFlags();
-    // activeCombat.getCombatantActionsByCombatantId(combatant?.id!)?.pullFlagInformation();
+
+    // If we're updating the remaining movement of this combatant, and that combatant has move data queued up, activate the queued movement
+    if(change.flags[MODULE_ID].remainingMovementFromLastAction && globalThis.queuedMoveData && combatant.id == globalThis.queuedMoveData.combatantId){
+        let movementData = foundry.utils.deepClone(globalThis.queuedMoveData.moveData);
+        console.log("Attempting queued move:");
+        console.log(movementData);
+        globalThis.queuedMoveData = undefined; // We're handling the queued move now, so reset it to undefined
+        let moveOptions: TokenDocument.MoveOptions = {
+                method: movementData.method,
+                autoRotate: movementData.autoRotate,
+                showRuler: movementData.showRuler,
+                constrainOptions: movementData.constrainOptions,
+                ...movementData.updateOptions
+        }
+        await combatant.token?.move(movementData.passed.waypoints, moveOptions);
+    }
 });

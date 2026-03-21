@@ -9,7 +9,7 @@ import { BasicMoveActionWhenOptions, CheckActionUsabilityOptions, getModuleSetti
 import { UsedAction } from "@module/documents/used-action";
 import { AdvancedCosmereCombatant } from "@module/documents/combatant";
 import { AdvancedCosmereCombat } from "@module/documents/combat";
-import { applyMovementFromItem, getDefaultMovementItemForType, resetRemainingMovement } from "../helpers/movement";
+import { applyMovementFromItem, getDefaultMovementItemForType, QueuedMoveData, resetRemainingMovement } from "../helpers/movement";
 import { getCombatantForAction } from "../helpers/combatant";
 
 
@@ -197,7 +197,7 @@ export function activateCombatantHooks(){
             ...movementData
         }
         if(!initialRemainingMovementFromLastAction){
-            requeueMoveAfter(token, requeueMoveData, resetRemainingMovement, tokenCombatant);
+            requeueMoveAfter(tokenCombatant, requeueMoveData, resetRemainingMovement, tokenCombatant);
         }
 
         if(tokenCombatant.getFlag(MODULE_ID, "remainingMovementFromLastAction")[moveType] < moveCost){
@@ -210,11 +210,11 @@ export function activateCombatantHooks(){
 
                 case BasicMoveActionWhenOptions.prompt:
                     //TODO: Create "Use basic movement action" prompt
-                    requeueMoveAfter(token, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);
+                    requeueMoveAfter(tokenCombatant, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);
                     return false;
 
                 case BasicMoveActionWhenOptions.auto:
-                    requeueMoveAfter(token, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);
+                    requeueMoveAfter(tokenCombatant, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);
                     return false;
 
                 default:
@@ -258,32 +258,27 @@ async function useDefaultMoveAction(combatant: AdvancedCosmereCombatant, moveTyp
     return false;
 }
 
-async function requeueMoveAfter(token: TokenDocument, movementData: Omit<TokenDocument.MovementData, "user" | "state">, fn: Function, ...args: any[]){
+async function requeueMoveAfter(combatant: AdvancedCosmereCombatant, movementData: Omit<TokenDocument.MovementData, "user" | "state">, fn: Function, ...args: any[]){
     console.log("Checking if move should be requeued");
     if((await fn(...args)) !== false){
         console.log("Requeueing move");
-        let moveOptions: TokenDocument.MoveOptions = {
-                method: movementData.method,
-                autoRotate: movementData.autoRotate,
-                showRuler: movementData.showRuler,
-                constrainOptions: movementData.constrainOptions,
-                ...movementData.updateOptions
+        let newQueuedMoveData: QueuedMoveData = {
+            moveData: movementData,
+            combatantId: combatant.id!
         }
-        await token.move(movementData.passed.waypoints, moveOptions);
+        globalThis.queuedMoveData = newQueuedMoveData;
     }
-    else if(token.combatant){
+    else{
         console.log("Cancelling or finalizing move");
-        let moveType = token.movementAction as MovementType | "blink";
-        if(combatantNotEnoughMovement(token.combatant, moveType)){
-            let moveOptions: TokenDocument.MoveOptions = {
-                    method: movementData.method,
-                    autoRotate: movementData.autoRotate,
-                    showRuler: movementData.showRuler,
-                    constrainOptions: movementData.constrainOptions,
-                    ...movementData.updateOptions
+        let moveType = combatant.token?.movementAction as MovementType | "blink";
+        if(combatantNotEnoughMovement(combatant, moveType)){
+            let moveDataClone = foundry.utils.deepClone(movementData);
+            moveDataClone.constrainOptions.ignoreCost = true;
+            let newQueuedMoveData: QueuedMoveData = {
+                moveData: moveDataClone,
+                combatantId: combatant.id!
             }
-            moveOptions.constrainOptions.ignoreCost = true;
-            await token.move(movementData.passed.waypoints, moveOptions);
+            globalThis.queuedMoveData = newQueuedMoveData;
         }
     }
 }

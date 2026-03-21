@@ -4,14 +4,19 @@ import { AdvancedCosmereCombatant } from "../documents/combatant";
 import { MODULE_ID } from "../constants";
 
 interface ActionMovement {
-    movementType: MovementType | "blink",
-    distance: SentenceMoveData
+    movementType: MovementType | "blink";
+    distance: SentenceMoveData;
 }
 
 interface SentenceMoveData {
-    movementType?: MovementType | "blink",
+    movementType?: MovementType | "blink";
     rate?: "moveRate" | "halfRate";
-    feet?: number
+    feet?: number;
+}
+
+export interface QueuedMoveData {
+    moveData: Omit<TokenDocument.MovementData, "user" | "state">;
+    combatantId: string;
 }
 
 function getMovementOfItem(combatant: AdvancedCosmereCombatant, item: CosmereItem): ActionMovement | undefined{
