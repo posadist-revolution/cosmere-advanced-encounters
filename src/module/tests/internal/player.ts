@@ -1,9 +1,10 @@
 import { Quench } from "@ethaks/fvtt-quench";
 import { MODULE_ID, MODULE_NAME } from "@src/module/constants";
-import { actVals, createTestCombat, endTurn, helperCombatant, hookRanAfterCall, nextRound, pullActionsDoneAfterFunc, setHelperCombat, setHelperCombatant, setHookWatchedIds, startTurn, teardownTestCombat, TestCombat, TestCombatantOptions, useOneAction, useReaction, useThreeActions, useTwoActions } from "../helpers";
+import { actVals, createTestCombat, endTurn, helperCombatant, hookRanAfterCall, nextRound, pullActionsDoneAfterFunc, setHelperCombat, setHelperCombatant, setHelperCombatant2, setHookWatchedIds, startTurn, teardownTestCombat, TestCombat, TestCombatantOptions, useOneAction, useReaction, useThreeActions, useTwoActions } from "../helpers";
 import { ActorType, AdversaryRole, TurnSpeed } from "@src/declarations/cosmere-rpg/types/cosmere";
 import { getAllModuleSettings, getModuleSetting, RefreshCombatantActionsWhenOptions, setAllModuleSettings, setModuleSetting, SETTINGS } from "@src/module/settings";
-import { createTestCombatPlayer, registerTestQueries, setOwner, teardownTestCombatPlayer } from "../helpers/test-queries";
+import { createTestCombatPlayer, registerTestQueries, setObserver, setOwner, teardownTestCombatPlayer } from "../helpers/test-queries";
+import { CombatantUIHelper } from "../helpers/ui-helpers";
 
 
 export function registerPlayerTestBatch(quench: Quench){
@@ -59,6 +60,36 @@ export function registerPlayerTestBatch(quench: Quench){
                     expect(helperCombatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER)).to.equal(true);
                     expect(helperCombatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)).to.equal(true);
                 });
+
+                it("Test UI respecting permissions", async function() {
+                    expect(testCombat.combat?.current.turn).to.be.null;
+                    const slowCharacterCombatants = testCombat.combat?.combatants?.filter((combatant) => (combatant.actor.type == ActorType.Character && combatant.turnSpeed == TurnSpeed.Slow))!;
+                    const bossCombatant = testCombat.combat?.combatants.find((combatant) => (combatant.isBoss));
+
+                    setHelperCombatant(slowCharacterCombatants[0]);
+                    setHookWatchedIds([helperCombatant.id!]);
+
+                    await setOwner(helperCombatant.actor as any);
+                    await setObserver(bossCombatant?.actor as any);
+
+                    for(const combatant of testCombat.combat?.combatants!){
+                        let ui = new CombatantUIHelper(combatant);
+                        if(combatant.testUserPermission(game.user!, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER)){
+                            if(combatant.turnSpeed == TurnSpeed.Fast){
+                                expect(ui.numActionsAvailable).to.equal(2);
+                            }
+                            else{
+                                expect(ui.numActionsAvailable).to.equal(3);
+                            }
+                        }
+                        else{
+                            expect(ui.numActionsAvailable).to.equal(0);
+                        }
+                    }
+                });
+
+                //TODO: Test setting which enables/disables resetting actions used
+
 
                 afterEach(async function() {
                     CONFIG.debug.hooks = false;

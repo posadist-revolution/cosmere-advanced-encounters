@@ -59,6 +59,15 @@ export async function setOwner(doc: ClientDocument){
     await game.users?.activeGM?.query(MODULE_QUERY.setPermissions, queryData);
 }
 
+export async function setObserver(doc: ClientDocument){
+    let queryData: SetPermissionsData = {
+        userIdForRequest: game.userId!,
+        docUuidForRequest: doc.uuid,
+        permissions: foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER
+    }
+    await game.users?.activeGM?.query(MODULE_QUERY.setPermissions, queryData);
+}
+
 async function setUserPermissionsQuery(setPermissionsData: SetPermissionsData){
     let document = await fromUuid(setPermissionsData.docUuidForRequest);
     let updateData = {
