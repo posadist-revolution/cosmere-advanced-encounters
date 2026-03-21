@@ -272,13 +272,18 @@ async function requeueMoveAfter(combatant: AdvancedCosmereCombatant, movementDat
         console.log("Cancelling or finalizing move");
         let moveType = combatant.token?.movementAction as MovementType | "blink";
         if(combatantNotEnoughMovement(combatant, moveType)){
-            let moveDataClone = foundry.utils.deepClone(movementData);
-            moveDataClone.constrainOptions.ignoreCost = true;
-            let newQueuedMoveData: QueuedMoveData = {
-                moveData: moveDataClone,
-                combatantId: combatant.id!
+            // If this returns true, we should reattempt the move with ignore cost on
+            let moveOptions: TokenDocument.MoveOptions = {
+                    method: movementData.method,
+                    autoRotate: movementData.autoRotate,
+                    showRuler: movementData.showRuler,
+                    constrainOptions: {
+                        ignoreWalls: movementData.constrainOptions.ignoreWalls,
+                        ignoreCost: true,
+                    },
+                    ...movementData.updateOptions
             }
-            globalThis.queuedMoveData = newQueuedMoveData;
+            await combatant.token?.move(movementData.passed.waypoints, moveOptions);
         }
     }
 }
