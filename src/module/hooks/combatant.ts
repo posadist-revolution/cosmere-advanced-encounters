@@ -208,10 +208,10 @@ export function activateCombatantHooks(){
                 case BasicMoveActionWhenOptions.never:
                     return combatantNotEnoughMovement(tokenCombatant, moveType);
 
-                case BasicMoveActionWhenOptions.prompt:
-                    //TODO: Create "Use basic movement action" prompt
-                    requeueMoveAfter(tokenCombatant, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);
-                    return false;
+                // case BasicMoveActionWhenOptions.prompt:
+                //     //TODO: Create "Use basic movement action" prompt
+                //     requeueMoveAfter(tokenCombatant, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);
+                //     return false;
 
                 case BasicMoveActionWhenOptions.auto:
                     requeueMoveAfter(tokenCombatant, requeueMoveData, useDefaultMoveAction, tokenCombatant, moveType);

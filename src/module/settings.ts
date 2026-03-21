@@ -72,7 +72,7 @@ export const enum CheckActionUsabilityOptions {
 
 export const enum BasicMoveActionWhenOptions {
     never = `never`,
-    prompt = `prompt`,
+    // prompt = `prompt`,
     auto = `auto`,
 }
 
@@ -163,9 +163,9 @@ export function registerModuleSettings() {
                 [BasicMoveActionWhenOptions.never]: game.i18n?.localize(
                     `${MODULE_ID}.settings.basicMoveActionWhenOptions.${BasicMoveActionWhenOptions.never}`,
                 ),
-                [BasicMoveActionWhenOptions.prompt]: game.i18n?.localize(
-                    `${MODULE_ID}.settings.basicMoveActionWhenOptions.${BasicMoveActionWhenOptions.prompt}`,
-                ),
+                // [BasicMoveActionWhenOptions.prompt]: game.i18n?.localize(
+                //     `${MODULE_ID}.settings.basicMoveActionWhenOptions.${BasicMoveActionWhenOptions.prompt}`,
+                // ),
                 [BasicMoveActionWhenOptions.auto]: game.i18n?.localize(
                     `${MODULE_ID}.settings.basicMoveActionWhenOptions.${BasicMoveActionWhenOptions.auto}`,
                 ),
