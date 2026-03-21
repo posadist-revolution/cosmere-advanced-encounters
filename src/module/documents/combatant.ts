@@ -383,17 +383,17 @@ export class AdvancedCosmereCombatant extends Combatant {
             return;
         }
         if(this.actor.statuses.has(Status.Stunned)) {
-            this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Stunned")), "base");
-            this.useAction(new UsedAction(2, game.i18n?.localize("COSMERE.Status.Stunned")), "base");
+            this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Stunned")), "base", false);
+            this.useAction(new UsedAction(2, game.i18n?.localize("COSMERE.Status.Stunned")), "base", false);
             return;
         }
         if(this.actor.statuses.has(Status.Surprised)) {
-            this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Surprised")), "base");
-            this.useAction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Surprised")), "base");
+            this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Surprised")), "base", false);
+            this.useAction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Surprised")), "base", false);
             return;
         }
         if(this.actor.statuses.has(Status.Disoriented)) {
-            this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Disoriented")), "base");
+            this.useReaction(new UsedAction(1, game.i18n?.localize("COSMERE.Status.Disoriented")), "base", false);
             return;
         }
     }
@@ -424,6 +424,7 @@ export class AdvancedCosmereCombatant extends Combatant {
     }
 
     public async removeConditionsOffTurn(statuses: Set<string>){
+        //TODO: Think about RAW and if this actually makes sense
         for(const reactionUsed of this.reactionsUsed){
             if(statuses.has(Status.Stunned) && reactionUsed.name == game.i18n?.localize("COSMERE.Status.Stunned")){
                 this.removeReaction(reactionUsed);
@@ -443,7 +444,7 @@ export class AdvancedCosmereCombatant extends Combatant {
         await this.sendUpdateFromActions();
     }
 
-    public async useAction(action : UsedAction, actionGroupName? : string){
+    public async useAction(action : UsedAction, actionGroupName? : string, updateNow: boolean = true){
         // console.log("useAction");
         let actionGroupToUse : ActionGroup;
         if(actionGroupName){
@@ -463,11 +464,11 @@ export class AdvancedCosmereCombatant extends Combatant {
         else{
             this._localActionsUsed.push(action);
         }
-        await this.sendUpdateFromActions();
+        if(updateNow) await this.sendUpdateFromActions();
         return true;
     }
 
-    public async removeAction(action: UsedAction){
+    public async removeAction(action: UsedAction, updateNow: boolean = true){
         let actionIndex = this.actionsUsed.findIndex((element) => (element.cost == action.cost && element.name == action.name));
         let actionGroup = this.getActionGroupByName(action.actionGroupUsedFromName!);
 
@@ -478,11 +479,11 @@ export class AdvancedCosmereCombatant extends Combatant {
         actionGroup.removeAction(action);
         this._localActionsUsed?.splice(actionIndex, 1);
 
-        await this.sendUpdateFromActions();
+        if(updateNow) await this.sendUpdateFromActions();
         return true;
     }
 
-    public async useReaction(reaction: UsedAction, reactionGroupName? : string){
+    public async useReaction(reaction: UsedAction, reactionGroupName? : string, updateNow: boolean = true){
         let reactionGroupToUse : ActionGroup;
         if(reactionGroupName){
             reactionGroupToUse = this.getReactionGroupByName(reactionGroupName);
@@ -501,11 +502,11 @@ export class AdvancedCosmereCombatant extends Combatant {
         else{
             this._localReactionsUsed.push(reaction);
         }
-        await this.sendUpdateFromActions();
+        if(updateNow) await this.sendUpdateFromActions();
         return true;
     }
 
-    public async removeReaction(reaction: UsedAction){
+    public async removeReaction(reaction: UsedAction, updateNow: boolean = true){
         let reactionIndex = this.reactionsUsed.findIndex((element) => (element.cost == reaction.cost && element.name == reaction.name));
         let reactionGroup = this.getReactionGroupByName(reaction.actionGroupUsedFromName!);
 
@@ -515,40 +516,40 @@ export class AdvancedCosmereCombatant extends Combatant {
         reactionGroup.removeAction(reaction);
         this._localReactionsUsed?.splice(reactionIndex, 1);
 
-        await this.sendUpdateFromActions();
+        if(updateNow) await this.sendUpdateFromActions();
         return true;
     }
 
-    public async useFreeAction(action: UsedAction){
+    public async useFreeAction(action: UsedAction, updateNow: boolean = true){
         if(!this._localFreeActionsUsed){
             this._localFreeActionsUsed = [action];
         }
         else{
             this._localFreeActionsUsed.push(action);
         }
-        await this.sendUpdateFromActions();
+        if(updateNow) await this.sendUpdateFromActions();
     }
 
-    public async removeFreeAction(freeAction: UsedAction){
+    public async removeFreeAction(freeAction: UsedAction, updateNow: boolean = true){
         let freeActionIndex = this.freeActionsUsed.findIndex((element) => (element.cost == freeAction.cost && element.name == freeAction.name));
         this._localFreeActionsUsed?.splice(freeActionIndex, 1);
-        await this.sendUpdateFromActions();
+        if(updateNow) await this.sendUpdateFromActions();
     }
 
-    public async useSpecialAction(action: UsedAction){
+    public async useSpecialAction(action: UsedAction, updateNow: boolean = true){
         if(!this._localSpecialActionsUsed){
             this._localSpecialActionsUsed = [action];
         }
         else{
             this._localSpecialActionsUsed.push(action);
         }
-        await this.sendUpdateFromActions();
+        if(updateNow) await this.sendUpdateFromActions();
     }
 
-    public async removeSpecialAction(specialAction: UsedAction){
+    public async removeSpecialAction(specialAction: UsedAction, updateNow: boolean = true){
         let specialActionIndex = this.specialActionsUsed.findIndex((element) => (element.cost == specialAction.cost && element.name == specialAction.name));
         this._localSpecialActionsUsed?.splice(specialActionIndex, 1);
-        await this.sendUpdateFromActions();
+        if(updateNow) await this.sendUpdateFromActions();
     }
 
     public async onCombatantTurnSpeedChange(){
