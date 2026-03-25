@@ -88,7 +88,9 @@ export function registerPlayerTestBatch(quench: Quench){
                     }
                 });
 
-                //TODO: Test setting which enables/disables resetting actions used
+                // TODO tests:
+                // Test setting which enables/disables resetting actions used
+                // Test propagating actions from player to GM and back
 
 
                 afterEach(async function() {
