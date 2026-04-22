@@ -57,6 +57,10 @@
                 "never": "Never",
                 "prompt": "Prompt before using",
                 "auto": "Use the 'Move' action automatically"
+            },
+            "useSkillPopup": {
+                "name": "Use Skill Popup window",
+                "hint": "When enabled, using the 'Use a Skill' or 'Gain Advantage' actions will create a popup window to select a skill to roll."
             }
         },
         "warning":
@@ -83,6 +87,11 @@
                 "fast": "Fast turn",
                 "slow": "Slow turn",
                 "offTurn": "Off-turn"
+            },
+            "useSkill":{
+                "inv": "Invested",
+                "title": "{NAME}'s skills",
+                "done": "Done"
             }
         }
     }

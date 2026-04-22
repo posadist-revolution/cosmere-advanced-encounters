@@ -11,6 +11,7 @@ import { AdvancedCosmereCombatant } from "@module/documents/combatant";
 import { AdvancedCosmereCombat } from "@module/documents/combat";
 import { applyMovementFromItem, getDefaultMovementItemForType, QueuedMoveData, resetRemainingMovement } from "../helpers/movement";
 import { getCombatantForAction } from "../helpers/combatant";
+import { Use_Skill } from "../applications/dialogs/use-skill-dialog";
 
 
 export function activateCombatantHooks(){
@@ -21,6 +22,9 @@ export function activateCombatantHooks(){
         item: CosmereItem,
         options: CosmereItem.UseOptions
     ) => {
+        if((item.system.id == "gain_advantage" || item.system.id == "use_a_skill") && getModuleSetting(SETTINGS.USE_SKILL_POPUP)){
+            Use_Skill(options.actor);
+        }
         if(!(getModuleSetting(SETTINGS.PULL_ACTIONS_FROM_CHAT) && game.combat?.started)){
             return true;
         }

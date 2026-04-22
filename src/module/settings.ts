@@ -8,6 +8,7 @@ export const SETTINGS = {
     CHECK_ACTION_USABILITY: 'checkActionUsability',
     CONDITIONS_APPLY_TO_ACTIONS: 'conditionsApplyToActions',
     BLOCK_MOVE_WITHOUT_ACTION: 'blockMoveWithoutAction',
+    USE_SKILL_POPUP: 'useSkillPopup',
     BASIC_MOVE_ACTION_WHEN: 'basicMoveActionWhen',
 } as const;
 
@@ -25,6 +26,8 @@ export type ModuleSettingsConfig = {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.CONDITIONS_APPLY_TO_ACTIONS}`]: boolean;
 } & {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.BLOCK_MOVE_WITHOUT_ACTION}`]: boolean;
+} & {
+    [key in `${typeof MODULE_ID}.${typeof SETTINGS.USE_SKILL_POPUP}`]: boolean;
 } & {
     [key in `${typeof MODULE_ID}.${typeof SETTINGS.BASIC_MOVE_ACTION_WHEN}`]: string;};
 
@@ -107,6 +110,11 @@ export function registerModuleSettings() {
             name: SETTINGS.BLOCK_MOVE_WITHOUT_ACTION,
             default: false,
             scope: 'world',
+        },
+        {
+            name: SETTINGS.USE_SKILL_POPUP,
+            default: true,
+            scope: 'client',
         },
     ];
 
